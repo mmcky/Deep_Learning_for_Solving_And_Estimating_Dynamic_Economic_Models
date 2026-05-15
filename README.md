@@ -308,10 +308,6 @@ manuscript (preferred) or the SSRN version:
 }
 ```
 
-A machine-readable [`CITATION.cff`](CITATION.cff) is also provided so
-GitHub's "Cite this repository" button picks up the arXiv entry
-automatically.
-
 ## Errata, contributions, and contact
 
 Questions, corrections, and pull requests are welcome on
