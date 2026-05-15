@@ -26,6 +26,12 @@ keywords:
   - climate economics
 license: MIT
 identifiers:
+  - type: other
+    value: "arXiv:2605.14493"
+    description: arXiv eprint
+  - type: url
+    value: "https://arxiv.org/abs/2605.14493"
+    description: arXiv manuscript
   - type: url
     value: "https://ssrn.com/abstract=6758340"
     description: SSRN manuscript
@@ -37,5 +43,5 @@ preferred-citation:
       given-names: Simon
       affiliation: University of Lausanne
   year: 2026
-  journal: "Available at SSRN 6758340"
-  url: "https://ssrn.com/abstract=6758340"
+  journal: "arXiv preprint arXiv:2605.14493"
+  url: "https://arxiv.org/abs/2605.14493"

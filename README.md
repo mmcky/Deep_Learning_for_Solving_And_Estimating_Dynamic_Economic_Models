@@ -279,12 +279,27 @@ Code is MIT-licensed; text, slides, script, and figures are CC0
 
 ## Citation
 
-Please cite *Deep Learning for Solving and Estimating Dynamic Models
-in Economics and Finance*, S. Scheidegger, 2026 in your publications
-if these materials help your research:
+If this work was useful in your research, please cite the arXiv
+manuscript (preferred) or the SSRN version:
+
+**arXiv (preferred):**
 
 ```bibtex
-@article{scheidegger_2026,
+@misc{scheidegger2026deeplearningsolvingestimating,
+  title         = {Deep Learning for Solving and Estimating Dynamic Models in Economics and Finance},
+  author        = {Simon Scheidegger},
+  year          = {2026},
+  eprint        = {2605.14493},
+  archivePrefix = {arXiv},
+  primaryClass  = {econ.GN},
+  url           = {https://arxiv.org/abs/2605.14493}
+}
+```
+
+**SSRN:**
+
+```bibtex
+@article{scheidegger_2026_ssrn,
   title   = {Deep Learning for Solving and Estimating Dynamic Models in Economics and Finance},
   author  = {Scheidegger, Simon},
   year    = {2026},
@@ -294,7 +309,8 @@ if these materials help your research:
 ```
 
 A machine-readable [`CITATION.cff`](CITATION.cff) is also provided so
-GitHub's "Cite this repository" button picks the entry up automatically.
+GitHub's "Cite this repository" button picks up the arXiv entry
+automatically.
 
 ## Errata, contributions, and contact
 
