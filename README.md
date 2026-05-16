@@ -306,7 +306,8 @@ manuscript (preferred) or the SSRN version:
   month   = {5},
   doi     = {10.2139/ssrn.6758340},
   url     = {https://ssrn.com/abstract=6758340},
-  journal = {Available at SSRN 6758340}
+  journal = {Available at SSRN 6758340},
+  note    = {Posted 13 May 2026}
 }
 ```
 
