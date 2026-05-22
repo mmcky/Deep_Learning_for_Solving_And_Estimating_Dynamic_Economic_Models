@@ -1,0 +1,78 @@
+version: 1
+project:
+  title: "Deep Learning for Solving and Estimating Dynamic Models in Economics and Finance"
+  authors:
+    - name: Simon Scheidegger
+      affiliation: University of Lausanne
+  github: https://github.com/sischei/Deep_Learning_for_Solving_And_Estimating_Dynamic_Economic_Models
+  bibliography:
+    - references.bib
+  # Book-mode numbering (qe-v4+). Numbered chapters 1–12, appendices A–F.
+  numbering:
+    book:
+      enabled: true
+    chapters:
+      label: "Chapter %s"
+    appendices:
+      label: "Appendix %s"
+  toc:
+    - file: index.md
+    - title: Front Matter
+      section: frontmatter
+      children:
+        - file: preface.md
+        - file: how_to_read.md
+        - file: notation.md
+        - file: execution_map.md
+    - title: Chapters
+      section: chapters
+      children:
+        - file: ch01_intro.md
+        - file: ch02_deqns.md
+        - file: ch03_irbc.md
+        - file: ch04_nas.md
+        - file: ch05_olg.md
+        - file: ch06_ha_youngs.md
+        - file: ch07_pinns.md
+        - file: ch08_ctime_ha.md
+        - file: ch09_surrogates_gps.md
+        - file: ch10_smm.md
+        - file: ch11_climate.md
+        - file: ch12_synthesis.md
+    - title: Appendices
+      section: appendices
+      children:
+        - file: appA_glossary.md
+        - file: appB_matrix_calc.md
+        - file: appC_ito.md
+        - file: appD_fixed_points.md
+        - file: appE_reproducibility.md
+        - file: appF_solutions.md
+
+  # KaTeX math macros mirroring the LaTeX preamble. Pandoc passes preamble
+  # \newcommand definitions through verbatim as math content, so they need
+  # to be declared here for KaTeX to render them.
+  math:
+    # Bold-math symbol macros (from \newcommand{\X}{\bm{X}})
+    '\x':  '\bm{x}'
+    '\y':  '\bm{y}'
+    '\z':  '\bm{z}'
+    '\w':  '\bm{w}'
+    '\h':  '\bm{h}'
+    '\a':  '\bm{a}'
+    '\bb': '\bm{b}'
+    '\W':  '\bm{W}'
+    '\X':  '\bm{X}'
+    '\Wh': '\bm{W}_{hh}'
+    '\Wx': '\bm{W}_{xh}'
+    '\Wo': '\bm{W}_{hy}'
+    # Blackboard bold
+    '\R':  '\mathbb{R}'
+    # Expectation with arg
+    '\E':  '\mathbb{E}\!\left[#1\right]'
+    # DeclareMathOperator names
+    '\argmin': '\operatorname*{arg\,min}'
+    '\argmax': '\operatorname*{arg\,max}'
+
+site:
+  template: book-theme

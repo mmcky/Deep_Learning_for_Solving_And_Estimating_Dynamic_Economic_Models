@@ -82,3 +82,6 @@ _tools/
 
 # claude-latex-to-myst: per-chapter preprocessed .tex artifacts
 mystmd/tmp/
+
+# MyST build output (deployed via GitHub Actions)
+mystmd/_build/
