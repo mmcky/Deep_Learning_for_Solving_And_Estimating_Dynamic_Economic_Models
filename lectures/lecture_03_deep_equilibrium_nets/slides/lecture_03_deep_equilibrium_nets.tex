@@ -1076,15 +1076,15 @@ C_{t+1} = (1-s_{t+1}) z_{t+1} K_{t+1}^\alpha.
 \begin{itemize}
     \setlength{\itemsep}{1pt}
     \item Simulate states $(K_t,z_t)$ forward
-    \item Draw one next-period shock $z_{t+1}$ per state
+    \item At each state, take $\mathbb{E}_t[\cdot]$ over $z_{t+1}$ by 5-node Gauss--Hermite quadrature
     \item Average $G_t^2$ over many simulated states
 \end{itemize}
 
 \column{0.44\textwidth}
 \begin{block}{Expectation Handling}
 \small
-\textbf{Brock--Mirman notebook:} path averaging, one shock per state.\\[2pt]
-\textbf{Richer models:} approximate the conditional expectation explicitly via \emphc{quadrature}, see next three slides.
+\textbf{Brock--Mirman notebook:} \emphc{Gauss--Hermite quadrature} (5 nodes) for the conditional expectation at each state.\\[2pt]
+\textbf{Richer models:} same idea with more nodes, or product / sparse grids in higher dimensions, see next three slides.
 \end{block}
 \end{columns}
 \end{frame}

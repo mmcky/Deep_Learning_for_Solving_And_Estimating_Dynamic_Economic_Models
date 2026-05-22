@@ -448,16 +448,16 @@ J(a,n):=s(a,n)g(a,n),\qquad J(\ubar a,n)=0
 \column{0.55\textwidth}
 \textbf{Two neural networks:}
 \begin{itemize}\itemsep1pt
-    \item $V_\theta(a, n)$: value function network
+    \item $V_\theta$: value function network
     \begin{itemize}\itemsep0pt
-        \item Input: $(a, n)$ \quad ($n$ encoded as 0/1)
-        \item Output: scalar $V$
-        \item Architecture: 3--4 hidden layers, 64 neurons, $\tanh$
+        \item Input: $a$ (scalar)
+        \item Output: 2-vector $\big(V(a,n_1),V(a,n_2)\big)$, one per income state
+        \item Architecture: 4 hidden layers, 64 neurons, $\tanh$
     \end{itemize}
-    \item $g_\phi(a, n)$: density network
+    \item $g_\phi$: density network
     \begin{itemize}\itemsep0pt
-        \item Input: $(a, n)$
-        \item Output: scalar $g \geq 0$ (use softplus)
+        \item Input: $a$ (scalar)
+        \item Output: 2-vector $\big(g(a,n_1),g(a,n_2)\big) \geq 0$ (softplus)
         \item Same architecture
     \end{itemize}
 \end{itemize}
@@ -531,7 +531,7 @@ The loss enforces \emphc{both} the HJB residual \emphc{and} the FOC consistency:
     \item FOC residual must vanish \emph{independently} of the HJB residual.
 \end{itemize}
 
-{\footnotesize It generalises to two discrete income states and to OU diffusion income; Notebook 08 instead takes the $c=(V_a)^{-1/\gamma}$ route and outputs $(V,g)$ for the coupled HJB--KFE system.}
+{\footnotesize It generalises to two discrete income states and to OU diffusion income; Notebook 08 instead takes the $c=(V_a)^{-1/\gamma}$ route with log utility ($\gamma=1$, so $c=1/V_a$) and outputs $(V,g)$ for the coupled HJB--KFE system.}
 \end{frame}
 
 % --- Slide: Loss Function ---
