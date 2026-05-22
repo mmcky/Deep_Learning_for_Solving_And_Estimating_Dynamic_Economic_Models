@@ -1,0 +1,142 @@
+# Deep Learning for Solving And Estimating Dynamic Economic Models
+# LaTeX → MyST config
+#
+# Drives the shared claude-latex-to-myst pipeline against the single
+# consolidated LaTeX source in ../lecture_script/. The single .tex is
+# carved into 22 per-chapter pieces via preprocess.split below.
+
+source_dir: "../lecture_script"
+output_dir: "."
+tmp_dir: "./tmp"
+
+# Numbered chapters 1–12, in source order. Stems use chXX_<topic>.
+chapters:
+  - { stem: ch01_intro,           title: "Introduction to Machine Learning and Deep Learning" }
+  - { stem: ch02_deqns,           title: "Deep Equilibrium Nets" }
+  - { stem: ch03_irbc,            title: "The International Real Business Cycle Model" }
+  - { stem: ch04_nas,             title: "Neural Architecture Search and Loss Normalization" }
+  - { stem: ch05_olg,             title: "Overlapping Generations Models with DEQNs" }
+  - { stem: ch06_ha_youngs,       title: "Heterogeneous Agents and Young's Method" }
+  - { stem: ch07_pinns,           title: "Physics-Informed Neural Networks" }
+  - { stem: ch08_ctime_ha,        title: "Heterogeneous Agent Models in Continuous Time" }
+  - { stem: ch09_surrogates_gps,  title: "Deep Surrogate Models and Gaussian Processes" }
+  - { stem: ch10_smm,             title: "Structural Estimation via SMM" }
+  - { stem: ch11_climate,         title: "Climate Economics and Deep Uncertainty Quantification" }
+  - { stem: ch12_synthesis,       title: "Synthesis and Outlook" }
+
+# Front matter + appendices live outside the numbered sequence.
+# Appendices A–F retain the published PDF lettering in their stems.
+extra_files:
+  - { stem: preface,                 title: "Preface" }
+  - { stem: how_to_read,             title: "How to Read This Script" }
+  - { stem: notation,                title: "Notation and Symbols" }
+  - { stem: execution_map,           title: "Execution Map" }
+  - { stem: appA_glossary,           title: "Glossary" }
+  - { stem: appB_matrix_calc,        title: "Matrix Calculus and Automatic Differentiation" }
+  - { stem: appC_ito,                title: "Itô Calculus, Brownian Motion, and Ergodicity" }
+  - { stem: appD_fixed_points,       title: "Fixed Points, Contraction Mappings, and the Bellman Operator" }
+  - { stem: appE_reproducibility,    title: "Reproducibility Information" }
+  - { stem: appF_solutions,          title: "Solutions and Guidance for Exercises" }
+
+# Project-specific tcolorbox wrappers from the LaTeX preamble (lines 150–169
+# of the source). Mapped to the closest sphinx-proof directives so they
+# render as styled callouts in MyST. `definitionbox` is overloaded in the
+# source (definitions, theorems, algorithm wrappers); the algorithm case
+# will surface incorrectly until upstream issue #20 (`algorithmic` support)
+# lands — those blocks can then be re-mapped individually.
+extra_environments:
+  remarkbox:      prf:remark
+  keyinsightbox:  prf:remark
+  definitionbox:  prf:definition
+
+# Bibliography sits outside the LaTeX source tree (at ../readings/).
+# convert.sh resolves the path relative to source_dir, so ../readings/...
+# from lecture_script/ lands on the right file.
+bibliography: "../readings/bibliography.bib"
+
+# Pre-rendered figures live under lecture_script/fig/.
+figures_dir: "fig"
+
+# No external \input{tikz/...} references in this book; 82 inline
+# \begin{tikzpicture} blocks remain in the source and will need a separate
+# rendering pass after the initial conversion (tracked as a follow-up task).
+tikz_overrides: null
+
+# --- LaTeX pre-processing ---------------------------------------------------
+
+preprocess:
+  # The book ships as one consolidated .tex with 22 \chapter*?{...} blocks
+  # (4 starred front matter + 12 numbered chapters + 6 lettered appendices).
+  # Order in `into:` must match the order the blocks appear in the source —
+  # the splitter writes the Nth block to into[N-1].
+  split:
+    - source: Deep_Learning_for_Solving_And_Estimating_Dynamic_Economic_Models
+      into:
+        - preface
+        - how_to_read
+        - notation
+        - execution_map
+        - ch01_intro
+        - ch02_deqns
+        - ch03_irbc
+        - ch04_nas
+        - ch05_olg
+        - ch06_ha_youngs
+        - ch07_pinns
+        - ch08_ctime_ha
+        - ch09_surrogates_gps
+        - ch10_smm
+        - ch11_climate
+        - ch12_synthesis
+        - appA_glossary
+        - appB_matrix_calc
+        - appC_ito
+        - appD_fixed_points
+        - appE_reproducibility
+        - appF_solutions
+
+  strip:
+    - '\\index\{[^}]*\}'
+    - '\\clearpage'
+    - '\\newpage'
+    - '\\noindent'
+    - '\\vspace\{[^}]*\}'
+    # Strip trailing document-level commands carried into the final
+    # split-chapter file (the splitter takes content to EOF).
+    - '\\bibliography\{[^}]*\}'
+    - '\\end\{document\}'
+
+  rewrites:
+    # Unwrap \scalebox{N}{\includegraphics{...}} (with optional [opts])
+    - { from: '\\scalebox\{[0-9.]+\}\s*\{\s*(\\includegraphics(?:\[[^\]]*\])?\s*\{[^{}]*\})\s*\}',
+        to: '\1' }
+    # tabularx-style column types L{<width>} confuse pandoc's tabular reader,
+    # so it bails on the whole block and we lose the table. Standard p{<width>}
+    # is semantically equivalent (left-aligned, fixed-width with line-wrap) and
+    # pandoc handles it natively. Workaround tracked at
+    # https://github.com/mmcky/Deep_Learning_for_Solving_And_Estimating_Dynamic_Economic_Models/issues/1
+    # — remove this rewrite when/if the LaTeX source migrates to p{...}.
+    - { from: '\bL\{([0-9.]+\s*(?:cm|mm|in|pt|em|ex))\}',
+        to:   'p{\1}' }
+
+# --- Post-pandoc Markdown rewrites ------------------------------------------
+
+postprocess:
+  rewrites:
+    # The Glossary's source uses ``\item[\textbf{Term.}]`` (bold inside the
+    # description label). Upstream PR #19 preserves the label content
+    # verbatim, so the literal ``\textbf{...}`` survives into the term line.
+    # Convert it to MyST bold so def-list terms render cleanly.
+    - { stems: [appA_glossary],
+        from:  '^\\textbf\{([^}]*)\}$',
+        to:    '**\1**' }
+
+# --- Validation -------------------------------------------------------------
+
+validate:
+  equations: true
+  cross_references: true
+  theorems: true
+  figures: true
+  citations: true
+  broken_inline_math: true
