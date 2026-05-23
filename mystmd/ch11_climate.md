@@ -13,7 +13,7 @@ Climate change is a global externality: the emissions of each agent affect the w
 
 Integrated assessment models (IAMs) formalize this coupling. The economy produces output and emissions; emissions accumulate in the atmosphere and raise global temperature; temperature increases cause damages that reduce output. The feedback loop is closed (Figure {numref}`fig-iam_feedback_loop`):
 
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/fig-iam_feedback_loop.svg
 :name: fig-iam_feedback_loop
 
 The integrated-assessment feedback loop. The economy produces output and CO2 emissions; emissions accumulate in the atmosphere and raise global mean temperature (ΔT); higher temperatures generate damages that reduce output and consumption, which in turn shape the path of future emissions. An IAM closes this loop and uses it to quantify the welfare cost of additional emissions, summarized by the social cost of carbon [eq:scc].
@@ -200,7 +200,7 @@ encodes the two atmosphere--upper-ocean exchange rates ($b_{12}$ in either direc
 
 Equation {eq}`eq-carbon_cycle` is a pulse-and-decay system: a unit pulse of emissions raises atmospheric carbon by one unit instantaneously, and that anomaly then bleeds into the upper ocean over decades and into the deep ocean over centuries. Figure {numref}`fig-restud_bau_emissions` shows the implied BAU emissions trajectory under nine alternative climate-module calibrations; the spread is mostly driven by the equilibrium climate sensitivity (developed in {ref}`sec-dice_temperature`), not by the carbon cycle, which is tightly disciplined by the pulse and step tests of {ref}`sec-cdice_recalibration`.
 
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/restud_fig11a.pdf
 :name: fig-restud_bau_emissions
 
 Business-as-usual industrial emissions in CDICE (in GtCO2/yr) under the nine combinations of three carbon-cycle calibrations (MMM, MESMO, LOVECLIM) and three temperature calibrations (MMM, HadGEM2-ES, GISS-E2-R); the thin CDICE curves overlap visually, confirming that the BAU emissions path is essentially insensitive to the climate-module calibration because σt and At are exogenous. The thick red and orange curves are the RCP 8.5 and RCP 6.0 scenarios, included as climate-policy reference paths. Reproduced from , Figure 11(a).
@@ -225,7 +225,7 @@ $$ (eq-forcing)
 
 Figure {numref}`fig-cdice_climate_topology` summarizes the full topology of the climate side: industrial emissions enter the atmospheric carbon stock, leak into the upper and lower ocean reservoirs at calibrated rates, raise radiative forcing through the logarithmic CO$_2$ term, and warm the atmospheric and ocean temperature layers through the two-layer energy balance.
 
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/fig-cdice_climate_topology.svg
 :name: fig-cdice_climate_topology
 
 Topology of the CDICE climate side. Total emissions Et enter the atmospheric carbon box MtAT, leak into the upper- and lower-ocean carbon boxes at exchange rates b12 and b23, and drive radiative forcing Ft through the logarithmic CO2 relation. The two-layer energy balance maps Ft into the atmospheric temperature TtAT via c1, with c3, c4 governing the heat exchange between atmosphere and ocean. The dashed arrow closes the loop through the damage function back into output (developed in §1.2.7). Five climate states (MAT, MUO, MLO, TAT, TOC) form the climate-side block of the DEQN state vector [eq:iam_state].
@@ -269,7 +269,7 @@ A key contribution of {cite:t}`Folini_2021` is a systematic recalibration of the
 
 This calibration ensures that the reduced-form climate module is consistent with state-of-the-art earth system models. CDICE also introduces a transparent time-step formulation, $X_{t+\Delta t} = X_t + \Delta t \cdot f(X_t, u_t; \theta)$, that allows coherent implementation at annual, 5-year, or 10-year resolution within a single generic framework. Figure {numref}`fig-restud_bau_mat` illustrates how much the climate-cycle calibration matters even before the planner makes any decision: under business-as-usual, DICE-2016 and CDICE produce visibly different atmospheric carbon trajectories, and the gap propagates into temperature, damages, and ultimately the SCC.
 
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/restud_fig15a.pdf
 :name: fig-restud_bau_mat
 
 Atmospheric carbon MtAT along the BAU path (in GtC, over 200 years from 2015) under the three CDICE carbon-cycle calibrations (CDICE = MMM, CDICE-MESMO, CDICE-LOVECLIM) and the legacy DICE-2016 carbon cycle. Only the carbon-cycle block is varied here; the temperature block is held at the CDICE MMM calibration, since the BAU carbon-stock path does not depend on the temperature calibration to first order. The DICE-2016 path lies systematically above the CMIP-disciplined paths, reflecting that the original DICE carbon cycle overstates atmospheric retention; CDICE-MESMO and CDICE-LOVECLIM bracket the CDICE baseline on the slow-removal and fast-removal sides, respectively. Reproduced from , Figure 15(a).
@@ -773,7 +773,7 @@ Bayesian learning about climate parameters in an integrated assessment frame has
 
 {cite:t}`friedlDeep2023` solve the joint stochastic-DICE--Bayesian-learning DEQN with the methodology of this chapter and find two qualitative features that survive across the calibration cloud.[^1] First, ECS uncertainty is largely resolved within roughly ten years of optimal policy: the posterior variance $S_{f,t}$ shrinks by an order of magnitude over the first decade of the planner's horizon, even though the absolute posterior mean takes longer to settle. Second, the SCC under learning is roughly half the no-learning SCC for moderate true ECS values, and roughly the same as the no-learning SCC at the upper tail of the ECS distribution; learning is a strong substitute for precautionary mitigation in the moderate-ECS regime, and a weak substitute in the tail-ECS regime. The asymmetry is policy-relevant: the value of waiting to learn falls sharply once the planner suspects she is in the tail. The broader teaching point is that uncertainty is not automatically a reason to abate more: its policy effect depends on whether the uncertainty is static, learnable, or associated with irreversible tail risk. Figure {numref}`fig-bayes_learning_schematic` illustrates the two qualitative features.
 
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/fig-bayes_learning_schematic.svg
 :name: fig-bayes_learning_schematic
 
 Schematic of the two qualitative features reported by . Left: posterior variance Sf, t relative to its prior value, on a logarithmic scale. The variance falls by roughly an order of magnitude over the first decade, mirroring the Kelly–Kolstad slow-learning result but accelerated by the deeper signal–noise ratio of the modern climate calibration. Right: SCC0 as a function of the true ECS, with and without Bayesian learning. Learning approximately halves the SCC at moderate ECS values where uncertainty is the dominant driver of precautionary abatement, but converges to the no-learning curve at the upper tail where the underlying physical damage dominates. Curves are illustrative; the magnitudes are those quoted in the body text.
@@ -901,7 +901,7 @@ The reason this pipeline is the only feasible route is computational: direct Mon
 
 {cite:t}`friedlDeep2023` apply the pipeline to a stochastic DICE variant with Epstein--Zin preferences and Bayesian learning, and find that two ingredients dominate the SCC variance across 2020--2100: the mean of the ECS belief (roughly 50--70% of the total-effect Sobol share) and the curvature parameter of the damage function (roughly 15--25%).[^3] Together these account for 70--90% of the SCC variance. Risk aversion contributes a few percentage points; the pure rate of time preference and the IES contribute negligibly once damage curvature is conditioned on. The policy lesson is that under deep uncertainty the SCC should be reported as a distribution, not a point estimate, and that climate-policy design should target tail insurance against the upper ECS--damage corner rather than precision over the central calibration. Figure {numref}`fig-sobol_shares_schematic` sketches the resulting variance decomposition.
 
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/fig-sobol_shares_schematic.svg
 :name: fig-sobol_shares_schematic
 
 Schematic of the total-effect Sobol shares of SCC2100 variance reported by . Midpoints reflect the ranges quoted in the text (ECS mean 50–70%, damage curvature 15–25%), with horizontal error bars on the two leading parameters indicating the spread across horizon dates and damage-function specifications. The shape, two parameters carrying almost the entire variance, is what motivates the tail-insurance framing in the closing paragraph.
@@ -920,7 +920,7 @@ The OLG-IAM uses different conventions than the representative-agent CDICE block
 
 The OLG-IAM uses a much simpler climate side than the 5-state CDICE module of {ref}`sec-dice` (three carbon stocks plus two temperature layers). Once the planner's horizon is converted to cumulative-emissions form $E_t = \sum_{s\le t} e_s$, the linear Transient Climate Response to cumulative carbon Emissions (TCRE) approximation collapses the carbon-cycle and energy-balance machinery to a single algebraic relation $T^{\mathrm{AT}}_t \approx \sigma_{\mathrm{CCR}}\,E_t$ {cite:p}`dietz2019cumulative`, which removes five climate states from the planner's optimization. The simplification is essential: it is what makes the OLG state space (12 cohort assets + 5 climate / shock states + $\vartheta$ pseudo-states) tractable end-to-end on a GPU. The reader who finds the change abrupt should treat the TCRE relation as a reduced-form summary of the same physics that drove {ref}`sec-dice_carbon_cycle`--{ref}`sec-dice_temperature`, fitted directly to long-run paths rather than block-by-block. Figure {numref}`fig-cdice_vs_tcre` contrasts the two climate sides.
 
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/fig-cdice_vs_tcre.svg
 :name: fig-cdice_vs_tcre
 
 Climate side of CDICE versus TCRE. The 5-state CDICE module on the left, in which atmospheric carbon, two ocean carbon reservoirs, atmospheric temperature, and ocean temperature all enter the planner’s state, is collapsed in the OLG-IAM to a single algebraic relation between cumulative emissions and atmospheric temperature, TtAT ≈ σCCR Et. The simplification trades fidelity to short-run climate dynamics for tractability of the 12-cohort heterogeneous-agent state space and is what makes the bilevel policy search of §1.12 end-to-end feasible.
@@ -940,7 +940,7 @@ The model features $A=12$ overlapping generations of selfish agents (ages 20--80
 
 The household Euler equation takes the standard form $C_{t,j}^{-\sigma_u} = \beta\,\mathbb{E}_t[(1+r_{t+1})\,C_{t+1,j+1}^{-\sigma_u}]$ for $j = 1,\ldots,A-1$, and market clearing requires that aggregate savings equal the capital stock: $\sum_j a_{t,j} = K_t$. Figure {numref}`fig-bau_olg_baseline` simulates this model without policy intervention; it fixes the business-as-usual (BAU) baseline against which every Pareto-improving policy below is benchmarked, and supplies the cohort-by-cohort participation constraints for the constrained policy search.
 
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/jpe_bau_baseline.png
 :name: fig-bau_olg_baseline
 
 Business-as-usual baseline for the 12-cohort stochastic OLG-IAM of . Without policy intervention the median warming reaches roughly 3 ∘C over the 150-year horizon, and the upper tail of damages is substantially larger than the mean. Every Pareto-improving policy below is benchmarked against this baseline, which also supplies the participation constraints for the constrained policy search. Figure extracted from .
@@ -950,7 +950,7 @@ Business-as-usual baseline for the 12-cohort stochastic OLG-IAM of . Without pol
 
 Finding an optimal carbon tax rule in this OLG economy is a bilevel optimization problem: the outer level searches over tax parameters, and the inner level solves the full stochastic general equilibrium for each candidate tax. {cite:t}`kubler2025using` decompose this into three steps, summarized in Figure {numref}`fig-olg_iam_pipeline`:
 
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/fig-olg_iam_pipeline.svg
 :name: fig-olg_iam_pipeline
 
 Three-step machine-learning pipeline for constrained carbon-tax design. The DEQN amortizes equilibrium solution across tax parameters, the GP surrogate maps policy parameters to welfare and cohort utilities, and the final optimization imposes the Pareto constraints on the surrogate.
@@ -964,7 +964,7 @@ The tax-rule coefficients $\vartheta_{\mathrm{tax}}$ and the $A=12$ transfer sha
 
 At each design point $\vartheta = (\vartheta_{\mathrm{tax}}, \omega)$, the trained DEQN is simulated to obtain Monte-Carlo estimates of expected lifetime utility for the 40 tracked cohorts (12 alive at $t=0$ plus 28 future cohorts born during the planner's 150-year horizon). Independent GPs are then fitted to map $\vartheta$ to expected aggregate welfare $\mathcal{W}(\vartheta)$ and to each of the 40 cohort welfares $\tilde{U}_t(\vartheta)$. The design itself uses Latin-hypercube sampling augmented with Bayesian active learning: the size scales with the dimension of $\vartheta$, with roughly 500 points sufficient for the 14-dimensional "linear-in-$E$ + transfers" specification (Section 5.3 of {cite:t}`kubler2025using`) and roughly 800 points for the 16-dimensional "richer rule + transfers" specification (Section 5.4). Figure {numref}`fig-gp_welfare_contour` shows the resulting welfare surface for the two-parameter linear-in-cumulative-emissions rule, with transfer shares held at the Pareto-optimal solution: the contour exposes the low-dimensional ridge along which intercept and slope trade off cleanly, and on which the Step-3 optimizer searches.
 
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/jpe_gp_welfare_contour.png
 :name: fig-gp_welfare_contour
 
 Gaussian-process welfare surrogate over the two-dimensional tax-parameter slice (ϑ0, ϑE) of the linear-in-cumulative-emissions rule, with transfer shares ω held at the Pareto-optimal solution. The contour exposes the low-dimensional welfare surface on which the constrained optimizer of Eq. [eq:pareto_opt] searches once the DEQN has amortized the equilibrium solve. Figure extracted from .
@@ -984,7 +984,7 @@ where $U_t$ is the business-as-usual (BAU) welfare of cohort $t$ and $\Delta^{A-
 
 The unconstrained welfare-maximizing cumulative-emissions tax is the natural benchmark. With a linear rule $p^{\mathrm{tax}}_t = \vartheta_0 + \vartheta_E\,E_t$ and a fixed declining transfer scheme $\omega = \bar\omega$, the policy cuts emissions aggressively, stabilizes mean warming around $2.7\,^{\circ}\mathrm C$, and raises aggregate social welfare by about $1.6\%$ in consumption-equivalent terms. But it imposes losses of up to roughly $5\%$ on initial generations: it is therefore welfare-improving in the social-welfare-function sense, but *not* Pareto improving. Figure {numref}`fig-unconstrained_linear_tax` shows the failure: the welfare-gains panel records the losses for transition generations that the social-welfare-function aggregate hides.
 
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/jpe_unconstrained_linear_tax.png
 :name: fig-unconstrained_linear_tax
 
 Welfare-improving but not Pareto-improving cumulative-emissions tax with a fixed exogenous transfer scheme. The policy strongly reduces climate risk and raises aggregate welfare by about 1.6% in consumption-equivalent terms, but the welfare-gains panel shows losses for transition generations. Figure extracted from .
@@ -1008,13 +1008,13 @@ $$ (eq-pareto_linear_transfer_shares)
 
 which sum to one up to rounding. Figure {numref}`fig-pareto_transfer_profile` plots this transfer profile against cohort index; the non-monotone shape is what allows a less aggressive cumulative-emissions tax to satisfy the Pareto constraint at every age, and it is the single most informative graphical summary of the constrained-optimal-policy step. The negative intercept $\vartheta_0 = -0.186$ is not a subsidy in practice: the planner's horizon starts well into the industrial era at a strictly positive cumulative-emissions stock $E_0 > 0$, so the effective tax $\vartheta_0 + \vartheta_E\,E_t$ is positive for every relevant $E_t$ along the optimum. The negative intercept simply registers that the linear-in-$E$ rule undershoots a constant carbon price near $E = 0$ and ramps up roughly proportionally to cumulative emissions thereafter. The combined policy makes every tracked cohort weakly better off than under BAU. The aggregate welfare gain is more modest than under the unconstrained optimum, at about $0.42\%$ in consumption-equivalent terms, but the right tail of damages is truncated: the 99th percentile of damages falls to roughly $7\%$ of output rather than about $9\%$ under BAU. Figure {numref}`fig-pareto_tax_main` reports the full result. Comparing its welfare-gains panel with that of Figure {numref}`fig-unconstrained_linear_tax` is the section's headline: a lower, simpler tax combined with an optimized transfer system shifts every cohort weakly into the gains region.
 
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/jpe_pareto_linear_tax.png
 :name: fig-pareto_tax_main
 
 Pareto-improving cumulative-emissions tax with optimized intergenerational transfers, at the coefficients of [eq:pareto_linear_tax_coefficients]–[eq:pareto_linear_transfer_shares]. The tax is less aggressive than the unconstrained rule, but the optimized transfer system shields current cohorts while preserving climate-risk reduction for future cohorts. Aggregate welfare rises by about 0.42%. Figure extracted from .
 ```
 
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/fig-pareto_transfer_profile.svg
 :name: fig-pareto_transfer_profile
 
 Optimized transfer-share profile ωj across the 12 cohorts alive at t = 0, drawn directly from [eq:pareto_linear_transfer_shares]. The profile is decidedly non-monotone: the largest shares go to cohorts 1 (oldest), 5, and 8, which are precisely the cohorts the participation constraint Ũt ≥ Ut binds most tightly for under the un-transferred tax of Figure 1.11. The non-monotone shape is what allows a less aggressive cumulative-emissions tax to satisfy Pareto improvement at every age.

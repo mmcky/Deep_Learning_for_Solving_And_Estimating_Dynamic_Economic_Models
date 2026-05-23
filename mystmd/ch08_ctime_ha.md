@@ -49,7 +49,7 @@ A stochastic process $\{B_t\}_{t \geq 0}$ is a *standard Brownian motion* (Wiene
 
 Key properties include $\E{B_t} = 0$, $\mathrm{Var}(B_t) = t$, nowhere-differentiable paths, and quadratic variation $\langle B \rangle_t = t$. Brownian motion arises as the scaling limit of a random walk: if $X_{t+\Delta t} = X_t + \sqrt{\Delta t}\,\varepsilon_t$ with $\varepsilon_t \in \{-1,+1\}$ equiprobably, then $X^{\Delta t} \xrightarrow{d} B_t$ as $\Delta t \to 0$ (Donsker's theorem). The $\sqrt{\Delta t}$ scaling ensures that $\mathrm{Var}(X_t) = t$ in the limit. Figure {numref}`fig-brownian_paths` shows three discretized sample paths with the same variance scaling.
 
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/fig-brownian_paths.svg
 :name: fig-brownian_paths
 
 Three simulated standard Brownian sample paths {Bt}t ∈ [0, 1], generated with discretization step Δt = 0.05 and Gaussian increments $B_{t+\Delta t} = B_t + \sqrt{\Delta t}\,\varepsilon_t$, εt ∼ 𝒩(0, 1). Paths are jagged at the chosen Δt; limiting Brownian paths are continuous almost surely but nowhere differentiable, with Var(Bt) = t.
@@ -241,7 +241,7 @@ The HJB gives individual optimal behavior for given prices; the KFE tracks the r
 
 ### The Coupled HJB--KFE System
 
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/fig-hjb_kfe_market_loop.svg
 :name: fig-hjb_kfe_market_loop
 
 Stationary continuous-time heterogeneous-agent equilibrium as a coupled HJB–KFE–market-clearing loop. Given prices, the HJB determines optimal savings; the KFE maps that policy into a stationary density; aggregating the density updates capital, labor, and therefore prices.
@@ -280,7 +280,7 @@ When aggregate TFP $Z_t$ is allowed to vary (e.g., the OU process introduced in 
 
 Figure {numref}`fig-huggett_aiyagari_densities` contrasts the two stationary densities visually. In Huggett (left), bonds are in zero net supply, so the cross-sectional density is centred near $b\!=\!0$, with a Dirac atom at the borrowing limit $\underline{b}$ carried entirely by constrained low-productivity households; high-productivity households are smoothly distributed and never bind. In Aiyagari (right), agents hold positive capital in equilibrium, so the same atom now sits at $\underline{a}\!=\!0$ but the bulk of the mass is shifted right with a long upper tail.
 
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/fig-huggett_aiyagari_densities.svg
 :name: fig-huggett_aiyagari_densities
 
 Stationary cross-sectional densities g* in the two benchmarks, by productivity type n ∈ {n1, n2} (low and high). In both economies, only the constrained low-productivity type n1 supports a Dirac atom at the borrowing constraint (blue spike): high-productivity households are not bound. Left: Huggett, bonds with limit $\underline{b}=-2$ and zero net supply, so the bulk of mass sits around b = 0. Right: Aiyagari, capital with limit $\underline{a}=0$ and positive aggregate K, shifting the unconstrained mass to the right with a long upper tail. The blue spikes visualize the Dirac atom $\alpha(n_1)\,\delta(a-\underline a)$ in the decomposition $g = g_{\mathrm{ac}} + \alpha(n)\,\delta(a-\underline a)$ introduced in the boundary-atom paragraph above. These curves are schematic TikZ illustrations of the qualitative contrast (zero-net-supply bonds versus positive capital), not direct exports; the exact densities depend on calibration and boundary treatment.

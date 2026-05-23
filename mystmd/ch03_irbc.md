@@ -263,7 +263,7 @@ $$
 
 The exact Fischer--Burmeister map is the limiting case $\mathrm{FB}_0(\mu,I)=\mu+I-\sqrt{\mu^2+I^2}$. Its zero set coincides with the positive axes in the $(\mu, I)$-plane, ensuring $\mu^j \geq 0$, $I^j \geq 0$, and $\mu^j \cdot I^j = 0$ (Figure {numref}`fig-fb_zeroset`). The smoothed version with $\varepsilon > 0$ rounds the corner at the origin and is differentiable there, improving numerical conditioning at the cost of a slight relaxation of exact complementarity. The companion notebooks use $\varepsilon = 10^{-4}$ as the default; tighter values ($10^{-6}$--$10^{-5}$) are sometimes preferred when complementarity must hold to higher accuracy, at the cost of stiffer gradients near the origin.
 
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/fig-fb_zeroset.svg
 :name: fig-fb_zeroset
 
 The Fischer–Burmeister complementarity function, drawn in the investment–multiplier plane: investment Ij on the horizontal axis, the irreversibility multiplier μj on the vertical axis. The exact map $\mathrm{FB}_0(\mu,I)=\mu+I-\sqrt{\mu^2+I^2}$ packs the three Karush–Kuhn–Tucker conditions μ ≥ 0, I ≥ 0, μI = 0 into a single smooth equation: FB0 = 0 holds exactly on the two heavy blue half-axes and nowhere else. The horizontal half-axis (μ = 0, I &gt; 0) is the investing regime, where the country invests a strictly positive amount, the irreversibility constraint is slack, and its shadow price μ is therefore zero. The vertical half-axis (I = 0, μ &gt; 0) is the constrained regime, where the constraint binds, investment is pinned at zero, and μ &gt; 0 measures how much the planner would pay to relax it; the origin is the knife-edge where both hold with equality. The open interior of the first quadrant (μ &gt; 0 and I &gt; 0 together) is infeasible because it violates complementarity, and there FB0 &gt; 0 strictly (since $\mu+I&gt;\sqrt{\mu^2+I^2}$ whenever both are positive). This is exactly what makes the function useful as a loss term: when the network’s predicted (μj, Ij) lands in that forbidden region, the squared residual FBε2 is positive and its negative gradient −∇FB0 (green arrow) pushes the iterate back toward the nearest feasible half-axis, so the network learns which regime applies at each state without any explicit regime switch. The exact map has a single kink, at the origin; the smoothed version $\mathrm{FB}_\varepsilon(\mu,I)=\mu+I-\sqrt{\mu^2+I^2+\varepsilon^2}$ actually used in the code rounds that corner, restoring differentiability everywhere at the price of an 𝒪(ε) relaxation of exact complementarity.
@@ -319,7 +319,7 @@ The full system of equations comprises $N$ Euler equations, $N$ Fischer--Burmeis
 
   : Scaling of the IRBC state, policy, equation, and quadrature dimensions with the number of countries $N$. The state, policy, and equation counts grow linearly. Tensor-product Gauss--Hermite quadrature grows as $Q^{N+1}$, while the Stroud-3 monomial rule uses only $2(N+1)$ nodes; this is why the notebook uses Gauss--Hermite only for the two-country classroom case and switches to monomial or QMC rules in larger IRBC applications.
 
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/fig-irbc_quad_cost.svg
 :name: fig-irbc_quad_cost
 
 Quadrature-cost crossover for the IRBC model as a function of the number of countries N. Tensor-product Gauss–Hermite (red) grows exponentially in N and becomes infeasible by N = 10; the Stroud-3 monomial rule (blue) grows linearly and stays well under 103 nodes even at N = 100. This is the operational reason every IRBC application beyond the classroom N = 2 case uses monomial or QMC integration.
@@ -327,7 +327,7 @@ Quadrature-cost crossover for the IRBC model as a function of the number of coun
 
 The neural network maps the full state vector $\bm{s} = (k^1,\ldots,k^N, z^1,\ldots,z^N) \in \R^{2N}$ to all $2N+1$ policy variables $(k^{1\prime},\ldots,k^{N\prime}, \lambda, \mu^1,\ldots,\mu^N)$ simultaneously through the small Swish--softplus network in Figure {numref}`fig-irbc_nn_arch`.
 
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/fig-irbc_nn_arch.svg
 :name: fig-irbc_nn_arch
 
 Reference network architecture used for the N-country IRBC model. The diagram shows the irreversible companion notebook (lecture_04_02_IRBC_DEQN_irreversible.ipynb): two hidden layers of 64 Swish units mapping the 2N-dimensional state to a 2N + 1-dimensional output (N capital choices, the resource-constraint multiplier λ, and the N irreversibility multipliers μj); softplus on the λ and μj heads enforces non-negativity, and capital choices use the bounded growth head described below. The smooth-benchmark companion (lecture_04_01_IRBC_DEQN_smooth.ipynb) drops the μj block, leaving an N + 1-dimensional output head and no Fischer–Burmeister residual; in both notebooks the capital head is parameterized as the bounded log-growth kt + 1j = ktjexp {ḡ tanh rj(s)} (smooth) or the additive form kt + 1j = (1 − δ)ktj + softplus(rj) (irreversible), both of which keep kt + 1j &gt; 0 by construction.

@@ -57,10 +57,12 @@ bibliography: "../readings/bibliography.bib"
 # Pre-rendered figures live under lecture_script/fig/.
 figures_dir: "fig"
 
-# No external \input{tikz/...} references in this book; 82 inline
-# \begin{tikzpicture} blocks remain in the source and will need a separate
-# rendering pass after the initial conversion (tracked as a follow-up task).
-tikz_overrides: null
+# Inline TikZ figures are rendered by mystmd/scripts/render_tikz.py
+# (auto-discovers \begin{figure} blocks containing \begin{tikzpicture},
+# compiles via pdflatex+pdf2svg to mystmd/figures/<label>.svg) and the
+# resulting TIKZ_FIGURE_MAP is written to mystmd/tikz_overrides.py for
+# the upstream postprocess to consume.
+tikz_overrides: tikz_overrides.py
 
 # --- LaTeX pre-processing ---------------------------------------------------
 

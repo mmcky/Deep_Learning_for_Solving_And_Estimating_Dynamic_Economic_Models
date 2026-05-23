@@ -17,7 +17,7 @@ In the Brock--Mirman and IRBC models of Chapters {ref}`ch-deqn`--{ref}`ch-irbc`
 
 An OLG economy consists of $A$ cohorts that coexist in each period: a new cohort of age 1 is born, the oldest cohort of age $A$ dies, and everyone else ages by one period. Crucially, the number of agent types is *finite*, so the cross-sectional distribution has only $A$ entries and the state space remains finite-dimensional, in contrast to the continuum-of-agents models treated in Chapter {ref}`ch-young`. The mechanism that ties the three phenomena above together is consumption smoothing over a hump-shaped earnings path (Figure {numref}`fig-olg_lifecycle`): because labor income rises and then falls over the lifecycle while agents prefer a steady consumption stream, they accumulate assets in their high-earning years and run them down afterwards, and the equilibrium interest rate is whatever clears the resulting demand for savings against the economy's capital stock.
 
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/fig-olg_lifecycle.svg
 :name: fig-olg_lifecycle
 
 Stylized lifecycle profiles in an OLG economy (schematic, not a solution of the model). Labor income (blue) is hump-shaped, peaking in mid-career, while agents prefer a roughly flat consumption path (green); so they accumulate assets out of income during their high-earning years and run them down near the end of life. The asset profile (red, dashed) is therefore a hump that starts near zero for the newborn cohort, peaks toward the end of working life, and returns to zero for the oldest cohort, which consumes everything. The 6-agent analytic model of §1.2 is a stripped-down version of this picture (only the youngest cohort earns labor income); the 56-agent benchmark of §1.5 reproduces the full hump.
@@ -122,7 +122,7 @@ The optimal policy is then $k'^h = \beta_h \cdot \mathrm{inc}^h$: each agent sav
 
 Young agents save more (more periods ahead); old agents save less; Figure {numref}`fig-olg6_savings` plots the same numbers across $h$. This vector is the validation target: at convergence, the trained network's average sigmoid output should reproduce $\beta_h$ cohort by cohort.
 
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/fig-olg6_savings.svg
 :name: fig-olg6_savings
 
 Closed-form savings rates βh from Table 1.1 for the 6-agent analytic OLG (β = 0.7, log utility). The monotone decline with age reflects the shrinking forward horizon: cohort h has only A − h remaining periods over which to consume future income, so the marginal incentive to save weakens as h grows. This is the validation target the trained DEQN’s average sigmoid output should match cohort by cohort.

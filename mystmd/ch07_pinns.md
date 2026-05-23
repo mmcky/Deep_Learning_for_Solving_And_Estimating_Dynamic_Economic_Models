@@ -11,7 +11,7 @@ Many frontier models in macroeconomics and finance are written in continuous tim
 
 The resulting framework, known as *Physics-Informed Neural Networks* (PINNs), was introduced by {cite:t}`raissi2019physics`. In economics and finance, continuous-time models governed by HJB and related PDEs arise naturally in asset pricing under climate uncertainty {cite:p}`barnett2020pricing`, portfolio choice {cite:p}`duarte2024ml`, and heterogeneous-agent economies with aggregate shocks {cite:p}`gopalakrishna2024aliens`. {cite:t}`duarte2024ml` apply machine-learning methods to continuous-time finance problems, while {cite:t}`gopalakrishna2024aliens` develops the ALIENs framework for solving continuous-time economies with deep learning. PINNs provide a natural and scalable computational framework for such problems. Figure {numref}`fig-deqn_pinn_comparison` summarizes the discrete-time DEQN template and its continuous-time PINN analogue.
 
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/fig-deqn_pinn_comparison.svg
 :name: fig-deqn_pinn_comparison
 
 Discrete-time DEQNs and continuous-time PINNs use the same residual-minimization principle with different mathematical residuals. DEQNs minimize algebraic equilibrium conditions such as Euler-equation errors evaluated along simulated states, while PINNs minimize PDE and boundary residuals evaluated at collocation points using derivatives of the network with respect to its inputs.
@@ -74,7 +74,7 @@ Uniform random sampling is the simplest collocation strategy but not necessarily
 ```
 
 
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/fig-pinn_1d_ode_soft.svg
 :name: fig-pinn_1d_ode_soft
 
 PINN solution of the 1D ODE y″ = −1 on (0, 1) with y(0) = y(1) = 0 and the soft-penalty loss [eq:1d_ode_soft_loss]. The analytical solution $\tfrac12 x(1-x)$ (solid blue) is recovered to plotting accuracy by the converged network (dotted green); the dashed red curve illustrates a typical early-training iterate, which still misses the endpoints because the boundary penalty is enforced only approximately. Tick marks on the x-axis are the uniformly drawn collocation points. The curves above are TikZ illustrations rather than direct exports. Notebook lecture_11_01_ODE_PINN_ZeroBCs runs exactly this experiment; notebook lecture_11_02_ODE_PINN_SoftVsHardBCs then contrasts the soft penalty against the hard trial-solution construction of §1.3 on a non-zero-BC variant.
@@ -90,7 +90,7 @@ The treatment of boundary conditions is a critical design choice in PINNs.
 
 Boundary conditions are penalized as an additional loss term, weighted by $\lambda$. The difficulty is that $\lambda$ must be tuned: too small and the BCs are violated; too large and the optimizer ignores the PDE interior. Figure {numref}`fig-soft_bc_failure_modes` sketches the two failure modes and the compromise regime in between.
 
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/fig-soft_bc_failure_modes.svg
 :name: fig-soft_bc_failure_modes
 
 Failure modes of soft boundary-condition enforcement on a Dirichlet problem with y(0) = 1, y(1) = 2. Left: the BC penalty weight λ is too small, so the optimizer minimizes the interior PDE residual but lets the candidate solution miss both endpoints (visible as the “gap” at x = 0). Right: λ is too large, so the network nails the boundary values but distorts the interior, producing a wiggly profile with PDE residual error against the affine reference (dashed grey). Centre: a balanced λ approximately satisfies both objectives, but the right-shaped value depends on the network, the PDE, and the geometry, and is not known a priori. This trade-off motivates the hard-enforcement construction below, which removes the boundary loss term entirely.
@@ -106,7 +106,7 @@ $$ (eq-trial)
 
 where $A(x)$ is an anchor function satisfying the BCs exactly, and $B(x)$ is a mask function that vanishes at the boundary. For Dirichlet BCs $\hat{y}(0) = a$, $\hat{y}(1) = b$, one may choose $A(x) = a + (b-a)x$ and $B(x) = x(1-x)$. Figure {numref}`fig-trial_solution_decomposition` visualizes this anchor-plus-mask decomposition for non-zero endpoint data.
 
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/fig-trial_solution_decomposition.svg
 :name: fig-trial_solution_decomposition
 
 Hard boundary-condition decomposition for the trial solution ŷ(x) = A(x) + B(x) ⋅ 𝒩θ(x) with Dirichlet data ŷ(0) = 1, ŷ(1) = 2. Left: anchor A(x) = 1 + x matches the boundary values exactly. Centre: mask times network, B(x) ⋅ 𝒩θ(x) with mask B(x) = x(1 − x), which vanishes at x ∈ {0, 1} regardless of 𝒩θ. Right: their sum ŷ(x) = A(x) + B(x) ⋅ 𝒩θ(x) (solid green) is a candidate solution that satisfies both BCs by construction; the dashed red line is the affine anchor A(x) = 1 + x for visual reference. Training loss reduces to the interior PDE residual alone.
@@ -126,7 +126,7 @@ which has the anchor-plus-mask form {eq}`eq-trial`: the anchor $A$ matches the 
 
 $$
 \ell_\theta = \frac{1}{N_r}\sum_{i=1}^{N_r}\big(\hat{y}''(x_i) + \hat{y}(x_i)\big)^2,$$ with $\hat{y}''$ obtained by two applications of `torch.autograd.grad` and collocation points $x_i$ drawn uniformly from $[0,\pi/2]$.
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/fig-pinn_1d_ode.svg
 :name: fig-pinn_1d_ode
 PINN solution of the 1D ODE y″ + y = 0 on [0, π/2] with the hard-BC trial solution [eq:1d_ode_trial]. The analytical solution sin (x) (solid blue) is recovered to plotting accuracy by the converged network (dotted green); the dashed red curve illustrates a typical early-training iterate. Tick marks on the x-axis are the uniformly drawn collocation points. The curves above are TikZ illustrations rather than direct exports. Notebook lecture_11_02_ODE_PINN_SoftVsHardBCs contrasts this hard-trial-solution construction with the soft-penalty alternative on a non-zero-BC variant.
 ```
@@ -208,7 +208,7 @@ $$
 \a^{(l)} = (1 - G^{(l)}) \odot H^{(l)} + Z^{(l)} \odot \a^{(l-1)}.
 $$
 Note that this formulation uses two separate gates: $Z^{(l)}$ controls how much of the previous state $\a^{(l-1)}$ to retain, while $(1 - G^{(l)})$ scales the new candidate $H^{(l)}$. Because $Z$ and $G$ are independent in the original Sirignano--Spiliopoulos formulation, the two coefficients need not sum to one. A simpler GRU-style variant {cite:p}`cho2014gru` collapses the two gates into a single convex combination $\a^{(l)} = (1-G) \odot \a^{(l-1)} + G \odot H$, where the coefficients sum to one; in practice, both variants perform comparably on the PDE benchmarks in this course. The gate $R^{(l)}$ controls which parts of the previous state are relevant for computing the candidate $H^{(l)}$. The gate naming convention $(Z,G,R,H)$ used here follows {cite:t}`al2018solving`; in GRU terminology, $Z$ corresponds to the update gate and $R$ to the reset gate. The input $\x$ enters every layer through the $\bm{U}$ matrices, providing skip connections that ensure input information is available at every depth. This gating mechanism, directly analogous to LSTM recurrent networks, helps the DGM architecture learn functions that depend sensitively on the input coordinates, a common feature of PDE solutions near boundary layers. Figure {numref}`fig-dgm_architecture` shows the resulting feed-forward architecture.
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/fig-dgm_architecture.svg
 :name: fig-dgm_architecture
 The DGM (Deep Galerkin Method) architecture of . The input $\x$ feeds the first layer through a standard forward path (solid arrows) and is, in addition, routed to every subsequent DGM block via skip connections (dashed arrows), so each layer can see $\x$ directly as well as the running hidden state. Each DGM block combines $\x$ with the hidden state through update, forget, and relevance gates (see body text), in the spirit of LSTM/GRU recurrences applied across depth rather than time.
 ```
@@ -345,7 +345,7 @@ Two mature architectures dominate the literature.
 Inspired by the universal-approximation theorem for nonlinear operators, DeepONet uses two sub-networks: a *branch net* encodes the input field at sensor locations into a latent vector, and a *trunk net* encodes the query point at which the output is requested; their inner product is the predicted operator output. The architecture is generic and trains entirely on input--output pairs of an offline solver.
 ##### Fourier Neural Operator (FNO) {cite:p}`li2021fourier`.
 FNO parameterizes a kernel integral operator by truncating it in Fourier space and applying a learned linear transformation to the low-frequency modes per layer. This captures global interactions cheaply ($\mathcal{O}(n\log n)$ via FFT) and exhibits resolution invariance: a network trained on one grid can be evaluated on a finer grid at test time.
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/fig-operator_learning_bridge.svg
 :name: fig-operator_learning_bridge
 
 Operator learning generalizes PINNs by amortising over an entire parametric family of PDEs. For economic applications such as option-price surfaces over (K, T), value functions across a parameter range, or HJB sweeps for sensitivity analysis (Chapter [ch:gp]), training the operator once gives instant predictions at test time.

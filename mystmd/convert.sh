@@ -95,14 +95,17 @@ SHORT="$(cd "$TOOL_DIR" && git rev-parse --short HEAD)"
 echo "Using claude-latex-to-myst @ $VERSION ($SHORT)"
 echo ""
 
+# ── 4. Pre-conversion: render inline TikZ figures ──────────────────────────
+# Discover \begin{figure} blocks (TikZ + \includegraphics) and emit
+# mystmd/tikz_overrides.py BEFORE the upstream pipeline runs — the
+# postprocess reads that file at startup to swap admonition placeholders
+# for {figure} directives. mtime-cached, so a no-op re-run is fast.
+python3 "$SCRIPT_DIR/scripts/render_tikz.py"
+
 bash "$TOOL_DIR/scripts/convert.sh" \
   --config "$SCRIPT_DIR/config.yaml" "$@"
 
-# ── 4. Book-side post-conversion steps ──────────────────────────────────────
+# ── 5. Book-side post-conversion steps ──────────────────────────────────────
 # Add any project-specific steps below — they run after the shared pipeline
 # but as part of the same `bash mystmd/convert.sh` invocation, so a single
 # command covers the whole regen workflow.
-#
-# Examples:
-#   uv run --no-project python "$SCRIPT_DIR/scripts/render_tikz.py"
-#   uv run --no-project python "$SCRIPT_DIR/scripts/build_llms_txt.py"

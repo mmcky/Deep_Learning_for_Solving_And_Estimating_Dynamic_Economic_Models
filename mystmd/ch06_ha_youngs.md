@@ -13,7 +13,7 @@ The heterogeneous-agent material of this chapter, together with the companion de
 
 The continuum-agent framework that this chapter operationalises has three foundational sources. {cite:t}`bewley1986stationary` introduced stationary monetary equilibrium with a continuum of agents subject to iid endowment shocks; the explicit self-insurance-through-borrowing-constraints mechanism that defines the modern incomplete-markets workhorse is due to {cite:t}`imrohoroglu1989cost`, {cite:t}`huggett1993riskfree`, and {cite:t}`aiyagari1994uninsured`. {cite:t}`huggett1993riskfree` cast the idea as a tractable endowment economy with a single risk-free asset, focusing on the equilibrium interest rate. {cite:t}`aiyagari1994uninsured` added neoclassical production, closing the model in general equilibrium with capital accumulation; this is the canonical incomplete-markets economy. {cite:t}`krusell1998income` layered aggregate productivity shocks on top, producing the modern Krusell--Smith economy that this chapter targets, and its continuous-time reformulation is developed by {cite:t}`achdou2022income` and revisited in Chapter {ref}`ch-ct_theory`.
 
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/fig-bewley_lineage.svg
 :name: fig-bewley_lineage
 
 Genealogy of the heterogeneous-agent models treated in this script. This chapter targets the Krusell–Smith branch (right) by combining a DEQN policy with Young’s histogram update; the continuous-time branch (Achdou–Han–Lasry–Lions–Moll) is taken up in Chapter [ch:ct_theory].
@@ -135,7 +135,7 @@ $$
 \text{mass } \omega\cdot m \text{ to } k_n, \quad (1-\omega)\cdot m \text{ to } k_{n+1}.
 $$ (eq-young_weights)
 Figure {numref}`fig-young_interp` illustrates this operation. A mass $m$ sitting at the off-grid savings target $k'$ is split between the two bracketing grid points $k_n$ and $k_{n+1}$, with the weight $\omega$ proportional to the proximity of $k'$ to $k_n$ (so $\omega \to 1$ when $k' \to k_n$ and $\omega \to 0$ when $k' \to k_{n+1}$).
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/fig-young_interp.svg
 :name: fig-young_interp
 
 Linear interpolation in Young’s method. Mass m at off-grid point k′ is redistributed to the two bracketing grid points kn and kn + 1 using weights ω and 1 − ω. Closer proximity to a grid point yields a larger share of the mass.
@@ -178,7 +178,7 @@ When $k' < k_1 = 1.0$ (here $k' = 0.9$ for the low-state, lowest-capital agents)
 This small example shows why the grid must extend beyond the range of the policy function. In production code, a safeguard checks that boundary bins contain negligible mass (typically $<10^{-6}$).
 ```
 **The full picture: one cell splits into four.** The worked example above used identity shock transitions to keep the arithmetic visible. The general case combines the capital lottery with a *shock fork*: each piece of mass split between $k_J$ and $k_{J+1}$ is then split again across the reachable next-period $\varepsilon'$ values according to $\pi_{\varepsilon'\mid\varepsilon, a}$. With two shocks $\varepsilon \in \{L, H\}$ this produces *four* destination bins for every source bin, with weights given by the product $\{\omega, 1-\omega\} \times \{\pi_{\varepsilon L}, \pi_{\varepsilon H}\}$. Figure {numref}`fig-young_cascade` reproduces this two-stage cascade (essentially Fig. 1 of {cite:t}`young2010`), annotated with a concrete numerical case.
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/fig-young_cascade.svg
 :name: fig-young_cascade
 
 Young’s cascade for one source bin (essentially Fig. 1 of ). Mass m at (k, ε = L) flows in two stages: the capital lottery (ω vs. 1 − ω) sends it to the bracketing grid points kJ and kJ + 1, and the shock fork (πLL vs. πLH) splits each piece across the reachable next-period idiosyncratic states. Each of the four leaves receives the product of its stage-1 and stage-2 weights times the source mass; the four leaf masses sum back to m. Repeating the cascade for every active source bin and accumulating the leaves yields the new histogram Gt + 1.
@@ -241,7 +241,7 @@ For an *equidistant* grid the search collapses to a single fused multiply--add a
 Uniform $k$-grids waste resolution where the consumption policy is flat (the right tail) and starve resolution where it is steepest (near the borrowing constraint $k\!\to\!0$). A simple fix preserves the closed-form bracketing: place equidistant knots in a *transformed* coordinate $x = \phi(k)$ that maps the desired refinement region uniformly. For a log-spaced grid with shift $c>0$, $$x_n \,=\, x_0 + n\,\Delta x,\qquad k_n \,=\, e^{x_n} - c,\qquad n=0,\dots,N_k,$$ the bracketing index becomes $$J(k') \;=\; \mathrm{clip}\!\left(\Big\lfloor \tfrac{\log(c+k') - x_0}{\Delta x}\Big\rfloor,\;0,\;N_k-2\right),$$ again $\mathcal{O}(1)$ per query and branch-free. Crucially, the *index* is computed in $x$-space but the lottery *weights* are taken in the original $k$-space (using $k_J$, $k_{J+1}$ from the table), so the interpolated policy remains piecewise linear in $k$, consistent with the on-grid consumption values and with the mean-preserving lottery of Eq. {eq}`eq-young_meanpreserve`. More generally, any bijective $\phi$ for which $\phi^{-1}$ is cheap admits the same trick. See `interpolate()` and `distribution_step()` in the Krusell--Smith JAX tutorial of {cite:t}`azinovicyangzemlicka2025sequencespace` for a production implementation.
 ```
 Figure {numref}`fig-young_forward` visualizes the five stages of a single forward step.
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/fig-young_forward.svg
 :name: fig-young_forward
 Flow diagram for one forward step of Young’s histogram update (Algorithm [alg:young]). Starting from Gt, the policy function is evaluated at every active bin, the resulting off-grid savings are interpolated back onto the grid, and idiosyncratic shock transitions redistribute mass across ε-states to produce Gt + 1.
 ```
@@ -254,7 +254,7 @@ Flow diagram for one forward step of Young’s histogram update (Algorithm [alg
   Reproducibility          Deterministic                 Seed-dependent
   Higher moments            Approximated                  Approximated
 Figure {numref}`fig-young_vs_mc` contrasts the two approaches visually: the histogram method yields a smooth, noise-free distribution, while a Monte Carlo panel of comparable size exhibits visible sampling noise.
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/fig-young_vs_mc.svg
 :name: fig-young_vs_mc
 Young’s histogram (left) versus Monte Carlo panel simulation (right). Both approximate the same underlying wealth density (dashed). The histogram method is deterministic and smooth; the Monte Carlo panel exhibits $\mathcal{O}(1/\sqrt{N})$ sampling noise that contaminates downstream OLS regressions in the Krusell–Smith algorithm. The bars in this figure are a TikZ schematic illustrating the two regimes; for the actual histograms produced by the algorithm see notebook lecture_09_10_Youngs_Method_Examples in the Lecture-09 code/ folder.
 ```
@@ -292,7 +292,7 @@ For $N_b = 100$ grid points and 2 idiosyncratic states, the aggregate state has 
 
 The companion notebook sequence mirrors this decomposition. `10_Youngs_Method_Examples.ipynb` isolates Young's redistribution operator on toy examples, first in one dimension and then with idiosyncratic shocks. `11_Continuum_of_Agents_DEQN.ipynb` then reuses the same logic inside the full aggregate state vector {eq}`eq-young_hist_state`. In other words, the second notebook is not a new distributional device; it is the first notebook's histogram update embedded in a larger equilibrium-learning loop.
 
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/fig-young_encoding.svg
 :name: fig-young_encoding
 
 Histogram encoding and neural network architecture. The individual state (ηt, bt) (blue boxes / blue arrows) and the aggregate state (ztidx, inctidx, unctidx, htη = 0.8, htη = 1.2) (orange box for the three shock-index entries, red boxes for the two histograms) are concatenated as input to the policy network 𝒩pol; each input arrow is colored to match its source box and enters the policy-input layer at a distinct horizontal offset, so the five arrows are uniquely identifiable at a glance. The price network 𝒩price receives only the aggregate state. Both networks use softplus output activations.
@@ -479,7 +479,7 @@ For readers who want to benchmark any of the deep-learning approaches against th
 ## Extension: Deep Learning in the Sequence Space
 The histogram-based DEQN above is transparent because it feeds a direct approximation of the endogenous cross-sectional distribution into the neural network. The price of that transparency is dimensionality: in richer heterogeneous-agent economies, the aggregate state can contain hundreds of histogram entries. {cite:t}`azinovicyangzemlicka2025sequencespace` propose a different representation of the aggregate state. Instead of feeding the *current endogenous state* to the network, they feed a *truncated history of exogenous aggregate shocks*. The equilibrium logic does not change: one still enforces Euler equations, market clearing, and occasionally binding constraints inside the loss. What changes is the object that summarizes the aggregate state for the network. Figure {numref}`fig-sequence_space_compare` contrasts the two views.
 
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/fig-sequence_space_compare.svg
 :name: fig-sequence_space_compare
 
 Two ways to encode the aggregate state in deep equilibrium learning. Each pipeline reads top-to-bottom: the upper (colored) box is the input the user gives to the same neural network 𝒩ρ, the middle (colored) box is the network’s output (policy and price objects), and the green box is the equilibrium loss that consumes those outputs. Histogram DEQNs (left, blue) feed an endogenous state representation (At, μt); sequence-space DEQNs (right, red) feed a truncated exogenous shock history ztT. Crucially, the network and the residual-based training loss are identical across the two pipelines, only the input changes.
@@ -496,7 +496,7 @@ The two formulations can be written symmetrically. Let $y_t$ denote the equilibr
 Both formulations describe the *same* equilibrium. What differs is the *domain of approximation*: $f$ lives on the (potentially infinite-dimensional) endogenous state space, while $\Psi$ lives on the (also infinite-dimensional but exogenously driven) space of shock histories. In an ergodic economy the partial derivative $\partial\Psi/\partial\varepsilon_{t-\tau}$ vanishes as $\tau\to\infty$, so $\Psi$ admits a finite-history truncation $\widehat\Psi(z_t^T)$ with controllable error. This truncation step, developed in the next paragraph, is what makes the sequence-space formulation computable.
 ```
 **Intuition first.** The easiest way to think about the method is as a *memory compression* device. A positive aggregate shock today raises output and therefore raises tomorrow's capital. That extra capital still matters the period after, but only through the production elasticity $\alpha$, so its influence is smaller. One more period later it is smaller again. In other words, the current aggregate state stores a decaying memory of past shocks. The sequence-space idea is to feed that shock history directly to the network rather than feeding the current endogenous state itself.
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/fig-sequence_space_decay.svg
 :name: fig-sequence_space_decay
 Intuition for sequence space in Brock–Mirman. log Kt depends on past shocks with weights that decay like αj in the lag j (here α = 0.36, the standard capital share). Already at j = 3 the weight has fallen to ∼ 0.05, so a finite history of recent shocks summarizes the relevant aggregate information; very old shocks matter little.
 ```
@@ -508,7 +508,7 @@ Intuition for sequence space in Brock–Mirman. log Kt depends on past shocks 
 This distinction is important conceptually. For Brock--Mirman, sequence space is *not* a dimensionality reduction, since $(K_t, z_t)$ is only two-dimensional whereas a history of length $T=25$ is larger. The Brock--Mirman notebook is therefore a pedagogical demonstration of the idea that histories can stand in for endogenous states. The dimensionality gain appears only in richer heterogeneous-agent models, where the relevant alternative is a large histogram or other high-dimensional distributional summary.
 **Intermediate bridge: sequence-space IRBC.** Between the one-shock Brock--Mirman warm-up and the infinite-dimensional Krusell--Smith state, the companion notebook `lectures/lecture_10_sequence_space_deqns/code/lecture_10_05b_SequenceSpace_IRBC.ipynb` re-trains the two-country IRBC model of Chapter {ref}`ch-irbc` under sequence-space inputs: the policy network reads the last $T=80$ shock vectors (a $240$-dimensional history with $\rho_z^T \approx 1.7\times 10^{-2}$ truncation error) instead of the four-dimensional current state. The $2N+1$ equilibrium residuals (Euler, ARC, Fischer--Burmeister), the Gauss--Hermite quadrature, and the cloud-method sampler are literally unchanged from nb 01; only the input domain changes. Because the current capital stock is no longer an input, we parametrize the output head around the steady state, $k'_j = k_{ss}\exp(\tanh z^k_j)$ and $\lambda = \lambda_{ss}\exp(\tanh z^\lambda)$, which keeps gradients lively at the target policy and prevents the cold-start divergence that plagued a naive softplus head. This notebook is a *pedagogical bridge* rather than a computational win, at a four-dimensional state the history is much larger, not smaller, but it shows that the same template handles a multi-equation system with multiple independent shock channels before we hand the method over to Krusell--Smith, where the dimensionality gain is real.
 **Training logic.** The computational pattern is also close to the rest of this chapter. One samples an exogenous shock path, constructs overlapping history windows $z_t^T$, evaluates the network on those windows, and then uses the resulting decisions to simulate the endogenous economy forward. In the Brock--Mirman warm-up this produces the capital sequence directly; in the Krusell--Smith tutorial it produces policy-function objects, while Young's method still propagates the cross-sectional distribution inside the simulator. Residuals are then evaluated on the simulated path and backpropagated through the full pipeline. Figure {numref}`fig-sequence_space_training` summarizes this workflow.
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/fig-sequence_space_training.svg
 :name: fig-sequence_space_training
 Training flow for sequence-space DEQNs. The exogenous shock history is the network input, but the forward simulator still produces endogenous objects such as prices, aggregate capital, or cross-sectional distributions needed for residual evaluation.
 ```
