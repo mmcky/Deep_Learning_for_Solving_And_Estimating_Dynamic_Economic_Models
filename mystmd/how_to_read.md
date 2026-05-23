@@ -45,6 +45,6 @@ The script uses three colored callout boxes plus an algorithm box. Each color is
 
 - **Numbered algorithms.** Inside blue boxes labeled "Algorithm: ...," the pseudocode follows the conventions of the `algorithmic` package: [Input]{.smallcaps} / [Output]{.smallcaps} statements, indented [For]{.smallcaps} / [If]{.smallcaps} blocks, and arrow-style assignments.
 
-A few additional typographic conventions: file paths and code identifiers are set in `monospace`; emphasized terms appear in ; cross-references to other chapters use the form (Ch. $N$) or (§$N.M$); and figure / table captions sit below their objects.
+A few additional typographic conventions: file paths and code identifiers are set in `monospace`; emphasized terms appear in **bold crimson**; cross-references to other chapters use the form (Ch. $N$) or (§$N.M$); and figure / table captions sit below their objects.
 
 [^1]: <https://github.com/sischei/Deep_Learning_for_Solving_And_Estimating_Dynamic_Economic_Models>

@@ -256,7 +256,7 @@ def deqn_loss(model, K, z, beta, alpha, z_next):
     return tf.reduce_mean(G**2)
 ```
 
-A Gauss--Hermite variant (developed formally in {ref}`sec-gh_tensor_product`) replaces the single shock draw `z_next` by a $Q$-node weighted sum $\mathrm{E}[\,\alpha z' K'^{\alpha-1}/C'\mid z\,] \approx \sum_{q=1}^{Q} w_q\,\alpha z_q' K'^{\alpha-1}/C'(K',z_q')$ with $z_q' = z^\varrho\exp(\sigma_z\varepsilon_q)$ at the rescaled Hermite nodes $\varepsilon_q$; in practice $Q=5$ already drives the quadrature error below the training error. The autodiff companion notebook implements this variant explicitly.
+A Gauss--Hermite variant (developed formally in {ref}`sec-gh_tensor_product`) replaces the single shock draw `z_next` by a $Q$-node weighted sum $\mathrm{E}[\,\alpha z' K'^{\alpha-1}/C'\mid z\,] \approx \sum_{q=1}^{Q} w_q\,\alpha z_q' K'^{\alpha-1}/C'(K',z_q')$ with $z_q' = z^\varrho\exp(\sigma_z\varepsilon_q)$ at the rescaled Hermite nodes $\varepsilon_q$; in practice $Q=5$ already drives the quadrature error below the training error. The autodiff companion notebook `03_Brock_Mirman_Uncertainty_AutoDiff_DEQN.ipynb` implements this variant explicitly.
 
 (sec-deqn_hard_soft)=
 ## Encoding Equilibrium Conditions: Hard vs. Soft Constraints
@@ -552,7 +552,7 @@ $$ (eq-ad_euler)
 
 Here $K_{t+2}=g(K_{t+1},z_{t+1})$. Both terms in {eq}`eq-ad_euler` are derivatives with respect to the same physical variable $K_{t+1}$, but one treats $K_{t+1}$ as the *choice* of period $t$ (slot 2) and the other treats $K_{t+1}$ as the *state* of period $t+1$ (slot 1). Every term is therefore a *partial derivative of the same function $\Pi$*. Neither $u'$ nor the marginal product of capital, nor the envelope formula $V'(K) = u'(C)(\alpha K^{\alpha-1} + 1 - \delta)$ need to be written out by hand. `tf.GradientTape` records the forward evaluation of $\Pi$ and produces both partials on demand; the expectation is approximated by any of the quadrature rules of {ref}`sec-quadrature_rules`. The code is shorter than the pen-and-paper counterpart and, more importantly, entirely *model-agnostic*: swapping log for CRRA utility means editing the body of `Pi` and nothing else.
 
-``` {#lst:autodiff_euler caption="Autodiff Euler residual for Brock--Mirman.  The function \\texttt{Pi} is the only model-specific code; the rest is generic.  A full implementation lives in the autodiff chapter's code folder, notebook \\protect\\tpath{02_Brock_Mirman_AutoDiff_DEQN.ipynb}." label="lst:autodiff_euler"}
+``` {#lst:autodiff_euler caption="Autodiff Euler residual for Brock--Mirman.  The function \\texttt{Pi} is the only model-specific code; the rest is generic.  A full implementation lives in the autodiff chapter's code folder, notebook \\protect\\texttt{02_Brock_Mirman_AutoDiff_DEQN.ipynb}." label="lst:autodiff_euler"}
 def Pi(K_in, K_out, z_in):
     Y = z_in * K_in ** alpha
     C = Y + (1.0 - delta) * K_in - K_out
@@ -590,7 +590,7 @@ The Brock--Mirman loss contains $\log C_t$ and hence $1/C_t$. If the network's o
 
 - *Reparameterize so the domain is respected by architecture.* In the Brock--Mirman notebooks, the network outputs the *savings share* $s \in (0,1)$ through a sigmoid; this guarantees $C_t > 0$ *and* $K_{t+1} > 0$ simultaneously, at every training iteration, with no penalty term. This is the hard/soft constraint split of Figure {numref}`fig-hard_soft`.
 
-- *Use numerically stable primitives.* Prefer to , to a hand-coded $\log(1 + e^x)$, and to $a\log b$ when the $a=0$ convention matters. AD does not see the cancellations these functions implement; the human must.
+- *Use numerically stable primitives.* Prefer `tf.math.log1p(x)` to `log(1+x)`, `tf.math.softplus` to a hand-coded $\log(1 + e^x)$, and `tf.math.xlogy(a,b)` to $a\log b$ when the $a=0$ convention matters. AD does not see the cancellations these functions implement; the human must.
 
 ##### Reverse-mode memory.
 
@@ -673,7 +673,7 @@ Of the six kernels, log-cosh is the one whose convergence curve is essentially m
 
 The relative Euler-equation residual already has a direct economic interpretation: a $1\%$ relative Euler error translates approximately into a $1\%$ per-period consumption error along the simulated path {cite:p}`judd1998numerical`. The mean / $p_{90}$ / $p_{99}$ panels of Figure {numref}`fig-loss_kernels` therefore measure, in interpretable units, the average and tail consumption mistakes that each loss kernel leaves behind. The point of the experiment is that *the training-loss ranking is not the same as the ranking on this economic metric*: a kernel that achieves a slightly higher *mean* residual but a much narrower *tail* produces smaller worst-case consumption errors, which is what matters when rare states are economically consequential (occasionally binding constraints, fat-tailed shocks, tipping risks). The training loss is the instrument; the relative Euler error along simulated paths is the criterion. Choosing the kernel with that hierarchy in mind is part of the modeling decision. The companion notebook pushes this one step further by collapsing the per-period error distribution into a single consumption-equivalent welfare loss against $s^\star$; readers who want a single-number summary of the trade-off should consult that table directly.
 
-The full experiment, including a path-residual histogram, a policy-error heatmap on the $(z, \log K)$ plane, and a CE-welfare-loss summary table, is in the companion notebook .
+The full experiment, including a path-residual histogram, a policy-error heatmap on the $(z, \log K)$ plane, and a CE-welfare-loss summary table, is in the companion notebook `05_StochasticBM_LossComparison.ipynb`.
 
 ##### Extensions of the basic DEQN template.
 
@@ -681,17 +681,17 @@ The Brock--Mirman model establishes the core DEQN recipe, but it is only the sta
 
 ##### Code examples.
 
-The following Jupyter notebooks implement and extend the material in this chapter. Notebooks 01 and 02 illustrate the *sampling progression* that is pedagogically central to the method: 01 uses uniform random states to isolate the loss-and-architecture mechanics, while 02 replaces the exogenous grid by simulated trajectories and learns on the model's ergodic set ({ref}`sec-deqn_algo`); both derive the FOC and apply the envelope theorem on paper before writing the loss. Notebooks 03 and 04 introduce additional techniques (endogenous labor, a KKT-constrained labor-time ceiling encoded via a *Fischer--Burmeister* complementarity function, and a six-period OLG extension) that anticipate material developed formally in Chapters {ref}`ch-irbc` and {ref}`ch-olg`. Three further notebooks that re-solve the same two Brock--Mirman models with an *autodiff* loss (illustrating the template of {ref}`sec-autodiff`) are placed in the autodiff-chapter code folder as the autodiff primer: , , .
+The following Jupyter notebooks implement and extend the material in this chapter. Notebooks 01 and 02 illustrate the *sampling progression* that is pedagogically central to the method: 01 uses uniform random states to isolate the loss-and-architecture mechanics, while 02 replaces the exogenous grid by simulated trajectories and learns on the model's ergodic set ({ref}`sec-deqn_algo`); both derive the FOC and apply the envelope theorem on paper before writing the loss. Notebooks 03 and 04 introduce additional techniques (endogenous labor, a KKT-constrained labor-time ceiling encoded via a *Fischer--Burmeister* complementarity function, and a six-period OLG extension) that anticipate material developed formally in Chapters {ref}`ch-irbc` and {ref}`ch-olg`. Three further notebooks that re-solve the same two Brock--Mirman models with an *autodiff* loss (illustrating the template of {ref}`sec-autodiff`) are placed in the autodiff-chapter code folder as the autodiff primer: `01_AutoDiff_Analytical_Examples.ipynb`, `02_Brock_Mirman_AutoDiff_DEQN.ipynb`, `03_Brock_Mirman_Uncertainty_AutoDiff_DEQN.ipynb`.
 
-- : deterministic Brock--Mirman; exogenous uniform sampling; hand-derived FOC + envelope.
+- `01_Brock_Mirman_1972_DEQN.ipynb`: deterministic Brock--Mirman; exogenous uniform sampling; hand-derived FOC + envelope.
 
-- : stochastic Brock--Mirman ($\varrho > 0$, $\sigma_z > 0$); simulation-based sampling on the ergodic set; hand-derived FOC + envelope.
+- `02_Brock_Mirman_Uncertainty_DEQN.ipynb`: stochastic Brock--Mirman ($\varrho > 0$, $\sigma_z > 0$); simulation-based sampling on the ergodic set; hand-derived FOC + envelope.
 
-- : four guided exercises (endogenous labor, KKT + Fischer--Burmeister, simple OLG extension); blank version.
+- `03_DEQN_Exercises_Blanks.ipynb`: four guided exercises (endogenous labor, KKT + Fischer--Burmeister, simple OLG extension); blank version.
 
-- : the same four exercises with complete solutions.
+- `04_DEQN_Exercises_Solutions.ipynb`: the same four exercises with complete solutions.
 
-- : the stochastic Brock--Mirman is re-solved six times with identical network, optimizer, and CRN training data, and only the loss kernel changes (MSE, MAE, Huber, quantile pinball, CVaR, log-cosh). The notebook switches to full depreciation $\delta=1$ so that the closed-form optimal savings rate $s^\star=\alpha\beta$ is available, then evaluates each trained policy on the *economic* metric: the relative Euler-equation error along a simulated path, plus the consumption-equivalent welfare loss against $s^\star$. The exercise makes concrete that the choice of training loss and the convergence of the metric we ultimately care about are not the same thing, and that tail-aware kernels (Huber, CVaR, quantile pinball) trade a small loss in the bulk for a much cleaner $p_{99}$.
+- `05_StochasticBM_LossComparison.ipynb`: the stochastic Brock--Mirman is re-solved six times with identical network, optimizer, and CRN training data, and only the loss kernel changes (MSE, MAE, Huber, quantile pinball, CVaR, log-cosh). The notebook switches to full depreciation $\delta=1$ so that the closed-form optimal savings rate $s^\star=\alpha\beta$ is available, then evaluates each trained policy on the *economic* metric: the relative Euler-equation error along a simulated path, plus the consumption-equivalent welfare loss against $s^\star$. The exercise makes concrete that the choice of training loss and the convergence of the metric we ultimately care about are not the same thing, and that tail-aware kernels (Huber, CVaR, quantile pinball) trade a small loss in the bulk for a much cleaner $p_{99}$.
 
 ```{prf:remark}
 
@@ -735,8 +735,8 @@ Worked solutions and guidance for these exercises appear in Appendix {ref}`app-
 
 6.   **[Core\] Loss-kernel selection.** Three application scenarios are described below; match each to the most appropriate loss kernel from the menu {MSE, MAE, Huber($\delta$), pinball loss at $\tau$, CVaR at $\alpha$, log-cosh} and justify the choice in two or three sentences. (a) "Quadrature noise occasionally produces a few large Euler residuals; we want a smooth loss that behaves quadratically near zero so gradients vanish at the optimum, but only linearly in the tails so that a single noisy point cannot dominate the gradient." (b) "A regulator will inspect the worst $1\%$ of residuals; we want the optimizer to drive the conditional mean above the $99$th percentile down to tolerance, not the average." (c) "We care that the *median* Euler residual is small. Tails are an artefact of badly conditioned states near the borrowing constraint and should not pull the gradient."
 
-7.   **[Computational\] Multivariate shock scaling.** Extend notebook to $d$ independent productivity shocks, $d \in \{1, 2, 4, 8\}$ (e.g., add country-level TFP terms to the production technology, all i.i.d. standard normal). For each $d$, train the network twice: once with tensor-product Gauss--Hermite at $Q=3$ ($3^d$ nodes per residual), once with the Stroud-3 rule of {eq}`eq-stroud3` ($2d$ nodes). Plot training time per epoch and final relative Euler error against $d$ on the same axes. Confirm that the Stroud-3 cost grows linearly while Gauss--Hermite is exponential, and identify the $d$ at which Gauss--Hermite becomes impractical on a single GPU.
+7.   **[Computational\] Multivariate shock scaling.** Extend notebook `lecture_03_02_Brock_Mirman_Uncertainty_DEQN.ipynb` to $d$ independent productivity shocks, $d \in \{1, 2, 4, 8\}$ (e.g., add country-level TFP terms to the production technology, all i.i.d. standard normal). For each $d$, train the network twice: once with tensor-product Gauss--Hermite at $Q=3$ ($3^d$ nodes per residual), once with the Stroud-3 rule of {eq}`eq-stroud3` ($2d$ nodes). Plot training time per epoch and final relative Euler error against $d$ on the same axes. Confirm that the Stroud-3 cost grows linearly while Gauss--Hermite is exponential, and identify the $d$ at which Gauss--Hermite becomes impractical on a single GPU.
 
-8.   **[Computational\] Implementation.** Modify notebook to use a tanh activation instead of Swish. Does training still converge? How does the time-to-converge change?
+8.   **[Computational\] Implementation.** Modify notebook `lecture_03_02_Brock_Mirman_Uncertainty_DEQN.ipynb` to use a tanh activation instead of Swish. Does training still converge? How does the time-to-converge change?
 
 [^1]: In the sense of {cite:t}`ECTA`:ECTA1716: an approximation of the equilibrium policy (or value) functions over the entire economically relevant region of the state space, in particular over the model's ergodic set, as opposed to a *local* (perturbation) solution that is accurate only in a neighborhood of the deterministic steady state.

@@ -28,7 +28,7 @@ C_t + K_{t+1} &= Y_t + (1-\delta)K_t, \\
 \end{aligned}
 $$
 
-We write $\varrho$ for TFP persistence to avoid overloading $\rho$, which elsewhere denotes neural-network parameters. The Python notebooks still use the variable name ; mathematically, that code variable corresponds to $\varrho$.
+We write $\varrho$ for TFP persistence to avoid overloading $\rho$, which elsewhere denotes neural-network parameters. The Python notebooks still use the variable name `rho`; mathematically, that code variable corresponds to $\varrho$.
 
 The network outputs a savings rate, the fraction of current output that is invested. In the single-parameter exercise, $$s_t = \mathcal{N}_{\rho}(z_t,K_t,\varrho) \in (0,1),$$ with $\beta$ calibrated to $0.96$. In the joint exercise the input becomes $(z_t,K_t,\beta,\varrho)$. In either case, recover
 
@@ -125,7 +125,7 @@ The exercise uses a deliberately simple synthetic-data workflow so that the econ
 
 ##### Single-parameter persistence exercise.
 
-Notebook calibrates $\beta=0.96$, sets $\varrho_{\mathrm{true}}=0.90$, and estimates $\varrho\in[0.50,0.99]$. Let $\{C_t(\varrho),I_t(\varrho),Y_t(\varrho)\}_{t=1}^T$ denote a simulated sample at candidate persistence $\varrho$. The estimator uses three moments:
+Notebook `lecture_15_03_Structural_Estimation_BM.ipynb` calibrates $\beta=0.96$, sets $\varrho_{\mathrm{true}}=0.90$, and estimates $\varrho\in[0.50,0.99]$. Let $\{C_t(\varrho),I_t(\varrho),Y_t(\varrho)\}_{t=1}^T$ denote a simulated sample at candidate persistence $\varrho$. The estimator uses three moments:
 
 $$
 \begin{aligned}
@@ -141,7 +141,7 @@ All three moments are computed on the raw simulated time series with no detrendi
 
 ##### Joint exercise.
 
-Notebook estimates $\theta=(\beta,\varrho)$, with $\beta\in[0.92,0.99]$ and $\varrho\in[0.50,0.99]$. It uses four candidate moments: mean savings, growth volatility, consumption-growth autocorrelation, and output autocorrelation. The *shallow-ridge two-moment specification* retains $\{\mathrm{std}(\Delta\log C_t),\,\mathrm{corr}(\Delta\log C_t,\Delta\log C_{t-1})\}$ to expose the partial-identification ridge in the criterion surface; the over-identified specification uses all four moments and collapses the ridge around the synthetic truth. Formally the two-moment case is just-identified ($q=p=2$), so we avoid the econometric term *weak identification* (which refers to a near-singular Jacobian asymptotic regime) and use *shallow-ridge* or *partially-identified* for what the criterion-surface picture actually shows.
+Notebook `lecture_15_03b_Structural_Estimation_BM_Joint.ipynb` estimates $\theta=(\beta,\varrho)$, with $\beta\in[0.92,0.99]$ and $\varrho\in[0.50,0.99]$. It uses four candidate moments: mean savings, growth volatility, consumption-growth autocorrelation, and output autocorrelation. The *shallow-ridge two-moment specification* retains $\{\mathrm{std}(\Delta\log C_t),\,\mathrm{corr}(\Delta\log C_t,\Delta\log C_{t-1})\}$ to expose the partial-identification ridge in the criterion surface; the over-identified specification uses all four moments and collapses the ridge around the synthetic truth. Formally the two-moment case is just-identified ($q=p=2$), so we avoid the econometric term *weak identification* (which refers to a near-singular Jacobian asymptotic regime) and use *shallow-ridge* or *partially-identified* for what the criterion-surface picture actually shows.
 
 ##### A deterministic objective.
 
@@ -208,7 +208,7 @@ If the smallest singular values of $\hat{M}$ are close to zero, inference based 
 ## GP Surrogate over the Moment Map
 ```{prf:remark}
 
-The simplified core notebooks and stop after the direct surrogate-based SMM estimator and its identification diagnostics; they do *not* implement the second-layer Gaussian-process moment surrogate, leave-one-out validation, or Bayesian active learning described below. This section sketches the research-scale extension that a separate companion notebook would add on top of the policy surrogate, and that motivates the GP active-learning workflow used in Chapter {ref}`ch-climate`.
+The simplified core notebooks `lecture_15_03_Structural_Estimation_BM.ipynb` and `lecture_15_03b_Structural_Estimation_BM_Joint.ipynb` stop after the direct surrogate-based SMM estimator and its identification diagnostics; they do *not* implement the second-layer Gaussian-process moment surrogate, leave-one-out validation, or Bayesian active learning described below. This section sketches the research-scale extension that a separate companion notebook would add on top of the policy surrogate, and that motivates the GP active-learning workflow used in Chapter {ref}`ch-climate`.
 ```
 
 
@@ -270,7 +270,7 @@ Direct SMM criterion for the joint Brock–Mirman estimation. The left panel use
 ```
 In the research-scale extension, the second-layer GP fitted to the joint moment map provides a closed-form, microseconds-per-call substitute for forward simulation: subsequent SMM evaluations, bootstrap replications, and Bayesian post-processing run on the GP rather than on the simulator. The TikZ architecture diagram in Figure {numref}`fig-smm_two_layer_surrogate` already encodes the cost cascade; the rendered GP-objective surface itself is not produced by the core notebooks and is therefore not displayed here.
 ```{prf:remark}
-Notebook fits the scalar persistence exercise: a 3-input pseudo-state policy net, common-random-number simulation across a $\varrho$-grid, and an interior SMM estimate with a moment-Jacobian diagnostic. Notebook performs joint $(\beta,\varrho)$ estimation and visualises the partial-identification ridge of Figure {numref}`fig-smm_2d_criterion` for the shallow-ridge two-moment specification and the over-identified specification. The second-layer GP-moment-map extension above is left as a research-scale companion.
+Notebook `lecture_15_03_Structural_Estimation_BM.ipynb` fits the scalar persistence exercise: a 3-input pseudo-state policy net, common-random-number simulation across a $\varrho$-grid, and an interior SMM estimate with a moment-Jacobian diagnostic. Notebook `lecture_15_03b_Structural_Estimation_BM_Joint.ipynb` performs joint $(\beta,\varrho)$ estimation and visualises the partial-identification ridge of Figure {numref}`fig-smm_2d_criterion` for the shallow-ridge two-moment specification and the over-identified specification. The second-layer GP-moment-map extension above is left as a research-scale companion.
 ```
 (sec-beyond_smm)=
 ## Beyond SMM: Indirect Inference and Simulation-Based Inference
@@ -297,11 +297,11 @@ Climate--economy integrated assessment models (Chapter {ref}`ch-climate`) are t
 (exercises)=
 ## Exercises
 Worked solutions and guidance for these exercises appear in Appendix {ref}`app-solutions`.
-1.   **[Computational\] Identification.** In notebook , choose two candidate moments and compute the finite-difference Jacobian $\partial m/\partial\varrho$ at $\varrho_{\mathrm{true}}=0.90$. Which moment provides stronger local identification?
+1.   **[Computational\] Identification.** In notebook `lecture_15_03_Structural_Estimation_BM.ipynb`, choose two candidate moments and compute the finite-difference Jacobian $\partial m/\partial\varrho$ at $\varrho_{\mathrm{true}}=0.90$. Which moment provides stronger local identification?
 2.   **[Core\] Optimal weighting.** Show that under standard regularity conditions, $W^\star=\Omega^{-1}$ minimizes the asymptotic variance of $\hat\theta_{\mathrm{SMM}}$, where $\Omega$ is the covariance of the moment discrepancy. Why does identity weighting still appear in the first stage?
 3.   **[Computational\] Common random numbers.** In the scalar Brock--Mirman exercise, plot the SMM objective as a function of $\varrho$ with and without common random numbers. Quantify the objective noise across repeated Monte Carlo panels under the same candidate grid.
 4.   **[Core\] SMM vs. SBI.** Outline the algorithmic difference between estimating $\theta$ by SMM (one optimization per dataset) and by neural simulation-based inference (one training run plus one posterior evaluation per dataset). In which regime does SBI dominate?
-5.   **[Advanced/project\] $J$-statistic and overidentification.** In notebook , use the over-identified specification with $q=4$ moments and $p=2$ parameters. (i) State the asymptotic distribution of the $J$-statistic under correct specification when $W=\Omega^{-1}$. (ii) Compute $J(\hat\theta)$ on the original synthetic sample and report whether the $\chi^2_2$ test rejects at $\alpha=0.05$. (iii) Repeat across Monte Carlo samples generated at the truth and compare the empirical distribution with $\chi^2_2$. (iv) Introduce a structural break in one model parameter and verify that the $J$ distribution shifts to the right.
+5.   **[Advanced/project\] $J$-statistic and overidentification.** In notebook `lecture_15_03b_Structural_Estimation_BM_Joint.ipynb`, use the over-identified specification with $q=4$ moments and $p=2$ parameters. (i) State the asymptotic distribution of the $J$-statistic under correct specification when $W=\Omega^{-1}$. (ii) Compute $J(\hat\theta)$ on the original synthetic sample and report whether the $\chi^2_2$ test rejects at $\alpha=0.05$. (iii) Repeat across Monte Carlo samples generated at the truth and compare the empirical distribution with $\chi^2_2$. (iv) Introduce a structural break in one model parameter and verify that the $J$ distribution shifts to the right.
 6.   **[Advanced/project\] Bootstrap confidence intervals.** Compare three confidence-interval procedures for $\hat\theta_\mathrm{SMM}$: (a) plug-in sandwich standard errors; (b) moving-block or stationary bootstrap of the time-series sample; (c) parametric bootstrap, drawing new samples under the simulated model at $\hat\theta$. Report the confidence intervals and coverage across repeated Monte Carlo replications.
-7.   **[Advanced/project\] Maximum likelihood vs. SMM efficiency.** Suppose the productivity process $\log z_t$ is observed. Implement the Gaussian AR(1) MLE for $\varrho$ and compare it with the SMM estimator based on the moments in notebook . On Monte Carlo replications at several sample sizes, report bias, variance, and MSE. Explain why MLE is efficient for this observed-shock likelihood, while SMM reaches the GMM efficiency bound only for the chosen moment vector. As an optional extension, repeat the beta-only MLE comparison in the full-depreciation log-utility special case where the policy has a closed form.
+7.   **[Advanced/project\] Maximum likelihood vs. SMM efficiency.** Suppose the productivity process $\log z_t$ is observed. Implement the Gaussian AR(1) MLE for $\varrho$ and compare it with the SMM estimator based on the moments in notebook `lecture_15_03_Structural_Estimation_BM.ipynb`. On Monte Carlo replications at several sample sizes, report bias, variance, and MSE. Explain why MLE is efficient for this observed-shock likelihood, while SMM reaches the GMM efficiency bound only for the chosen moment vector. As an optional extension, repeat the beta-only MLE comparison in the full-depreciation log-utility special case where the policy has a closed form.
 [^1]: A resource-based variant in which the savings rate is applied to total resources $R_t = Y_t + (1-\delta)K_t$, allowing disinvestment relative to the depreciated stock, is a straightforward alternative; the SMM moments and notebook outputs in this chapter use the output-based savings rate above.
