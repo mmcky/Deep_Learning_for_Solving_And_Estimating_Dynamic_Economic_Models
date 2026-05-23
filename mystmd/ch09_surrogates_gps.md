@@ -509,7 +509,7 @@ Both GPs (this chapter) and DEQNs (Chapters {ref}`ch-deqn`--{ref}`ch-olg`) solv
   **Criterion**             **GP / ASGP**                                                                        **DEQNs**
   ------------------------- ------------------------------------------------------------------------------------ ---------------------------------------------------------------
   Solution method           Value function iteration                                                             Euler equation residuals
-  Dimensionality            Up to $\sim$`<!-- -->`{=html}500 (with AS)                                           $>$`<!-- -->`{=html}1000 feasible
+  Dimensionality            Up to $\sim$500 (with AS)                                           $>$1000 feasible
   UQ built-in               Yes (GP posterior variance)                                                          No (needs extra work)
   Hardware                  CPU clusters (MPI)                                                                   GPUs (TensorFlow/PyTorch)
   Irregular domains         Yes (grid-free)                                                                      Yes (mesh-free)

@@ -9,7 +9,7 @@ The following table maps each manuscript chapter to its companion slide deck(s) 
 
    **Ch.**  **Topic**               **Lecture folder & deck**                **Notebooks (role)**
   --------- ----------------------- ---------------------------------------- ------------------------------------------------------------------------------------
-      1     Intro to ML & DL        L02: `01_Intro_to_DL`                    L02 `01`--`09` (c$\times$`<!-- -->`{=html}9)
+      1     Intro to ML & DL        L02: `01_Intro_to_DL`                    L02 `01`--`09` (c$\times$9)
       2     Deep Equilibrium Nets   L03: `02_DEQNs`; L07: `05b_AutoDiff`     L03 `01`--`02` (c), `03`--`04` (e/s), `05` (c); L07 `01`--`04` (c)
       3     IRBC Model              L04: `03_IRBC`                           L04 `01`--`02` (c)
       4     NAS & Loss Norm.        L05: `04_NAS`, `05_Loss`                 L05 `02`--`04` (c), `05` (e)

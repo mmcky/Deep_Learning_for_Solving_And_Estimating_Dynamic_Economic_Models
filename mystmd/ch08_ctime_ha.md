@@ -397,13 +397,13 @@ The infinite-dimensional distribution $g$ must be replaced by a finite-dimension
 
 Replace the continuum by $N$ agents with states $\hat{\varphi}_t = \{(a_t^1, n_t^1),\ldots,(a_t^N,n_t^N)\}$. Aggregate capital is $K_t = N^{-1}\sum_i a_t^i$. Sampling individual states and distribution states *separately* during training keeps $N$ manageable; the law of large numbers provides accurate aggregate capital even with 40 agents.
 
-##### Discrete state ($\sim$`<!-- -->`{=html}200 grid points).
+##### Discrete state ($\sim$200 grid points).
 
 Discretize wealth on a grid $\{a_1,\ldots,a_I\}$ and represent the distribution as masses $\hat{\varphi}_{i,j}$ at each $(a_i, n_j)$. The KFE becomes a finite-difference mass evolution, and the functional derivative becomes a partial derivative $\partial_{\hat{\varphi}_{m,j}}\hat{W}$.
 
-##### Projection ($\sim$`<!-- -->`{=html}5 components).
+##### Projection ($\sim$5 components).
 
-Project $g$ onto eigenfunctions of the steady-state KFE operator $\bar{\mathcal{L}}^{KF}$. These are the most *persistent* density components, carrying the most price-relevant information. Only $\sim$`<!-- -->`{=html}5 basis functions suffice, yielding the lowest-dimensional representation, but the setup requires computing eigenfunctions and choosing appropriate test functions for the KFE evolution.
+Project $g$ onto eigenfunctions of the steady-state KFE operator $\bar{\mathcal{L}}^{KF}$. These are the most *persistent* density components, carrying the most price-relevant information. Only $\sim$5 basis functions suffice, yielding the lowest-dimensional representation, but the setup requires computing eigenfunctions and choosing appropriate test functions for the KFE evolution.
 
 ### The EMINN Algorithm
 

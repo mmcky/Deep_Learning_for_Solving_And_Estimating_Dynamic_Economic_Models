@@ -13,7 +13,7 @@ Two NAS walkthroughs are provided alongside the ReLoBRaLo notebook, plus the IRB
 
 - `02_NAS_Random_Search_10D.ipynb`: a library-free Random Search loop (model in TF/Keras) on a 10-dimensional analytical regression task, used to illustrate the projection argument of {cite:t}`bergstra2012random` in its cleanest form.
 
-- `03_NAS_RandomSearch_Hyperband.ipynb`: from-scratch Random Search and Successive Halving (Hyperband's inner loop) on a two-dimensional Genz Gaussian, written in $\sim$`<!-- -->`{=html}25 lines of plain Python so the algorithms in this chapter are visible without library abstraction; after the first run, the cached records in `nas_results/` short-circuit re-runs for instant re-inspection.
+- `03_NAS_RandomSearch_Hyperband.ipynb`: from-scratch Random Search and Successive Halving (Hyperband's inner loop) on a two-dimensional Genz Gaussian, written in $\sim$25 lines of plain Python so the algorithms in this chapter are visible without library abstraction; after the first run, the cached records in `nas_results/` short-circuit re-runs for instant re-inspection.
 
 - `04_Loss_Normalization.ipynb`: the classroom ReLoBRaLo implementation, matched to the notation below.
 

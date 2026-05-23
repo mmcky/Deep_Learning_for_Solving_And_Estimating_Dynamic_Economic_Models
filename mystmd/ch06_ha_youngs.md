@@ -245,12 +245,12 @@ Figure {numref}`fig-young_forward` visualizes the five stages of a single forwa
 :name: fig-young_forward
 Flow diagram for one forward step of Young’s histogram update (Algorithm [alg:young]). Starting from Gt, the policy function is evaluated at every active bin, the resulting off-grid savings are interpolated back onto the grid, and idiosyncratic shock transitions redistribute mass across ε-states to produce Gt + 1.
 ```
-**Comparison with Monte Carlo.** Young's method produces *zero sampling noise* (deterministic), preserves the mean *exactly*, requires only $\sim$`<!-- -->`{=html}100--5,000 grid points (versus $>$`<!-- -->`{=html}50,000 agents for Monte Carlo), and is fully reproducible. The trade-off is that it approximates higher moments and requires a grid that is wide enough to contain all mass. The following table summarizes the comparison:
+**Comparison with Monte Carlo.** Young's method produces *zero sampling noise* (deterministic), preserves the mean *exactly*, requires only $\sim$100--5,000 grid points (versus $>$50,000 agents for Monte Carlo), and is fully reproducible. The trade-off is that it approximates higher moments and requires a grid that is wide enough to contain all mass. The following table summarizes the comparison:
                          **Young's method**           **Panel simulation**
   ------------------- ------------------------ -----------------------------------
   Sampling noise                None                $\mathcal{O}(1/\sqrt{N})$
   Mean preservation            Exact                       Approximate
-  Typical size         100--5,000 grid points   $>$`<!-- -->`{=html}50,000 agents
+  Typical size         100--5,000 grid points   $>$50,000 agents
   Reproducibility          Deterministic                 Seed-dependent
   Higher moments            Approximated                  Approximated
 Figure {numref}`fig-young_vs_mc` contrasts the two approaches visually: the histogram method yields a smooth, noise-free distribution, while a Monte Carlo panel of comparable size exhibits visible sampling noise.
@@ -259,7 +259,7 @@ Figure {numref}`fig-young_vs_mc` contrasts the two approaches visually: the his
 Young’s histogram (left) versus Monte Carlo panel simulation (right). Both approximate the same underlying wealth density (dashed). The histogram method is deterministic and smooth; the Monte Carlo panel exhibits $\mathcal{O}(1/\sqrt{N})$ sampling noise that contaminates downstream OLS regressions in the Krusell–Smith algorithm. The bars in this figure are a TikZ schematic illustrating the two regimes; for the actual histograms produced by the algorithm see notebook lecture_09_10_Youngs_Method_Examples in the Lecture-09 code/ folder.
 ```
 The absence of sampling noise matters for the Krusell--Smith algorithm: Monte Carlo noise in the realized mean contaminates the OLS regression that updates the forecasting rule, potentially destabilizing convergence.
-**Grid design.** Two separate grids are used in practice. The *value function grid* (typically $\sim$`<!-- -->`{=html}150 irregularly spaced points) is finer near the borrowing constraint where the policy function has high curvature and coarser for large $k$ where behavior is smooth. The *simulation grid* for Young's histogram (typically $\sim$`<!-- -->`{=html}1,000--5,000 uniformly spaced points) uses uniform spacing to produce smooth histograms without artifacts. The upper bound $k_{\max}$ must be chosen large enough that no mass reaches the boundary; if $k' > k_{\max}$ for any agent, all mass is assigned to the last grid point, which violates mean preservation. A practical safeguard is to run a preliminary simulation and verify that the boundary bins contain negligible mass.
+**Grid design.** Two separate grids are used in practice. The *value function grid* (typically $\sim$150 irregularly spaced points) is finer near the borrowing constraint where the policy function has high curvature and coarser for large $k$ where behavior is smooth. The *simulation grid* for Young's histogram (typically $\sim$1,000--5,000 uniformly spaced points) uses uniform spacing to produce smooth histograms without artifacts. The upper bound $k_{\max}$ must be chosen large enough that no mass reaches the boundary; if $k' > k_{\max}$ for any agent, all mass is assigned to the last grid point, which violates mean preservation. A practical safeguard is to run a preliminary simulation and verify that the boundary bins contain negligible mass.
 **The full Krusell--Smith algorithm.** Combining value function iteration (VFI) with Young's simulation yields:
 1.  Initialize forecasting coefficients $A(a), B(a)$.
 2.  Solve the household problem via VFI given the forecasting rule $\hat{H}$.
