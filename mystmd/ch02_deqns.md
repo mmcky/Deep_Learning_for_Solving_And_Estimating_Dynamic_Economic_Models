@@ -265,13 +265,9 @@ The Brock--Mirman DEQN loss above already used one design choice without dwellin
 Hard constraints, encoded in the architecture (never in the loss).
 : Some equations can be satisfied exactly for every state $\x = (K,z)$:
 
-  % Unknown environment: itemize
-  ::: itemize
+  - The *resource / state-transition* equation $K_{t+1} = z_t K_t^\alpha - C_t$ defines next-period capital from the network's consumption policy. It is *not* minimized; it is evaluated as a closed-form function of $\x_t$ and $C_t$.
 
-The *resource / state-transition* equation $K_{t+1} = z_t K_t^\alpha - C_t$ defines next-period capital from the network's consumption policy. It is *not* minimized; it is evaluated as a closed-form function of $\x_t$ and $C_t$.
-
-The economic requirements $C_t > 0$ *and* $K_{t+1} > 0$ are jointly imposed by parameterizing the network's output as a *savings share* $s_t \in (0,1)$ via a *sigmoid* activation, $\mathrm{sigmoid}(z) = 1/(1+e^{-z})$, and recovering both quantities in closed form from the resource constraint, $C_t = (1-s_t)\,z_t K_t^\alpha$ and $K_{t+1} = s_t\,z_t K_t^\alpha$. A softplus head on $C_t$ alone would guarantee $C_t>0$ but not $K_{t+1}>0$ (the network could output $C_t > z_t K_t^\alpha$). This sigmoid-savings parameterization removes an entire class of infeasible candidate policies before training begins; see the code listing in Section {ref}`sec-bm` above.
-:::
+  - The economic requirements $C_t > 0$ *and* $K_{t+1} > 0$ are jointly imposed by parameterizing the network's output as a *savings share* $s_t \in (0,1)$ via a *sigmoid* activation, $\mathrm{sigmoid}(z) = 1/(1+e^{-z})$, and recovering both quantities in closed form from the resource constraint, $C_t = (1-s_t)\,z_t K_t^\alpha$ and $K_{t+1} = s_t\,z_t K_t^\alpha$. A softplus head on $C_t$ alone would guarantee $C_t>0$ but not $K_{t+1}>0$ (the network could output $C_t > z_t K_t^\alpha$). This sigmoid-savings parameterization removes an entire class of infeasible candidate policies before training begins; see the code listing in Section {ref}`sec-bm` above.
 
 Soft constraint, minimized in the loss.
 : The only equilibrium condition that cannot be enforced analytically is the *Euler equation* {eq}`eq-bm_euler`. The squared relative Euler error {eq}`eq-ree_bm` is averaged over the mini-batch and driven toward zero by stochastic gradient descent.

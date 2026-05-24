@@ -131,18 +131,14 @@ Table {numref}`tab-dl_failure_modes` summarizes recurring failure modes and the
 
 (tab-dl_failure_modes)=
   **Failure Mode**                                                               **Mitigation**
-  ------------------------------------------------------------------------------ ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  Loss decreases but solution is wrong                                           Check individual loss components; use economic diagnostics
-  One residual dominates all others                                              Adaptive loss balancing (Ch. {ref}`ch-nas`); inspect per-component gradients; normalize residuals to comparable units
-  Solver looks fine on simulation path, fails off path                           Add held-out validation states; sample corners and stress states; use residual-based adaptive resampling
-  Policy network outputs collapse to zero (e.g., $c \equiv 0$ or $s \equiv 0$)   Improve initialization; use simulation-based training; check that hard constraints are not forcing the trivial solution
-  NaN in loss                                                                    Clamp inputs to GP/network; check for log of negative values
-  Euler errors large in corners of state space                                   Increase sampling near boundaries; use hard constraints
-  Surrogate gives a precise but biased SMM optimum                               Validate the surrogate near the estimated optimum; add active-learning points around the criterion minimum; cross-check with direct DEQN re-evaluation
-  GP posterior variance too large                                                Add training points via BAL; check kernel hyperparameters
-  Training succeeds only for one seed                                            Report multi-seed dispersion; reduce learning rate; tighten scaling; check residual signs
+```{list-table}
+:header-rows: 0
 
-  : Recurring failure modes encountered when training the deep-learning solvers of this course (DEQNs, PINNs, deep surrogates, GP + BAL), together with the practical mitigations that work most reliably across the companion notebooks. The list is short by design: most production failures fall into one of these categories, and the corresponding fix is usually the first thing to try before invoking heavier diagnostics.
+* - Loss decreases but solution is wrong One residual dominates all others Solver looks fine on simulation path, fails off path Policy network outputs collapse to zero (e.g., $c \equiv 0$ or $s \equiv 0$) NaN in loss Euler errors large in corners of state space Surrogate gives a precise but biased SMM optimum GP posterior variance too large Training succeeds only for one seed
+  - Check individual loss components; use economic diagnostics Adaptive loss balancing (Ch. {ref}`ch-nas`); inspect per-component gradients; normalize residuals to comparable units Add held-out validation states; sample corners and stress states; use residual-based adaptive resampling Improve initialization; use simulation-based training; check that hard constraints are not forcing the trivial solution Clamp inputs to GP/network; check for log of negative values Increase sampling near boundaries; use hard constraints Validate the surrogate near the estimated optimum; add active-learning points around the criterion minimum; cross-check with direct DEQN re-evaluation Add training points via BAL; check kernel hyperparameters Report multi-seed dispersion; reduce learning rate; tighten scaling; check residual signs
+* - : Recurring failure modes encountered when training the deep-learning solvers o
+  - f this course (DEQNs, PINNs, deep surrogates, GP + BAL), together with the practical mitigations that work most reliably across the companion notebooks. The list is short by design: most production failures fall into one of these categories, and the corresponding fix is usually the first thing to try before invoking heavier diagnostics.
+```
 
 ##### Implementation checklist.
 

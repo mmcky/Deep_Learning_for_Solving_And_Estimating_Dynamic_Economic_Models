@@ -139,17 +139,6 @@ preprocess:
     # the \tpath rewrite above; tracked under the same issue.
     - { from: '\\emphc\{((?:\\.|[^{}])*)\}',
         to:   '\\textbf{\1}' }
-    # \begin{itemize}\itemsep<dim> (no space between env-open and the inline
-    # command) is a common LaTeX convention for tightening item spacing.
-    # Pandoc tolerates the construct at top level but breaks on it when
-    # nested inside another list/description env, emitting a stray
-    # `% Unknown environment: itemize` artifact plus an orphan `sep1pt`
-    # line — the cascade then drops every {figure} directive in the rest of
-    # the chapter. Strip the inline \itemsep<dim>: item spacing is purely
-    # visual and has no MyST analogue. Tracked upstream at
-    # https://github.com/QuantEcon/claude-latex-to-myst/issues/28
-    - { from: '(\\begin\{(?:itemize|enumerate|description)\}(?:\[[^\]]*\])?)\\itemsep[0-9.]+(?:pt|em|ex|in|cm|mm)',
-        to:   '\1' }
 
 # --- Post-pandoc Markdown rewrites ------------------------------------------
 
