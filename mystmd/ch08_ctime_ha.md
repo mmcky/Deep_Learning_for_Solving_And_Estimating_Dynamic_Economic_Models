@@ -195,40 +195,52 @@ The value function $V(a,n)$ records the maximum expected discounted utility star
 
 The derivation follows five steps; each unpacks one ingredient of equation {eq}`eq-hjb_full` below.
 
-*Step (i): Dynamic programming principle.* For small $h > 0$,
+*Step (i): Dynamic programming principle.* For small $h > 0$, $$V(a,n) \;=\; \max_c\Big\{\int_0^h e^{-\rho t}\,u(c_t)\,dt \;+\; e^{-\rho h}\,\E{V(a_h, n_h)}\Big\}.$$ This is Bellman's principle of optimality applied to a continuous-time problem.
 
-$$
-V(a,n) \;=\; \max_c\Big\{\int_0^h e^{-\rho t}\,u(c_t)\,dt \;+\; e^{-\rho h}\,\E{V(a_h, n_h)}\Big\}.$$ This is Bellman's principle of optimality applied to a continuous-time problem.
 *Step (ii): Itô's lemma between income jumps.* Conditional on the income state $n_t$ not changing on $[0, h]$, wealth follows the *deterministic* ODE $da_t = s(c_t, a_t, n_t)\,dt$ (there is no Brownian forcing on wealth in this model), so $$dV = V'(a,n)\,s(c,a,n)\,dt.$$ The second-order Itô correction $\tfrac{1}{2}V''\sigma^2\,dt$ vanishes because the wealth diffusion is zero between jumps; this is the most subtle step and is what distinguishes the income-switching HJB from a standard diffusion HJB.
-*Step (iii): Account for Poisson jumps in expectation.* Adding the Poisson-jump contribution and taking expectations, $$\E{dV} = \Big[V'(a,n)\,s + \lambda(n)\bigl(V(a,\hat{n}) - V(a,n)\bigr)\Big]\,dt,$$ where $\lambda(n)$ is the intensity of switching out of state $n$ and $\hat{n}$ is the complementary state.
-*Step (iv): Substitute into the DPP and let $h \to 0$.* Plugging the expectation back into the Bellman expression, dividing by $h$, and taking $h \to 0$ yields a flow equation in which the discount $\rho V$ on the left balances the flow utility plus expected change on the right.
-*Step (v): Optimize over $c$.* Imposing the first-order condition over consumption gives the HJB equation:
-$$
 
+*Step (iii): Account for Poisson jumps in expectation.* Adding the Poisson-jump contribution and taking expectations, $$\E{dV} = \Big[V'(a,n)\,s + \lambda(n)\bigl(V(a,\hat{n}) - V(a,n)\bigr)\Big]\,dt,$$ where $\lambda(n)$ is the intensity of switching out of state $n$ and $\hat{n}$ is the complementary state.
+
+*Step (iv): Substitute into the DPP and let $h \to 0$.* Plugging the expectation back into the Bellman expression, dividing by $h$, and taking $h \to 0$ yields a flow equation in which the discount $\rho V$ on the left balances the flow utility plus expected change on the right.
+
+*Step (v): Optimize over $c$.* Imposing the first-order condition over consumption gives the HJB equation:
+
+$$
 \boxed{\rho V(a,n) = \max_c\left\{u(c) + V'(a,n)\cdot(wn + ra - c) + \lambda(n)\!\left(V(a,\hat{n}) - V(a,n)\right)\right\}.}
 $$ (eq-hjb_full)
+
 ##### Interpretation.
+
 The HJB is an *asset pricing equation*: the left side $\rho V$ is the "required return" on the value function (discount rate times "asset value"), and the right side is the "total return" consisting of the flow dividend $u(c)$, the capital gain $V' \cdot s$ from saving, and the expected gain/loss $\lambda(n)(\Delta V)$ from income switching.
+
 ##### Optimal policy.
+
 The first-order condition $u'(c^*) = V'(a,n)$ gives the consumption function:
+
 $$
 c^*(a,n) = \left[V'(a,n)\right]^{-1/\gamma}.
 $$ (eq-hjb_foc)
+
 Substituting back eliminates the maximization, yielding a nonlinear PDE in $V$. The savings function is $s(a,n) = wn + ra - c^*(a,n)$.
+
 ##### Boundary conditions.
-At the borrowing constraint $a = \underline{a}$, consumption must keep the drift feasible: $s(\underline{a},n)=wn+r\underline{a}-c \geq 0$, or equivalently $c \leq wn+r\underline{a}$. The boundary HJB is therefore the constrained maximization
-$$
-\begin{aligned}
+
+At the borrowing constraint $a = \underline{a}$, consumption must keep the drift feasible: $s(\underline{a},n)=wn+r\underline{a}-c \geq 0$, or equivalently $c \leq wn+r\underline{a}$. The boundary HJB is therefore the constrained maximization $$\begin{aligned}
 \rho V(\underline{a},n)
 &=\max_{0<c\leq wn+r\underline{a}}
 \Big\{u(c)+V_a(\underline{a},n)(wn+r\underline{a}-c)\\
 &\qquad\qquad\qquad\qquad
 +\lambda(n)\bigl(V(\underline{a},\hat n)-V(\underline{a},n)\bigr)\Big\}.
 \end{aligned}$$ For CRRA utility this gives the boundary policy $c^*(\underline{a},n)=\min\{[V_a(\underline{a},n)]^{-1/\gamma},\,wn+r\underline{a}\}$ and $s(\underline{a},n)\geq 0$. This is the state-constraint form of the borrowing limit; numerical solvers usually impose it with one-sided derivatives, a constrained policy rule, or a penalty on negative boundary drift.
+
 ##### Boundary atoms in the stationary distribution.
+
 When the borrowing constraint binds on a positive mass of agents, the stationary measure is not absolutely continuous with respect to Lebesgue measure: it carries a Dirac atom at $a=\underline a$. The decomposition is $g(a,n) = g_{\mathrm{ac}}(a,n) + \alpha(n)\,\delta(a-\underline a)$, where $g_{\mathrm{ac}}$ is the absolutely-continuous interior density and $\alpha(n)\geq 0$ is the constrained mass for income state $n$. The KFE {eq}`eq-kfe_econ` as written governs only the interior part $g_{\mathrm{ac}}$; the atomic mass $\alpha(n)$ is determined by a separate flux-balance equation that equates inflows from the no-flux boundary condition with the income-driven outflow back into the interior. Finite-difference implementations typically represent $\alpha(n)$ as the mass in the first grid cell, and PINN implementations either absorb the atom implicitly into a smooth density approximation (with corresponding accuracy loss near $\underline a$) or explicitly parameterize $\alpha(n)$ alongside the interior network.
+
 ##### Variant: continuous (diffusion) income.
+
 A natural variant replaces the two-state Poisson process with a continuously distributed earnings state $z_t$ following an Ornstein--Uhlenbeck diffusion, $dz_t = \eta(\bar z - z_t)\,dt + \sigma\,dB_t^z$ (with idiosyncratic Brownian motion $B_t^z$). The agent's state is then $(a,z)$, the value function $V(a,z)$ is smooth in both arguments, and Itô's lemma along the $z$-diffusion produces a genuine second-order term. After substituting the first-order condition $c^\star=(V_a)^{-1/\gamma}$ the HJB becomes the elliptic PDE
+
 $$
 \rho V(a,z) = u(c^\star) + V_a\,(wz + ra - c^\star) + \eta(\bar z - z)\,V_z + \tfrac{1}{2}\sigma^2\,V_{zz},
 $$ (eq-hjb_diffusion)

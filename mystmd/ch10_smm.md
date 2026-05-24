@@ -238,70 +238,112 @@ This is structurally identical to the GP-VFI setup of {ref}`sec-gp_dp`. There, o
 
 ### Leave-One-Out Validation of the Moment Surrogate
 
-The Cholesky-trick LOO formula {eq}`eq-gp_loo` of {ref}`sec-gp_loo` delivers a held-out predictive error for each moment GP at zero marginal cost beyond the existing posterior factorisation. A research-scale companion to the core SMM notebooks would track
+The Cholesky-trick LOO formula {eq}`eq-gp_loo` of {ref}`sec-gp_loo` delivers a held-out predictive error for each moment GP at zero marginal cost beyond the existing posterior factorisation. A research-scale companion to the core SMM notebooks would track $$\mathrm{LOO\text{-}RMSE}_j \;=\; \sqrt{\frac{1}{n}\sum_{i=1}^{n}\bigl(\widehat m_j^{-i}(\theta^{(i)}) - m_j(\theta^{(i)})\bigr)^2}$$ for every moment $j$ and every design size $n$, and pair it with an independent sanity check that evaluates the GP at a *fresh* interior holdout point $\theta_\mathrm{holdout}$ never seen during training; agreement between the two RMSEs is the criterion for declaring the moment surrogate trustworthy before any bootstrap or SBI workflow is run on top of it.
 
-$$
-\mathrm{LOO\text{-}RMSE}_j \;=\; \sqrt{\frac{1}{n}\sum_{i=1}^{n}\bigl(\widehat m_j^{-i}(\theta^{(i)}) - m_j(\theta^{(i)})\bigr)^2}$$ for every moment $j$ and every design size $n$, and pair it with an independent sanity check that evaluates the GP at a *fresh* interior holdout point $\theta_\mathrm{holdout}$ never seen during training; agreement between the two RMSEs is the criterion for declaring the moment surrogate trustworthy before any bootstrap or SBI workflow is run on top of it.
 ### Active Learning of the Moment Surrogate
-Two acquisition strategies are natural, matched to the dimensionality of the parameter.
-##### Single-parameter case.
-With a scalar $\theta=\varrho\in[0.50,0.99]$, a coarse uniform pilot grid of $n_0$ points can be enriched by $n_\mathrm{add}$ active points placed sequentially at locations of largest standardised moment-GP posterior uncertainty, $$\theta^{\mathrm{next}} \in \argmax_{\theta \in \mathcal{X}^\mathrm{cand}}\;\Bigl\|\boldsymbol\sigma_m(\theta) \,/\, \bar{\boldsymbol\sigma}_m\Bigr\|_2,$$ subject to a minimum-spacing constraint against existing design points. This is the same pure-exploration acquisition used for VFI {eq}`eq-bal_vfi`, modulo the per-moment normalisation that prevents one large-magnitude moment from dominating the objective.
-##### Joint-parameter case.
-With $\theta=(\beta,\varrho)$ on a 2D rectangle, pure exploration is wasteful because most of the rectangle sits far from the SMM minimiser. A natural alternative is a BoTorch-style Upper-Confidence-Bound (UCB) acquisition on the transformed score $\widetilde Q(\theta) := -\log_{10}(Q(\theta)+\varepsilon)$, multiplicatively weighted by the moment-GP posterior uncertainty:
-$$
 
+Two acquisition strategies are natural, matched to the dimensionality of the parameter.
+
+##### Single-parameter case.
+
+With a scalar $\theta=\varrho\in[0.50,0.99]$, a coarse uniform pilot grid of $n_0$ points can be enriched by $n_\mathrm{add}$ active points placed sequentially at locations of largest standardised moment-GP posterior uncertainty, $$\theta^{\mathrm{next}} \in \argmax_{\theta \in \mathcal{X}^\mathrm{cand}}\;\Bigl\|\boldsymbol\sigma_m(\theta) \,/\, \bar{\boldsymbol\sigma}_m\Bigr\|_2,$$ subject to a minimum-spacing constraint against existing design points. This is the same pure-exploration acquisition used for VFI {eq}`eq-bal_vfi`, modulo the per-moment normalisation that prevents one large-magnitude moment from dominating the objective.
+
+##### Joint-parameter case.
+
+With $\theta=(\beta,\varrho)$ on a 2D rectangle, pure exploration is wasteful because most of the rectangle sits far from the SMM minimiser. A natural alternative is a BoTorch-style Upper-Confidence-Bound (UCB) acquisition on the transformed score $\widetilde Q(\theta) := -\log_{10}(Q(\theta)+\varepsilon)$, multiplicatively weighted by the moment-GP posterior uncertainty:
+
+$$
 a(\theta)
 =
 \bigl[\,0.25+\widetilde{\mathrm{UCB}}_{\widetilde Q}(\theta)\,\bigr]
 \cdot
 \Bigl\|\boldsymbol\sigma_m(\theta)\,/\,\widehat{\mathrm{sd}}(m)\Bigr\|_2,
 $$ (eq-smm_acquisition)
+
 where $\widetilde{\mathrm{UCB}}_{\widetilde Q}$ is a quantile-scaled and clipped UCB score. The first factor exploits, biasing the design toward $(\beta,\varrho)$ pairs with small SMM criterion, while the second explores, requiring the design to also hit places where the moment GP is uncertain. The additive constant $0.25$ keeps the exploration term active even where the scaled UCB is zero, preventing pathological degeneracy in the acquisition.
+
 ##### Three-way comparison.
+
 At a fixed design budget, one can compare pilot grid / naive Latin-hypercube / BoTorch-BAL designs along three axes: (i) leave-one-out error on the moment GPs; (ii) error on the recovered SMM criterion against a fresh reference grid; (iii) accuracy of the recovered estimate $(\hat\beta,\hat\varrho)$. Active designs typically give the most stable local moment surrogate at small budgets.
+
 ### The 2D SMM Criterion Surface and Partial Identification
+
 Figure {numref}`fig-smm_2d_criterion` shows the direct SMM criterion on the joint rectangle. Two features are visible.
+
 First, the criterion has a long, shallow ridge along the $\beta$ direction in the just-identified specification: the data are nearly uninformative about $\beta$ once $\varrho$ is fixed, so a wide range of $\beta$-values fits almost equally well. This is partial identification, in textbook form, visualised on the criterion surface. Economically, $\beta$ and $\varrho$ both shift the consumption-smoothing motive in similar directions on long horizons: raising patience and raising persistence each raise the mean savings rate and dampen consumption-growth autocorrelation, so a two-moment specification built from those two moments leaves the $(\beta,\varrho)$ ratio under-determined and produces the ridge.
+
 Second, the ridge collapses to a localized minimum in the over-identified specification. In the synthetic CRN run, the recovered estimate sits very close to $(\beta_{\mathrm{true}},\varrho_{\mathrm{true}})=(0.96,0.90)$. This makes a useful pedagogical point: identification is a property of the moment selection, not of the estimator. The over-identified specification breaks the redundancy by adding growth volatility, which is sensitive to $\varrho$ through the shock-persistence channel but only weakly to $\beta$, and output autocorrelation, which is sensitive to $\varrho$ directly.
+
 ```{figure} figures/joint_criterion_contour.pdf
 :name: fig-smm_2d_criterion
 
 Direct SMM criterion for the joint Brock–Mirman estimation. The left panel uses the just-identified two-moment specification and displays a shallow ridge along β, signalling that patience is only partially identified by those two moments. The right panel uses the over-identified four-moment specification, which adds volatility and output-persistence information and produces a localized minimum near the synthetic truth. Generated by notebook 03b.
 ```
+
 In the research-scale extension, the second-layer GP fitted to the joint moment map provides a closed-form, microseconds-per-call substitute for forward simulation: subsequent SMM evaluations, bootstrap replications, and Bayesian post-processing run on the GP rather than on the simulator. The TikZ architecture diagram in Figure {numref}`fig-smm_two_layer_surrogate` already encodes the cost cascade; the rendered GP-objective surface itself is not produced by the core notebooks and is therefore not displayed here.
+
 ```{prf:remark}
+
 Notebook `lecture_15_03_Structural_Estimation_BM.ipynb` fits the scalar persistence exercise: a 3-input pseudo-state policy net, common-random-number simulation across a $\varrho$-grid, and an interior SMM estimate with a moment-Jacobian diagnostic. Notebook `lecture_15_03b_Structural_Estimation_BM_Joint.ipynb` performs joint $(\beta,\varrho)$ estimation and visualises the partial-identification ridge of Figure {numref}`fig-smm_2d_criterion` for the shallow-ridge two-moment specification and the over-identified specification. The second-layer GP-moment-map extension above is left as a research-scale companion.
 ```
+
+
 (sec-beyond_smm)=
 ## Beyond SMM: Indirect Inference and Simulation-Based Inference
 SMM matches a hand-picked vector of moments. Two close cousins are worth knowing because they often dominate SMM when moment selection is awkward or when one wants the full likelihood.
+
 ##### Indirect inference.
+
 {cite:t}`smith1993estimating` and {cite:t}`gourieroux1993indirect` replace the moment vector $m(\theta)$ with the parameters of a tractable *auxiliary model* (e.g. a low-order VAR or a flexible regression) fitted to both the data and to model-simulated data. Estimation matches the auxiliary parameters rather than raw moments; the resulting estimator is asymptotically equivalent to ML when the auxiliary model is sufficiently rich, and the auxiliary parameters often summarize the distribution far more efficiently than a hand-picked moment list. Indirect inference is the natural choice in macro-finance applications where standard moments are weakly identifying but a structural VAR or a near-likelihood auxiliary is available.
+
 ##### Simulation-based inference (SBI).
+
 In settings where the simulator is differentiable or fast but the likelihood $p(y \mid \theta)$ is intractable, modern SBI {cite:p}`cranmer2020frontier` learns a neural conditional density estimator $q_\phi(\theta \mid y)$ (or its likelihood/likelihood-ratio counterpart) directly from $(\theta_i, y_i)$ pairs simulated under the prior. The resulting object is an amortised *Bayesian* posterior usable for any future observation $y^\star$ at cost of one forward pass. SBI generalizes Approximate Bayesian Computation, sidesteps moment selection entirely, and naturally pairs with the deep-surrogate machinery of Chapter {ref}`ch-gp`. In the surrogate-then-estimate framing of this chapter, the most direct SBI variant is *neural posterior estimation* (NPE), where the pseudo-state DEQN provides the simulator and the GP moment surrogate of {ref}`sec-smm_gp_moments` is replaced by a learned posterior $q_\phi(\theta\mid y)$; {prf:ref}`ex-ch10-4` contrasts SMM with SBI in algorithmic terms.
+
 *When to choose what.* SMM remains the workhorse when a small number of structural moments are well-identified and economists want a transparent, interpretable objective. Indirect inference dominates when an informative auxiliary model is available. SBI is the natural tool in environments where the model is expensive to simulate but a one-time training run unlocks Bayesian inference at *evaluation* time, precisely the setting in which the rest of this script deploys deep surrogates.
+
 ##### Why this matters for the next chapter.
+
 Climate--economy integrated assessment models (Chapter {ref}`ch-climate`) are the prototypical setting where surrogate-based estimation pays off. Credible policy analysis requires evaluating the model over many climate-sensitivity, damage-elasticity, and discount-rate scenarios. Treating the parameter vector as a pseudo-state and training a single deep surrogate, exactly as in the SMM exercise above, turns repeated re-solves into repeated forward passes and is the technical bridge between this chapter and the next.
+
 ```{prf:remark}
+
 - SMM matches simulated moments to data moments by minimizing a weighted quadratic objective; it is GMM with simulation {cite:p}`mcfadden1989method,pakes1989simulation`.
+
 - The pseudo-state surrogate trick (treat parameters $\theta$ as additional network inputs) replaces a re-solve at every candidate $\theta$ with a single forward pass; this is what makes SMM with a deep model tractable.
+
 - Stacking a Gaussian-process layer over the moment map ({ref}`sec-smm_gp_moments`) turns SMM into a two-stage surrogate problem: each oracle call is one forward simulation, each subsequent objective evaluation is one GP posterior, the same expensive-oracle / supervised-learning logic that motivates GP-based VFI in {ref}`sec-gp_dp`.
+
 - Common random numbers across $\theta$-candidates are essential in the classroom exercises: they remove simulation noise from the objective and let optimizers see a smooth landscape {cite:p}`glasserman2004monte`.
+
 - Indirect inference and modern simulation-based inference {cite:p}`smith1993estimating,gourieroux1993indirect,cranmer2020frontier` are the natural neighbors of SMM and dominate in their respective regimes.
 ```
+
+
 (further-reading)=
 ## Further Reading
 - {cite:t}`mcfadden1989method` {cite}`pakes1989simulation,duffie1993simulated`, the foundational SMM trio.
+
 - {cite:t}`kase2022estimating`, neural-network estimation of nonlinear heterogeneous-agent models; {cite:t}`chen2026Deep`, deep surrogates for finance and option pricing.
+
 - {cite:t}`cranmer2020frontier`, contemporary simulation-based inference.
+
 (exercises)=
 ## Exercises
 Worked solutions and guidance for these exercises appear in Appendix {ref}`app-solutions`.
+
 1.   **[Computational\] Identification.** In notebook `lecture_15_03_Structural_Estimation_BM.ipynb`, choose two candidate moments and compute the finite-difference Jacobian $\partial m/\partial\varrho$ at $\varrho_{\mathrm{true}}=0.90$. Which moment provides stronger local identification?
+
 2.   **[Core\] Optimal weighting.** Show that under standard regularity conditions, $W^\star=\Omega^{-1}$ minimizes the asymptotic variance of $\hat\theta_{\mathrm{SMM}}$, where $\Omega$ is the covariance of the moment discrepancy. Why does identity weighting still appear in the first stage?
+
 3.   **[Computational\] Common random numbers.** In the scalar Brock--Mirman exercise, plot the SMM objective as a function of $\varrho$ with and without common random numbers. Quantify the objective noise across repeated Monte Carlo panels under the same candidate grid.
+
 4.   **[Core\] SMM vs. SBI.** Outline the algorithmic difference between estimating $\theta$ by SMM (one optimization per dataset) and by neural simulation-based inference (one training run plus one posterior evaluation per dataset). In which regime does SBI dominate?
+
 5.   **[Advanced/project\] $J$-statistic and overidentification.** In notebook `lecture_15_03b_Structural_Estimation_BM_Joint.ipynb`, use the over-identified specification with $q=4$ moments and $p=2$ parameters. (i) State the asymptotic distribution of the $J$-statistic under correct specification when $W=\Omega^{-1}$. (ii) Compute $J(\hat\theta)$ on the original synthetic sample and report whether the $\chi^2_2$ test rejects at $\alpha=0.05$. (iii) Repeat across Monte Carlo samples generated at the truth and compare the empirical distribution with $\chi^2_2$. (iv) Introduce a structural break in one model parameter and verify that the $J$ distribution shifts to the right.
+
 6.   **[Advanced/project\] Bootstrap confidence intervals.** Compare three confidence-interval procedures for $\hat\theta_\mathrm{SMM}$: (a) plug-in sandwich standard errors; (b) moving-block or stationary bootstrap of the time-series sample; (c) parametric bootstrap, drawing new samples under the simulated model at $\hat\theta$. Report the confidence intervals and coverage across repeated Monte Carlo replications.
+
 7.   **[Advanced/project\] Maximum likelihood vs. SMM efficiency.** Suppose the productivity process $\log z_t$ is observed. Implement the Gaussian AR(1) MLE for $\varrho$ and compare it with the SMM estimator based on the moments in notebook `lecture_15_03_Structural_Estimation_BM.ipynb`. On Monte Carlo replications at several sample sizes, report bias, variance, and MSE. Explain why MLE is efficient for this observed-shock likelihood, while SMM reaches the GMM efficiency bound only for the chosen moment vector. As an optional extension, repeat the beta-only MLE comparison in the full-depreciation log-utility special case where the policy has a closed form.
+
 [^1]: A resource-based variant in which the savings rate is applied to total resources $R_t = Y_t + (1-\delta)K_t$, allowing disinvestment relative to the depreciated stock, is a straightforward alternative; the SMM moments and notebook outputs in this chapter use the output-based savings rate above.

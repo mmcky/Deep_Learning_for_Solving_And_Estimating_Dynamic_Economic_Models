@@ -200,7 +200,7 @@ encodes the two atmosphere--upper-ocean exchange rates ($b_{12}$ in either direc
 
 Equation {eq}`eq-carbon_cycle` is a pulse-and-decay system: a unit pulse of emissions raises atmospheric carbon by one unit instantaneously, and that anomaly then bleeds into the upper ocean over decades and into the deep ocean over centuries. Figure {numref}`fig-restud_bau_emissions` shows the implied BAU emissions trajectory under nine alternative climate-module calibrations; the spread is mostly driven by the equilibrium climate sensitivity (developed in {ref}`sec-dice_temperature`), not by the carbon cycle, which is tightly disciplined by the pulse and step tests of {ref}`sec-cdice_recalibration`.
 
-```{figure} figures/restud_fig11a.pdf
+```{figure} fig/restud_fig11a.pdf
 :name: fig-restud_bau_emissions
 
 Business-as-usual industrial emissions in CDICE (in GtCO2/yr) under the nine combinations of three carbon-cycle calibrations (MMM, MESMO, LOVECLIM) and three temperature calibrations (MMM, HadGEM2-ES, GISS-E2-R); the thin CDICE curves overlap visually, confirming that the BAU emissions path is essentially insensitive to the climate-module calibration because σt and At are exogenous. The thick red and orange curves are the RCP 8.5 and RCP 6.0 scenarios, included as climate-policy reference paths. Reproduced from , Figure 11(a).
@@ -212,10 +212,10 @@ A two-layer energy balance model links carbon concentrations to temperature:
 
 $$
 \begin{aligned}
-T^{\mathrm{AT}}_{t+1} &= T^{\mathrm{AT}}_t + c_1 \bigl(F_t - \lambda\, T^{\mathrm{AT}}_t - c_3(T^{\mathrm{AT}}_t - T^{\mathrm{OC}}_t)\bigr),  \\
+T^{\mathrm{AT}}_{t+1} &= T^{\mathrm{AT}}_t + c_1 \bigl(F_t - \lambda\, T^{\mathrm{AT}}_t - c_3(T^{\mathrm{AT}}_t - T^{\mathrm{OC}}_t)\bigr), \label{eq:temp_at} \\
 T^{\mathrm{OC}}_{t+1} &= T^{\mathrm{OC}}_t + c_4 \bigl(T^{\mathrm{AT}}_t - T^{\mathrm{OC}}_t\bigr), \label{eq:temp_oc}
 \end{aligned}
-$$ (eq-temp_at)
+$$
 
 where radiative forcing is
 
@@ -269,7 +269,7 @@ A key contribution of {cite:t}`Folini_2021` is a systematic recalibration of the
 
 This calibration ensures that the reduced-form climate module is consistent with state-of-the-art earth system models. CDICE also introduces a transparent time-step formulation, $X_{t+\Delta t} = X_t + \Delta t \cdot f(X_t, u_t; \theta)$, that allows coherent implementation at annual, 5-year, or 10-year resolution within a single generic framework. Figure {numref}`fig-restud_bau_mat` illustrates how much the climate-cycle calibration matters even before the planner makes any decision: under business-as-usual, DICE-2016 and CDICE produce visibly different atmospheric carbon trajectories, and the gap propagates into temperature, damages, and ultimately the SCC.
 
-```{figure} figures/restud_fig15a.pdf
+```{figure} fig/restud_fig15a.pdf
 :name: fig-restud_bau_mat
 
 Atmospheric carbon MtAT along the BAU path (in GtC, over 200 years from 2015) under the three CDICE carbon-cycle calibrations (CDICE = MMM, CDICE-MESMO, CDICE-LOVECLIM) and the legacy DICE-2016 carbon cycle. Only the carbon-cycle block is varied here; the temperature block is held at the CDICE MMM calibration, since the BAU carbon-stock path does not depend on the temperature calibration to first order. The DICE-2016 path lies systematically above the CMIP-disciplined paths, reflecting that the original DICE carbon cycle overstates atmospheric retention; CDICE-MESMO and CDICE-LOVECLIM bracket the CDICE baseline on the slow-removal and fast-removal sides, respectively. Reproduced from , Figure 15(a).
@@ -504,7 +504,7 @@ $$
 \begin{aligned}
 \frac{\partial \mathcal{L}}{\partial c_t} = 0 \;&\Leftrightarrow\;
 c_t^{-1/\psi}\,A_t^{1-1/\psi}\,L_t - \hat{\lambda}_t = 0,
-\\[4pt]
+\label{eq:iam_foc_c}\\[4pt]
 \frac{\partial \mathcal{L}}{\partial k_{t+1}} = 0 \;&\Leftrightarrow\;
 \exp\!\bigl(g^A_t + g^L_t\bigr)\,\hat{\lambda}_t - \hat{\beta}_t\Bigl\{\hat{\lambda}_{t+1}\bigl[\bigl(1-\Omega(T_{\mathrm{AT},t+1}) - \Theta(\mu_{t+1})\bigr)\alpha k_{t+1}^{\alpha-1} + (1-\delta)\bigr] \nonumber\\
 &\quad + \hat{\nu}^{\mathrm{AT}}_{t+1}\,\sigma_{t+1}(1-\mu_{t+1})A_{t+1}L_{t+1}\alpha k_{t+1}^{\alpha-1}\Bigr\} = 0,
@@ -513,7 +513,7 @@ c_t^{-1/\psi}\,A_t^{1-1/\psi}\,L_t - \hat{\lambda}_t = 0,
 \hat{\lambda}_t\,\Theta'(\mu_t)\,k_t^\alpha + \hat{\lambda}^\mu_t + \hat{\nu}^{\mathrm{AT}}_t\,\sigma_t\,A_t\,L_t\,k_t^\alpha = 0.
 \label{eq:iam_foc_mu}
 \end{aligned}
-$$ (eq-iam_foc_c)
+$$
 
 Equation {eq}`eq-iam_foc_k` is the capital Euler equation: it equates the marginal cost of saving one additional unit today (left) to the discounted marginal benefit tomorrow (right), which now includes a term from the atmospheric carbon envelope ($\hat{\nu}^{\mathrm{AT}}_{t+1}$) because higher capital increases output and hence emissions.
 
@@ -596,7 +596,7 @@ $$
 \begin{aligned}
 l_1 &:= \exp\!\bigl(g^A_t + g^L_t\bigr)\,\hat{\lambda}_t - \hat{\beta}_t\Bigl\{\hat{\lambda}_{t+1}\bigl[\bigl(1-\Omega(T_{\mathrm{AT},t+1}) - \Theta(\mu_{t+1})\bigr)\alpha k_{t+1}^{\alpha-1} + (1-\delta)\bigr] \nonumber\\
     &\quad + \hat{\nu}^{\mathrm{AT}}_{t+1}\,\sigma_{t+1}(1-\mu_{t+1})A_{t+1}L_{t+1}\alpha k_{t+1}^{\alpha-1}\Bigr\}
-    \tag*{\text{(capital Euler)}}\\[3pt]
+    \tag*{\text{(capital Euler)}}\label{eq:iam_l1}\\[3pt]
 l_2 &:= \bigl(1-\Omega(T_{\mathrm{AT},t}) - \Theta(\mu_t)\bigr)\,k_t^\alpha + (1-\delta)\,k_t - c_t - \exp\!\bigl(g^A_t + g^L_t\bigr)\,k_{t+1}
     \tag*{\text{(budget)}}\label{eq:iam_l2}\\[3pt]
 l_3 &:= \hat{\nu}^{\mathrm{AT}}_t - \hat{\beta}_t\!\left[\hat{\nu}^{\mathrm{AT}}_{t+1}(1-b_{12}) + \hat{\nu}^{\mathrm{UO}}_{t+1}\,b_{12} + \hat{\eta}^{\mathrm{AT}}_{t+1}\,c_1\,F_{\mathrm{2\times CO_2}}\,\tfrac{1}{\ln 2\,M_{\mathrm{AT},t+1}}\right]
@@ -612,7 +612,7 @@ l_7 &:= \hat{\eta}^{\mathrm{OC}}_t - \hat{\beta}_t\!\left[\hat{\eta}^{\mathrm{AT
 l_8 &:= \hat{\lambda}^{\mu,\mathrm{impl}}_t + (1-\mu_t) - \sqrt{(\hat{\lambda}^{\mu,\mathrm{impl}}_t)^2 + (1-\mu_t)^2 + \varepsilon_{\mathrm{FB}}}
     \tag*{\text{(Fischer--Burmeister, implied multiplier)}}\label{eq:iam_l8}
 \end{aligned}
-$$ (eq-iam_l1)
+$$
 
 Loss components $l_1$--$l_2$ enforce intertemporal optimality and feasibility, $l_3$--$l_7$ are the envelope conditions that price the five climate state variables, and $l_8$ jointly enforces the abatement FOC (via the implied multiplier) and the upper-bound complementarity $\mu_t \le 1$.
 
@@ -758,10 +758,10 @@ and conjugate Gaussian--Gaussian updating delivers the posterior
 
 $$
 \begin{aligned}
-\mu_{f,t+1} &= \frac{S_{\epsilon_T}\,\mu_{f,t} + \varphi_{1C}\,T^{\mathrm{AT}}_t\,S_{f,t}\,y_{t+1}}{S_{\epsilon_T} + (\varphi_{1C}\,T^{\mathrm{AT}}_t)^2\,S_{f,t}}, \\
+\mu_{f,t+1} &= \frac{S_{\epsilon_T}\,\mu_{f,t} + \varphi_{1C}\,T^{\mathrm{AT}}_t\,S_{f,t}\,y_{t+1}}{S_{\epsilon_T} + (\varphi_{1C}\,T^{\mathrm{AT}}_t)^2\,S_{f,t}}, \label{eq:bayes_mean}\\
 S_{f,t+1} &= \frac{S_{\epsilon_T} \cdot S_{f,t}}{S_{\epsilon_T} + (\varphi_{1C}\,T^{\mathrm{AT}}_t)^2\,S_{f,t}}, \label{eq:bayes_var}
 \end{aligned}
-$$ (eq-bayes_mean)
+$$
 
 which the planner takes as two additional laws of motion for the belief states $(\mu_{f,t}, S_{f,t})$. These two states occupy the slots already reserved in the augmented state vector {eq}`eq-iam_state`. Equations {eq}`eq-bayes_mean`--{eq}`eq-bayes_var` are the Kalman update for a scalar linear-Gaussian state-space model with observation gain $\varphi_{1C}\,T^{\mathrm{AT}}_t$ and noise variance $S_{\epsilon_T}$; cf. {cite:t}`bishop2006` [§ 13.3] for the generic derivation. The DEQN algorithm of {ref}`sec-nsdeqn_algo` is unchanged: the network simply receives two more inputs and learns a richer policy.
 

@@ -125,67 +125,94 @@ Given the household policy function $k' = g(k, \varepsilon, m_1, a)$, where:
 
 - $a$ is the aggregate productivity shock (the same $a$ that drives prices in the KS setup above);
 
-the key operation is *mass redistribution*. Evaluating $g$ at a bin $(k_i,\varepsilon_j)$ produces the savings target $k' = g(k_i, \varepsilon_j, m_1, a)$, which generically lies *off* the grid. Let $n = n(i,j) \in \{1,\ldots,N_k-1\}$ denote the bracketing index defined by $k_n \leq k' < k_{n+1}$, and let
+the key operation is *mass redistribution*. Evaluating $g$ at a bin $(k_i,\varepsilon_j)$ produces the savings target $k' = g(k_i, \varepsilon_j, m_1, a)$, which generically lies *off* the grid. Let $n = n(i,j) \in \{1,\ldots,N_k-1\}$ denote the bracketing index defined by $k_n \leq k' < k_{n+1}$, and let $$m \equiv G_t(k_i,\varepsilon_j)$$ be the probability mass currently sitting at bin $(k_i,\varepsilon_j)$. This mass $m$ is then split between the two bracketing grid points $k_n$ and $k_{n+1}$ using linear-interpolation weights:
 
 $$
-m \equiv G_t(k_i,\varepsilon_j)$$ be the probability mass currently sitting at bin $(k_i,\varepsilon_j)$. This mass $m$ is then split between the two bracketing grid points $k_n$ and $k_{n+1}$ using linear-interpolation weights:
-$$
-
 \omega = 1 - \frac{k' - k_n}{k_{n+1} - k_n}, \qquad
 \text{mass } \omega\cdot m \text{ to } k_n, \quad (1-\omega)\cdot m \text{ to } k_{n+1}.
 $$ (eq-young_weights)
+
 Figure {numref}`fig-young_interp` illustrates this operation. A mass $m$ sitting at the off-grid savings target $k'$ is split between the two bracketing grid points $k_n$ and $k_{n+1}$, with the weight $\omega$ proportional to the proximity of $k'$ to $k_n$ (so $\omega \to 1$ when $k' \to k_n$ and $\omega \to 0$ when $k' \to k_{n+1}$).
+
 ```{figure} figures/fig-young_interp.svg
 :name: fig-young_interp
 
 Linear interpolation in Young’s method. Mass m at off-grid point k′ is redistributed to the two bracketing grid points kn and kn + 1 using weights ω and 1 − ω. Closer proximity to a grid point yields a larger share of the mass.
 ```
+
 **Why exactly this weight?** The lottery weight $\omega$ in Eq. {eq}`eq-young_weights` is not an arbitrary choice: it is the *unique* value for which the two-point split has conditional mean equal to the off-grid policy choice $k'$. Solving the equation $\omega\cdot k_n + (1-\omega)\cdot k_{n+1} = k'$ for $\omega$ recovers Eq. {eq}`eq-young_weights` in one line:
+
 $$
 \omega\cdot k_n + (1-\omega)\cdot k_{n+1} = k_n + (1-\omega)(k_{n+1} - k_n) = k_n + (k' - k_n) = k'.
 $$ (eq-young_meanpreserve)
+
 By linearity of expectation, this conditional mean equality at every grid bin extends to the full distribution: the unconditional mean of $G_{t+1}$ equals the unconditional mean of the policy-implied next-period capital. Higher moments (variance, percentiles) are only approximated; the leading error is of order $(\Delta k)^2$ on smooth densities, so a finer grid improves higher-moment fidelity at no cost to mean preservation.
+
 ```{prf:remark}
+
 Equation {eq}`eq-young_weights` can equivalently be read as a *fair lottery*: every agent at $(k, \varepsilon)$ whose policy choice lands at off-grid $k'$ is reassigned to $k_n$ with probability $\omega$ and to $k_{n+1}$ with probability $1-\omega$. In a Monte Carlo panel of size $N$, each agent draws this lottery once and the empirical histogram converges to its expectation at rate $\mathcal{O}(N^{-1/2})$. Young's method instead computes that expectation in closed form, which is equivalent to "running" an infinite number of agents through the lottery and integrating out the result. This is why the procedure is called non-stochastic: the lottery is still there, but its outcome is computed analytically rather than sampled. The same logic, applied to the discrete shock transitions $\pi_{\varepsilon'\mid\varepsilon}$, sends each piece of mass into all reachable next-period $\varepsilon'$ in proportion to $\pi$ rather than drawing one realisation.
 ```
+
+
 ##### Worked example.
+
 We illustrate the full histogram update with a small grid of $N_k=4$ capital levels $\{1.0,\, 2.0,\, 3.0,\, 4.0\}$ and two idiosyncratic states $\varepsilon \in \{\text{low},\, \text{high}\}$.
+
 **Step 1, Setup.** The initial histogram $G_0$ (masses summing to 1):
+
                                  $k=1.0$   $k=2.0$   $k=3.0$   $k=4.0$   Row sum
   ----------------------------- --------- --------- --------- --------- ---------
   $\varepsilon = \text{low}$      0.10      0.20      0.10      0.05      0.45
   $\varepsilon = \text{high}$     0.05      0.15      0.20      0.15      0.55
+
 The mean capital is $\bar{k}_0 = \sum_{i,j} G_0(k_i,\varepsilon_j)\cdot k_i = 0.10(1) + 0.20(2) + 0.10(3) + 0.05(4) + 0.05(1) + 0.15(2) + 0.20(3) + 0.15(4) = 2.55$.
+
 **Step 2, Policy evaluation.** Let $y(\varepsilon)$ denote the dollar productivity associated with shock state $\varepsilon$, with $y_{\text{low}}=1$ and $y_{\text{high}}=3$ (here $\varepsilon$ is the *state index*, $y$ is its numerical value). Using a simple linear savings rule $k' = 0.4 k + 0.5\,y(\varepsilon)$:
+
                                        $k=1.0$   $k=2.0$   $k=3.0$   $k=4.0$
   ----------------------------------- --------- --------- --------- ---------
   $\varepsilon = \text{low}$: $k'$       0.9       1.3       1.7       2.1
   $\varepsilon = \text{high}$: $k'$      1.9       2.3       2.7       3.1
+
 **Step 3, Interpolation weights.** Since the grid spacing is $\Delta k = 1.0$, each off-grid $k'$ is bracketed by $[k_n, k_{n+1}]$ with weight $\omega = 1 - (k' - k_n)/\Delta k$:
+
                                                        $k=1.0$        $k=2.0$        $k=3.0$        $k=4.0$
   ------------------------------------------------ --------------- -------------- -------------- --------------
   $\varepsilon = \text{low}$: bracket, $\omega$     $[1,1]$, clip   $[1,2]$, 0.7   $[1,2]$, 0.3   $[2,3]$, 0.9
   $\varepsilon = \text{high}$: bracket, $\omega$    $[1,2]$, 0.1    $[2,3]$, 0.7   $[2,3]$, 0.3   $[3,4]$, 0.9
+
 When $k' < k_1 = 1.0$ (here $k' = 0.9$ for the low-state, lowest-capital agents), all mass is assigned to $k_1$ (clipped to the boundary).
+
 **Step 4, Mass redistribution.** For simplicity, assume the shock transition is the identity ($\varepsilon' = \varepsilon$), so mass stays in its current $\varepsilon$-state. Building $G_1$ by accumulating the redistributed mass from each source bin (mass is conserved bin-by-bin: e.g. the $\varepsilon=\text{low}$, $k=2$ source of mass $0.20$ contributes $0.7\cdot0.20 = 0.14$ to $k=1$ and $0.3\cdot0.20 = 0.06$ to $k=2$):
+
                                  $k=1.0$   $k=2.0$   $k=3.0$   $k=4.0$   Row sum
   ----------------------------- --------- --------- --------- --------- ---------
   $\varepsilon = \text{low}$      0.270     0.175     0.005     0.000     0.450
   $\varepsilon = \text{high}$     0.005     0.210     0.320     0.015     0.550
   total                           0.275     0.385     0.325     0.015     1.000
+
 **Step 5, Mean verification.** The mean of $G_1$ is $\bar{k}_1 = 0.275(1)+0.385(2)+0.325(3)+0.015(4) = 2.08$. The unclipped, policy-implied mean is $\sum_{i,j} G_0(k_i,\varepsilon_j)\,k'(k_i,\varepsilon_j) = 2.07$, so boundary clipping at $k' = 0.9$ raises the mean by only $0.01$. Mean preservation is exact for source bins whose policy choice $k'$ lies strictly inside the grid; clipping at the boundary slightly biases the mean, here upward, because mass that would have landed at $k'=0.9$ is forced to $k=1$. In general, boundary clipping biases the mean in the *direction of the violated boundary*: clipping at $k_{\min}$ biases the mean upward (mass is pulled in from below the grid), clipping at $k_{\max}$ biases it downward. With a wider grid ($k_{\min} < 0.9$) the mean would be preserved exactly.
+
 ```{prf:remark}
+
 This small example shows why the grid must extend beyond the range of the policy function. In production code, a safeguard checks that boundary bins contain negligible mass (typically $<10^{-6}$).
 ```
+
+
 **The full picture: one cell splits into four.** The worked example above used identity shock transitions to keep the arithmetic visible. The general case combines the capital lottery with a *shock fork*: each piece of mass split between $k_J$ and $k_{J+1}$ is then split again across the reachable next-period $\varepsilon'$ values according to $\pi_{\varepsilon'\mid\varepsilon, a}$. With two shocks $\varepsilon \in \{L, H\}$ this produces *four* destination bins for every source bin, with weights given by the product $\{\omega, 1-\omega\} \times \{\pi_{\varepsilon L}, \pi_{\varepsilon H}\}$. Figure {numref}`fig-young_cascade` reproduces this two-stage cascade (essentially Fig. 1 of {cite:t}`young2010`), annotated with a concrete numerical case.
+
 ```{figure} figures/fig-young_cascade.svg
 :name: fig-young_cascade
 
 Young’s cascade for one source bin (essentially Fig. 1 of ). Mass m at (k, ε = L) flows in two stages: the capital lottery (ω vs. 1 − ω) sends it to the bracketing grid points kJ and kJ + 1, and the shock fork (πLL vs. πLH) splits each piece across the reachable next-period idiosyncratic states. Each of the four leaves receives the product of its stage-1 and stage-2 weights times the source mass; the four leaf masses sum back to m. Repeating the cascade for every active source bin and accumulating the leaves yields the new histogram Gt + 1.
 ```
+
 A reader implementing the method should recognize three properties from the figure: (i) mass is conserved bin-by-bin because $\omega + (1-\omega) = 1$ and $\sum_{\varepsilon'} \pi_{\varepsilon\varepsilon'} = 1$; (ii) the capital lottery's expected next-period $k$ equals the policy choice $k'$ by Eq. {eq}`eq-young_meanpreserve`; (iii) the entire update is *linear* in $G_t$, so it is a sparse matrix-vector product $G_{t+1} = T(\rho)\,G_t$ where the transition operator $T$ depends on the current policy. This linearity is what makes the histogram update differentiable in the policy values almost everywhere, conditional on the interpolation brackets, when we embed it inside a neural-network training loop in {ref}`sec-young_deqn`. Index changes at bin boundaries and clipping at domain edges are nondifferentiable; standard implementations either ignore these measure-zero events, smooth the assignment, or stop gradients through the index-selection step, and in practice none of these choices materially affects training in the calibrations covered in this chapter.
+
 ##### The histogram update algorithm.
+
 At each time step, the histogram is updated deterministically:
+
 ```{prf:algorithm}
 :label: algo-ch06_ha_youngs-auto-1
 
@@ -200,9 +227,12 @@ At each time step, the histogram is updated deterministically:
     - $G_{t+1}(k_{J+1}, \varepsilon') \mathrel{+}= (1-\omega) \cdot \pi_{\varepsilon'|\varepsilon_j, a_t}\cdot G_t(k_i, \varepsilon_j)$
 - return Updated histogram $G_{t+1}$
 ```
+
 **Implementation cheatsheet.** The pseudocode above translates into a few lines of `NumPy`; the inner double loop can also be vectorised with `np.add.at` for production use.
+
     [language=Python, basicstyle=\footnotesize\ttfamily, frame=single, backgroundcolor=\color{backcolor}, numbers=none, escapeinside={(*}{*)}]
     import numpy as np
+
     def young_step(G, kp, pi_eps, k_grid):
         """One Young (2010) histogram update on a uniform k-grid.
         G[i,j]      mass at (k_grid[i], eps_j),       sums to 1
@@ -231,21 +261,31 @@ At each time step, the histogram is updated deterministically:
                     G_next[J,     jp] += omega       * w
                     G_next[J + 1, jp] += (1 - omega) * w
         return G_next
+
 The four scatter-add lines correspond exactly to the four leaves of Figure {numref}`fig-young_cascade`: each leaf receives `omega` or `(1-omega)` from the capital lottery, multiplied by `pi_eps[j, jp]` from the shock fork, multiplied by the source mass. The Krusell--Smith JAX tutorial in `lectures/lecture_10_sequence_space_deqns/code/lecture_10_KrusellSmith_Tutorial_CPU.ipynb` implements this same operation as `distribution_step`, vectorised over the grid via `jax.vmap` and accumulated with `.at[ ].add( )`.
+
 ```{prf:remark}
-The expensive sub-step of Young's update (and of any piecewise-linear interpolation) is the *bracketing index*
-$$
-J(k') \;=\; \max\{\,n : k_n \le k'\,\},\qquad k' \in [k_J,\, k_{J+1}).$$ The textbook implementation uses a binary search (e.g. `numpy.searchsorted` or `jnp.searchsorted`): $\mathcal{O}(\log N_k)$ per query, with data-dependent branches. On a CPU this is essentially free; on a GPU under `XLA`/`CUDA` it is one of the worst patterns one can write, because (i) SIMT threads of the same warp take different branches (warp divergence), (ii) the resulting gathers are irregular, and (iii) the opaque search op breaks operator fusion with the surrounding arithmetic, forcing extra kernel launches.
+
+The expensive sub-step of Young's update (and of any piecewise-linear interpolation) is the *bracketing index* $$J(k') \;=\; \max\{\,n : k_n \le k'\,\},\qquad k' \in [k_J,\, k_{J+1}).$$ The textbook implementation uses a binary search (e.g. `numpy.searchsorted` or `jnp.searchsorted`): $\mathcal{O}(\log N_k)$ per query, with data-dependent branches. On a CPU this is essentially free; on a GPU under `XLA`/`CUDA` it is one of the worst patterns one can write, because (i) SIMT threads of the same warp take different branches (warp divergence), (ii) the resulting gathers are irregular, and (iii) the opaque search op breaks operator fusion with the surrounding arithmetic, forcing extra kernel launches.
+
 For an *equidistant* grid the search collapses to a single fused multiply--add and a cast, $$J(k') \;=\; \mathrm{clip}\!\left(\Big\lfloor \tfrac{k' - k_0}{\Delta k} \Big\rfloor,\;0,\;N_k-2\right),$$ which is exactly what the line `J = int((x - k_grid[0]) // dk)` in the cheatsheet does. This is branch-free, uniform across threads, and fuses with the lottery weight $\omega = (k_{J+1}-k')/\Delta k$ into a single GPU kernel.
+
 ##### Log-spaced grids without losing $\mathcal{O}(1)$ lookup.
+
 Uniform $k$-grids waste resolution where the consumption policy is flat (the right tail) and starve resolution where it is steepest (near the borrowing constraint $k\!\to\!0$). A simple fix preserves the closed-form bracketing: place equidistant knots in a *transformed* coordinate $x = \phi(k)$ that maps the desired refinement region uniformly. For a log-spaced grid with shift $c>0$, $$x_n \,=\, x_0 + n\,\Delta x,\qquad k_n \,=\, e^{x_n} - c,\qquad n=0,\dots,N_k,$$ the bracketing index becomes $$J(k') \;=\; \mathrm{clip}\!\left(\Big\lfloor \tfrac{\log(c+k') - x_0}{\Delta x}\Big\rfloor,\;0,\;N_k-2\right),$$ again $\mathcal{O}(1)$ per query and branch-free. Crucially, the *index* is computed in $x$-space but the lottery *weights* are taken in the original $k$-space (using $k_J$, $k_{J+1}$ from the table), so the interpolated policy remains piecewise linear in $k$, consistent with the on-grid consumption values and with the mean-preserving lottery of Eq. {eq}`eq-young_meanpreserve`. More generally, any bijective $\phi$ for which $\phi^{-1}$ is cheap admits the same trick. See `interpolate()` and `distribution_step()` in the Krusell--Smith JAX tutorial of {cite:t}`azinovicyangzemlicka2025sequencespace` for a production implementation.
 ```
+
+
 Figure {numref}`fig-young_forward` visualizes the five stages of a single forward step.
+
 ```{figure} figures/fig-young_forward.svg
 :name: fig-young_forward
+
 Flow diagram for one forward step of Young’s histogram update (Algorithm [alg:young]). Starting from Gt, the policy function is evaluated at every active bin, the resulting off-grid savings are interpolated back onto the grid, and idiosyncratic shock transitions redistribute mass across ε-states to produce Gt + 1.
 ```
+
 **Comparison with Monte Carlo.** Young's method produces *zero sampling noise* (deterministic), preserves the mean *exactly*, requires only $\sim$100--5,000 grid points (versus $>$50,000 agents for Monte Carlo), and is fully reproducible. The trade-off is that it approximates higher moments and requires a grid that is wide enough to contain all mass. The following table summarizes the comparison:
+
                          **Young's method**           **Panel simulation**
   ------------------- ------------------------ -----------------------------------
   Sampling noise                None                $\mathcal{O}(1/\sqrt{N})$
@@ -253,39 +293,63 @@ Flow diagram for one forward step of Young’s histogram update (Algorithm [alg
   Typical size         100--5,000 grid points   $>$50,000 agents
   Reproducibility          Deterministic                 Seed-dependent
   Higher moments            Approximated                  Approximated
+
 Figure {numref}`fig-young_vs_mc` contrasts the two approaches visually: the histogram method yields a smooth, noise-free distribution, while a Monte Carlo panel of comparable size exhibits visible sampling noise.
+
 ```{figure} figures/fig-young_vs_mc.svg
 :name: fig-young_vs_mc
+
 Young’s histogram (left) versus Monte Carlo panel simulation (right). Both approximate the same underlying wealth density (dashed). The histogram method is deterministic and smooth; the Monte Carlo panel exhibits $\mathcal{O}(1/\sqrt{N})$ sampling noise that contaminates downstream OLS regressions in the Krusell–Smith algorithm. The bars in this figure are a TikZ schematic illustrating the two regimes; for the actual histograms produced by the algorithm see notebook lecture_09_10_Youngs_Method_Examples in the Lecture-09 code/ folder.
 ```
+
 The absence of sampling noise matters for the Krusell--Smith algorithm: Monte Carlo noise in the realized mean contaminates the OLS regression that updates the forecasting rule, potentially destabilizing convergence.
+
 **Grid design.** Two separate grids are used in practice. The *value function grid* (typically $\sim$150 irregularly spaced points) is finer near the borrowing constraint where the policy function has high curvature and coarser for large $k$ where behavior is smooth. The *simulation grid* for Young's histogram (typically $\sim$1,000--5,000 uniformly spaced points) uses uniform spacing to produce smooth histograms without artifacts. The upper bound $k_{\max}$ must be chosen large enough that no mass reaches the boundary; if $k' > k_{\max}$ for any agent, all mass is assigned to the last grid point, which violates mean preservation. A practical safeguard is to run a preliminary simulation and verify that the boundary bins contain negligible mass.
+
 **The full Krusell--Smith algorithm.** Combining value function iteration (VFI) with Young's simulation yields:
+
 1.  Initialize forecasting coefficients $A(a), B(a)$.
+
 2.  Solve the household problem via VFI given the forecasting rule $\hat{H}$.
+
 3.  Forward-simulate the distribution for $T$ periods via Young's method, recording realized means $m_1^t$.
+
 4.  Re-estimate $A(a), B(a)$ by OLS on simulated $(m_1^t, m_1^{t+1}, a_t)$.
+
 5.  Check convergence; if not converged, return to step 2.
+
 Young's non-stochastic simulation makes step 3 essentially noise-free and fast relative to a large Monte Carlo panel. The full outer-loop iteration count and wall-clock time, however, remain implementation- and tolerance-dependent because the VFI solve and forecasting-rule fixed point are still present; the speedup applies to the simulation step, not as a generic wall-clock guarantee for the traditional KS workflow.
+
 ##### Convergence and accuracy.
+
 A remarkable empirical finding is that the log-linear forecasting rule {eq}`eq-ks_forecast` achieves $R^2 > 0.9999$ in the standard Krusell--Smith economy: the first moment of the wealth distribution is a nearly sufficient statistic for predicting next-period prices. Adding higher moments (variance, skewness) to the forecasting rule barely improves the fit. This "approximate aggregation" result does not hold universally; it relies on the specific features of the Krusell--Smith calibration (small aggregate shocks, moderate borrowing constraint), but it is a useful benchmark against which richer models can be compared.
+
 (sec-young_deqn)=
 ## DEQN with a Continuum of Agents
 The traditional Krusell--Smith algorithm provides the benchmark logic for this chapter, but the classroom DEQN notebook used in the course is the simpler Bewley endowment economy of Appendix A.5 in {cite:t}`azinovicDEEPEQUILIBRIUMNETS2022`. This distinction is pedagogically useful. Krusell--Smith explains *why* distribution tracking matters and *why* Young's method is valuable inside an outer forecasting-rule loop. Appendix A.5 then shows *how* the same histogram machinery enters a neural-equilibrium implementation once one replaces the forecasting rule by a price network. By combining Young's histogram method with neural network policies, the DEQN approach overcomes both main limitations of the traditional KS workflow: the network can condition on the *full histogram*, and there is no need for a separate forecasting rule because the price network directly takes the distribution as input.
+
 (what-secyoung_deqn-inherits-from-appendix-a.5.)=
 ##### What {ref}`sec-young_deqn` inherits from Appendix A.5.
 Five features of the Appendix-A.5 teaching model anchor the rest of this section and the companion notebook `11_Continuum_of_Agents_DEQN.ipynb`; they are the distinguishing departures from the canonical Krusell--Smith calibration of §{ref}`sec-ks_economy`--{ref}`sec-young_method`:
-- **Endowment economy, not production.** Aggregate output is exogenous, $Y_t = w(a_t)$, instead of $Y_t = z_t K_t^\alpha L_t^{1-\alpha}$; there is no capital and no firm problem.
-- **Bonds in unit net supply.** Households trade a single one-period bond at endogenous price $p_t$, and the market-clearing condition is $\int b_{t+1}\,d\mu_t = \bar B = 1$.
-- **Epstein--Zin recursive utility.** Risk aversion ($\sigma=8$) and inverse IES ($\rho=2$) are separated, with discount factor $\beta=0.95$. The KS benchmark in {ref}`sec-ks_economy` instead used log utility with $\beta=0.99$.
-- **Six-state aggregate shock.** $a_t \in \{0,\ldots,5\}$ encodes a $2$-state uncertainty regime crossed with a $3$-state income level, replacing the $2$-state TFP shock of canonical KS.
-- **Two idiosyncratic productivity types.** Labour endowment $\eta_t \in \{0.8, 1.2\}$ on a transition matrix $\Pi_\eta$, in place of the employed/unemployed two-state Markov chain of canonical KS.
-##### Histogram encoding.
-The aggregate state is encoded as a vector containing three aggregate-shock index entries plus $N_b$ histogram values for each idiosyncratic shock type. In the Appendix A.5 notebook these three entries are the combined six-state aggregate index, the income-level index, and the uncertainty-regime index:
-$$
 
+- **Endowment economy, not production.** Aggregate output is exogenous, $Y_t = w(a_t)$, instead of $Y_t = z_t K_t^\alpha L_t^{1-\alpha}$; there is no capital and no firm problem.
+
+- **Bonds in unit net supply.** Households trade a single one-period bond at endogenous price $p_t$, and the market-clearing condition is $\int b_{t+1}\,d\mu_t = \bar B = 1$.
+
+- **Epstein--Zin recursive utility.** Risk aversion ($\sigma=8$) and inverse IES ($\rho=2$) are separated, with discount factor $\beta=0.95$. The KS benchmark in {ref}`sec-ks_economy` instead used log utility with $\beta=0.99$.
+
+- **Six-state aggregate shock.** $a_t \in \{0,\ldots,5\}$ encodes a $2$-state uncertainty regime crossed with a $3$-state income level, replacing the $2$-state TFP shock of canonical KS.
+
+- **Two idiosyncratic productivity types.** Labour endowment $\eta_t \in \{0.8, 1.2\}$ on a transition matrix $\Pi_\eta$, in place of the employed/unemployed two-state Markov chain of canonical KS.
+
+##### Histogram encoding.
+
+The aggregate state is encoded as a vector containing three aggregate-shock index entries plus $N_b$ histogram values for each idiosyncratic shock type. In the Appendix A.5 notebook these three entries are the combined six-state aggregate index, the income-level index, and the uncertainty-regime index:
+
+$$
 x_t^{agg} = \bigl(\underbrace{z_t^{\mathrm{idx}},\,\mathrm{inc}_t^{\mathrm{idx}},\,\mathrm{unc}_t^{\mathrm{idx}}}_{3\text{ shock-index entries}},\; \underbrace{h_t^{\eta=0.8}(b_1),\ldots,h_t^{\eta=0.8}(b_{N_b})}_{N_b\text{ values}},\;\underbrace{h_t^{\eta=1.2}(b_1),\ldots,h_t^{\eta=1.2}(b_{N_b})}_{N_b\text{ values}}\bigr).
 $$ (eq-young_hist_state)
+
 For $N_b = 100$ grid points and 2 idiosyncratic states, the aggregate state has dimension $3 + 200 = 203$. The full input to the policy network adds the individual state $(b_t, \eta_t)$, giving total dimension $205$. This is the `production` setting; the checked-in `smoke` and `teaching` runs use $N_b = 50$, so the aggregate state has dimension $103$ and the policy input $105$. Figure {numref}`fig-young_encoding` shows how the histogram vector and individual state are assembled and fed into the two networks.
 
 ##### How the notebooks fit together.
@@ -311,6 +375,7 @@ Both networks use two hidden layers with 500 units (`production`) or 128 (the ch
 $$
 \mathcal{L} = \frac{1}{N}\sum_{i=1}^{N}\left[\mathrm{EE}_i^2 + \mathrm{BE}_i^2 + \left(n_Z\,\mathrm{MC}_i\right)^2 + \mathrm{KKT}_i^2 + \mathrm{CB}_i^2\right],
 $$ (eq-young_loss)
+
 where EE is the Euler equation residual, BE is the Bellman equation consistency condition, MC is the bond market clearing condition, KKT is the borrowing complementarity, and CB penalizes negative consumption. The market-clearing residual is rescaled by $n_Z$ (the number of aggregate-shock states) before squaring, which puts the single market-clearing residual on the same scale as the per-state Euler, Bellman, and complementarity residuals (themselves evaluated in relative terms, divided through by consumption).
 
 ##### Market clearing via histogram.
@@ -320,6 +385,7 @@ A key advantage of the histogram representation is that market clearing can be c
 $$
 \mathrm{MC} \;=\; \sum_{\eta}\sum_{j=1}^{N_b} h_t(\eta, b_j)\cdot b'(\eta, b_j, x_t^{agg}) \;-\; \bar B \;=\; 0 \text{ at equilibrium},
 $$ (eq-young_mc)
+
 where $h_t(\eta, b_j)$ is the histogram mass, $b'(\cdot)$ is the policy network output, and $\bar B$ is aggregate net bond supply. We write the *signed* residual here because it enters the loss {eq}`eq-young_loss` squared, which is also how the notebook computes it. The Appendix A.5 notebook normalizes $\bar B=1$, which is the source of the "$-1$" term sometimes seen in code and slides.
 
 ##### Young's method inside the training loop.
@@ -379,6 +445,7 @@ For the Krusell--Smith benchmark with aggregate shocks and a continuum of agents
 $$
 \mathrm{EE}(s) \;=\; u'(c_t(s)) - \beta\,\mathbb{E}_{t}\!\left[u'(c_{t+1}(s'))\,R_{t+1}\right],
 $$
+
 where $s = (k_t,\varepsilon_t; \bm{S}_t)$ is the individual-plus-aggregate state and $\bm{S}_t$ is an $N$-agent panel of capital holdings. The policy network outputs $c_t = \pi_\rho(s)$; the Euler residual is evaluated at simulated states and the expectation by Monte Carlo over next-period idiosyncratic and aggregate shocks. With the borrowing constraint $k'\ge 0$, the plain Euler residual is insufficient: at a binding constraint the equation can be slack, so the loss must combine EE with a complementarity condition via Fischer--Burmeister or KKT (see below).
 
 - **Bellman residual / value-function error** for off-policy learning of a value function, used in the "lifetime reward" formulation.
@@ -404,6 +471,7 @@ All-in-one DL is the closest cousin of the DEQN framework of Chapter {ref}`ch-d
 $$
 m_t^\ell \;=\; \frac{1}{N}\sum_{i=1}^{N} \phi_\theta^{\,\ell}(s_t^i) \quad\xrightarrow{N\to\infty}\quad \int \phi_\theta^{\,\ell}(s)\, d\mu_t(s), \qquad \ell = 1,\ldots,M,
 $$ (eq-deepham_moments)
+
 with $\bm{m}_t = (m_t^1,\ldots,m_t^M)$ and $\phi_\theta^{\,\ell}: \R^{d} \to \R$ a neural feature encoder trained jointly with the policy and value networks. Equation {eq}`eq-deepham_moments` is the canonical DeepSets architecture of permutation-invariant set functions {cite:p}`zaheer2017deep`: averaging (or, in the continuum limit, integration against $\mu_t$) makes $\bm{m}_t$ invariant to permutations of the agents, and the $\phi_\theta^{\,\ell}$ encoders are flexible enough (by universal approximation on the permutation-invariant functions) to represent any fixed-arity moment.
 
 The individual's value and policy functions then take the form
@@ -411,11 +479,13 @@ The individual's value and policy functions then take the form
 $$
 V_t = V_\rho(s_t^i; \bm{m}_t, a_t), \qquad k_{t+1}^i = \pi_\rho(s_t^i; \bm{m}_t, a_t),
 $$
+
 and all networks $(V_\rho, \pi_\rho, \phi_\theta)$ are trained jointly. The primitive training objective is to *maximize* cumulative utility along simulated paths,
 
 $$
 J(\theta,\rho) \;=\; \mathbb{E}\!\left[\sum_{t=0}^{T-1} \beta^{t}\,u\!\bigl(c_\rho(s_t^i; \bm{m}_t, a_t)\bigr) \;+\; \beta^{T}\, V_\psi(s_T^i; \bm{m}_T, a_T)\right],
 $$ (eq-deepham_objective)
+
 where the expectation is taken over simulated idiosyncratic and aggregate histories generated under the current policy. Squared Bellman residuals are reported as a validation diagnostic, not as the optimization target. Because the individual law of motion, the budget constraint, and the transition structure are known economic objects, they are written directly into the computational graph: gradients of $J$ flow through these structural dynamics, in contrast to model-free reinforcement learning where transitions are observed only as samples {cite:p}`yang2025structural`. Because the generalized moments are themselves parameters of the optimization (not hyperparameters), the method automatically discovers the minimal set of distributional statistics required for equilibrium pricing.
 
 A practical consequence of the policy-gradient formulation is that DeepHAM is well suited to problems where first-order conditions are difficult to write down or inconvenient to use, including constrained-efficiency problems with aggregate shocks, optimal-policy design, and behavioral macro questions; the headline application in {cite:t}`han2023deepham` is precisely a constrained-efficiency problem solved by simulating the economy under candidate allocation rules and updating the rules to improve social welfare.
@@ -485,66 +555,94 @@ The histogram-based DEQN above is transparent because it feeds a direct approxim
 Two ways to encode the aggregate state in deep equilibrium learning. Each pipeline reads top-to-bottom: the upper (colored) box is the input the user gives to the same neural network 𝒩ρ, the middle (colored) box is the network’s output (policy and price objects), and the green box is the equilibrium loss that consumes those outputs. Histogram DEQNs (left, blue) feed an endogenous state representation (At, μt); sequence-space DEQNs (right, red) feed a truncated exogenous shock history ztT. Crucially, the network and the residual-based training loss are identical across the two pipelines, only the input changes.
 ```
 
-**The sequence-space representation.** Let $z_t^T := (z_{t-T+1}, \ldots, z_t) \in \R^T$ denote the last $T$ realizations of the exogenous aggregate shock. The key claim is that, in an ergodic economy, this history is an *approximate sufficient statistic* for the endogenous aggregate state. In the Brock--Mirman warm-up notebook, the network maps the shock history to a bounded savings rate, from which next-period capital follows by the resource constraint,
+**The sequence-space representation.** Let $z_t^T := (z_{t-T+1}, \ldots, z_t) \in \R^T$ denote the last $T$ realizations of the exogenous aggregate shock. The key claim is that, in an ergodic economy, this history is an *approximate sufficient statistic* for the endogenous aggregate state. In the Brock--Mirman warm-up notebook, the network maps the shock history to a bounded savings rate, from which next-period capital follows by the resource constraint, $$s_t = \sigma\!\bigl(\mathcal{N}_\rho(z_t^T)\bigr) \in (0,1), \qquad K_{t+1} = s_t\, z_t K_t^\alpha,$$ where $\sigma$ is the logistic squashing that keeps $K_{t+1}$ feasible. In the richer heterogeneous-agent version, the network instead maps the same history to higher-level equilibrium objects such as policy-function coefficients or pricing objects. This connects the method to the MIT-shock and sequence-space Jacobian literature of {cite:t}`boppart2018exploiting` and {cite:t}`auclert2021using`, but replaces local linear approximations with a global residual-based neural approximation.
 
-$$
-s_t = \sigma\!\bigl(\mathcal{N}_\rho(z_t^T)\bigr) \in (0,1), \qquad K_{t+1} = s_t\, z_t K_t^\alpha,$$ where $\sigma$ is the logistic squashing that keeps $K_{t+1}$ feasible. In the richer heterogeneous-agent version, the network instead maps the same history to higher-level equilibrium objects such as policy-function coefficients or pricing objects. This connects the method to the MIT-shock and sequence-space Jacobian literature of {cite:t}`boppart2018exploiting` and {cite:t}`auclert2021using`, but replaces local linear approximations with a global residual-based neural approximation.
 ```{prf:definition}
+
 The two formulations can be written symmetrically. Let $y_t$ denote the equilibrium objects of interest (policies, prices) at date $t$, $x_t$ the endogenous aggregate state, and $\varepsilon_t$ the exogenous shock.
+
 **State-space recursion.** The decision rule is a function $f$ of the current state, the state evolves through a known transition $H$, and equilibrium is the functional equation $$y_t = f(x_t), \qquad x_{t+1} = H(x_t, y_t, \varepsilon_{t+1}), \qquad G(f, x) = 0 \;\;\forall x.$$
+
 **Sequence-space formulation.** Let $\mathcal{E}_t = (\varepsilon_t, \varepsilon_{t-1}, \ldots)$ denote the full shock history. The decision rule is now a function $\Psi$ of the history (with initial condition $x_0$), and the state $x_t$ is recovered by iterating the same law of motion under $\Psi$: $$y_t = \Psi(\mathcal{E}_t \mid x_0), \qquad x_t = \mathcal{H}(\mathcal{E}_t, x_0 \mid \Psi), \qquad G(\Psi, \mathcal{E}, x_0) = 0 \;\;\forall \mathcal{E}, \forall x_0.$$
+
 Both formulations describe the *same* equilibrium. What differs is the *domain of approximation*: $f$ lives on the (potentially infinite-dimensional) endogenous state space, while $\Psi$ lives on the (also infinite-dimensional but exogenously driven) space of shock histories. In an ergodic economy the partial derivative $\partial\Psi/\partial\varepsilon_{t-\tau}$ vanishes as $\tau\to\infty$, so $\Psi$ admits a finite-history truncation $\widehat\Psi(z_t^T)$ with controllable error. This truncation step, developed in the next paragraph, is what makes the sequence-space formulation computable.
 ```
+
+
 **Intuition first.** The easiest way to think about the method is as a *memory compression* device. A positive aggregate shock today raises output and therefore raises tomorrow's capital. That extra capital still matters the period after, but only through the production elasticity $\alpha$, so its influence is smaller. One more period later it is smaller again. In other words, the current aggregate state stores a decaying memory of past shocks. The sequence-space idea is to feed that shock history directly to the network rather than feeding the current endogenous state itself.
+
 ```{figure} figures/fig-sequence_space_decay.svg
 :name: fig-sequence_space_decay
+
 Intuition for sequence space in Brock–Mirman. log Kt depends on past shocks with weights that decay like αj in the lag j (here α = 0.36, the standard capital share). Already at j = 3 the weight has fallen to ∼ 0.05, so a finite history of recent shocks summarizes the relevant aggregate information; very old shocks matter little.
 ```
+
 **Brock--Mirman: what changes relative to Chapter {ref}`ch-deqn`?** The Brock--Mirman warm-up is useful because the change can be written down exactly. In Chapter {ref}`ch-deqn`, the state-space DEQN uses the current state as input, $$x_t^{\mathrm{state}} = (K_t, z_t), \qquad C_t = \mathcal{N}_\rho(K_t, z_t), \qquad K_{t+1} = z_t K_t^\alpha - C_t.$$ In the sequence-space version, the *economic model* is unchanged, but the network sees a different input: $$x_t^{\mathrm{seq}} = z_t^T = (z_{t-T+1}, \ldots, z_t), \qquad s_t = \sigma\!\bigl(\mathcal{N}_\rho(z_t^T)\bigr), \qquad K_{t+1} = s_t\, z_t K_t^\alpha, \qquad C_t = (1-s_t)\, z_t K_t^\alpha.$$ The Euler residual is the same object as before, $$G_t = 1 - \beta \,\frac{C_t}{C_{t+1}} \,\alpha z_{t+1} K_{t+1}^{\alpha-1},$$ so the economics are unchanged. What changes is the computational representation:
+
 - the **network input** changes from the current state $(K_t, z_t)$ to the recent history $z_t^T$;
+
 - the **network output** changes from current consumption $C_t$ to a bounded savings rate $s_t\in(0,1)$ in the warm-up notebook, so that $K_{t+1}=s_t z_t K_t^\alpha$ is feasible by construction;
+
 - the **current capital stock** is no longer fed directly into the network, but is generated recursively from the initial condition and previously predicted capital choices;
+
 - the **training samples** are overlapping shock histories rather than pointwise states $(K_t, z_t)$.
+
 This distinction is important conceptually. For Brock--Mirman, sequence space is *not* a dimensionality reduction, since $(K_t, z_t)$ is only two-dimensional whereas a history of length $T=25$ is larger. The Brock--Mirman notebook is therefore a pedagogical demonstration of the idea that histories can stand in for endogenous states. The dimensionality gain appears only in richer heterogeneous-agent models, where the relevant alternative is a large histogram or other high-dimensional distributional summary.
+
 **Intermediate bridge: sequence-space IRBC.** Between the one-shock Brock--Mirman warm-up and the infinite-dimensional Krusell--Smith state, the companion notebook `lectures/lecture_10_sequence_space_deqns/code/lecture_10_05b_SequenceSpace_IRBC.ipynb` re-trains the two-country IRBC model of Chapter {ref}`ch-irbc` under sequence-space inputs: the policy network reads the last $T=80$ shock vectors (a $240$-dimensional history with $\rho_z^T \approx 1.7\times 10^{-2}$ truncation error) instead of the four-dimensional current state. The $2N+1$ equilibrium residuals (Euler, ARC, Fischer--Burmeister), the Gauss--Hermite quadrature, and the cloud-method sampler are literally unchanged from nb 01; only the input domain changes. Because the current capital stock is no longer an input, we parametrize the output head around the steady state, $k'_j = k_{ss}\exp(\tanh z^k_j)$ and $\lambda = \lambda_{ss}\exp(\tanh z^\lambda)$, which keeps gradients lively at the target policy and prevents the cold-start divergence that plagued a naive softplus head. This notebook is a *pedagogical bridge* rather than a computational win, at a four-dimensional state the history is much larger, not smaller, but it shows that the same template handles a multi-equation system with multiple independent shock channels before we hand the method over to Krusell--Smith, where the dimensionality gain is real.
+
 **Training logic.** The computational pattern is also close to the rest of this chapter. One samples an exogenous shock path, constructs overlapping history windows $z_t^T$, evaluates the network on those windows, and then uses the resulting decisions to simulate the endogenous economy forward. In the Brock--Mirman warm-up this produces the capital sequence directly; in the Krusell--Smith tutorial it produces policy-function objects, while Young's method still propagates the cross-sectional distribution inside the simulator. Residuals are then evaluated on the simulated path and backpropagated through the full pipeline. Figure {numref}`fig-sequence_space_training` summarizes this workflow.
+
 ```{figure} figures/fig-sequence_space_training.svg
 :name: fig-sequence_space_training
+
 Training flow for sequence-space DEQNs. The exogenous shock history is the network input, but the forward simulator still produces endogenous objects such as prices, aggregate capital, or cross-sectional distributions needed for residual evaluation.
 ```
+
 ```{prf:remark}
+
 In the companion notebook `KrusellSmith_Tutorial_CPU.ipynb`, the helper function `encode_Z_history` represents a discrete shock history as a one-hot block concatenated with the corresponding realized levels. Suppose $N_Z = 2$ (so $Z_t \in \{Z_L, Z_H\}$ with $Z_L = 0.93$, $Z_H = 1.07$) and the truncated history of length $H = 3$ is $(Z_L, Z_H, Z_L)$. `encode_Z_history` then returns $$\underbrace{\bigl[\,\underbrace{1,0}_{Z_L},\ \underbrace{0,1}_{Z_H},\ \underbrace{1,0}_{Z_L}\,\bigr]}_{\text{one-hot block, length }H \cdot N_Z}
 \;\bigm\Vert\;
 \underbrace{\bigl[\,0.93,\ 1.07,\ 0.93\,\bigr]}_{\text{level block, length }H},$$ a single vector of length $H \cdot (N_Z + 1) = 9$ that is fed to the MLP. In the Krusell--Smith tutorial, $H = 50$ and $N_Z = 2$, giving an input of length $150$. The corresponding histogram-based input, by contrast, would have hundreds of bins from the wealth distribution alone.
 ```
+
+
 **Why truncated histories can work.** The Brock--Mirman warm-up makes the logic especially transparent. With full depreciation ($\delta = 1$) and log utility, recursive substitution shows that the capital stock depends on the last $T$ shocks up to an error of order $\alpha^T \log(K_{t-T})$. Since $\alpha < 1$ (typically $\alpha \approx 0.36$), this error vanishes exponentially: for $T = 25$, the truncation error is of order $10^{-11}$. More generally, in ergodic economies with persistent aggregate shocks, the approximation error decays at roughly $\max\{|\varrho|, |\alpha|\}^T$. In richer heterogeneous-agent models this is no longer an exact algebraic statement, so the history length $T$ becomes an empirical accuracy choice rather than a theorem.
+
 **Why this is useful in heterogeneous-agent models.** Two advantages are worth separating. First, *as a network input*, a history of $T \approx 25$ shocks can be much smaller than a histogram with hundreds of bins. Second, exogenous shock histories are sampled from a fixed distribution. This removes one source of instability in residual-based training: the set of network inputs is anchored by model primitives even though the endogenous simulator still evolves with the current policy network. In the Krusell--Smith tutorial, this means that the network is conditioned on shock histories, while Young's method remains responsible for propagating the distribution used in market-clearing calculations.
+
 ```{prf:remark}
+
 The second advantage above deserves to be unpacked, because it is empirically the single biggest source of stability gains reported in {cite:t}`azinovicyangzemlicka2025sequencespace`. In a state-space deep-learning HA solver the network reads the endogenous distribution $\mu_t$ as part of its input, and the training set of $\mu$'s is generated by simulating the economy under the *current* policy network. This creates a self-amplifying loop: $$\begin{aligned}
 \rho^{(k)} \;\longrightarrow\; \pi_{\rho^{(k)}} \;\longrightarrow\; \{\mu_t\}_{\rho^{(k)}} \;\longrightarrow\;& \text{input distribution shifts}\\[-2pt]
 \;\longrightarrow\; \text{out-of-distribution evaluations} \;\longrightarrow\;& \text{large residual gradient} \;\longrightarrow\; \rho^{(k+1)}\;\text{overshoots},
 \end{aligned}$$ and the next outer iteration starts from inputs the network has never seen before, often producing even larger shifts. In sequence space the network input is the truncated shock history $z_t^T$, drawn from the *exogenous* law of motion of the aggregate shock. That distribution is fixed by model primitives and *does not move* with the policy update. The feedback loop is broken at its first link: training inputs are stationary even when the policy is far from optimal. Empirically this often turns a calibration that fails to converge in the state-space formulation (across random seeds and learning rates) into one that converges robustly in sequence space.
 ```
+
+
 **Shape-preserving operator learning.** A second contribution of {cite:t}`azinovicyangzemlicka2025sequencespace` is to let the network output *policy-function objects* rather than a single scalar choice. In particular, they construct architectures that guarantee monotonicity and concavity of the predicted consumption rule by representing it with an I-spline basis and non-negative coefficients. In the Krusell--Smith tutorial, the network maps the shock history to these coefficients; the resulting policy can then be evaluated at all idiosyncratic states on the wealth grid. This operator-learning view pairs naturally with the endogenous grid method (EGM) of {cite:t}`carroll2006method` and avoids ad hoc penalties for monotonicity or concavity.
+
 **Explicit I-spline MPC parameterization.** Having seen *why* a shape-preserving output head matters (above), we now write the construction down concretely; this is the most technical paragraph of the section and a reader who already accepts the monotonicity/concavity guarantees can skip to "Fischer--Burmeister KKT loss" below. Let $\{k_n\}_{n=0}^N$ be a fixed log-spaced wealth grid and let $B \in \mathbb{R}^{J \times (N+1)}$ be a precomputed I-spline basis evaluated on it, $$B_{j,n} \;=\; I_j\!\bigl(\log(\eta + k_n)\bigr), \qquad j = 1,\ldots,J,\; n=0,\ldots,N,$$ where $\eta>0$ is a small numerical shift (the `BASIS_SHIFT` constant in the notebook) and each $I_j$ is an integrated B-spline that is monotonically increasing from $0$ to $1$. For each idiosyncratic state $\varepsilon$, the network outputs two objects: a boundary marginal propensity to consume $\alpha(\varepsilon)\in(0,1)$ (sigmoid head) and non-negative weights $\widetilde w_j(\varepsilon)\ge 0$ with $\sum_j \widetilde w_j(\varepsilon) < 1$ (a "phantom-zero" softmax head). The grid MPC is
+
 $$
 \mathrm{MPC}_{\varepsilon,n} \;=\; \alpha(\varepsilon)\Bigl(1 - \sum_{j=1}^J \widetilde w_j(\varepsilon)\, B_{j,n}\Bigr),
 $$ (eq-ispline_mpc)
 
 which is decreasing in $n$ by construction (positive weights times an increasing basis, subtracted off a constant), bounded in $[0, \alpha(\varepsilon)] \subset [0,1]$, and continuous in the network parameters. Consumption is then recovered on the grid by cumulation of the MPC schedule along cash-on-hand $m = w\varepsilon + Rk$,
+
 $$
 c(\varepsilon, k_0) \;=\; \mathrm{MPC}_{\varepsilon,0}\, m(\varepsilon, k_0), \qquad
 c(\varepsilon, k_n) \;=\; c(\varepsilon, k_{n-1}) + \mathrm{MPC}_{\varepsilon,n}\, R\, (k_n - k_{n-1}),
 $$ (eq-ispline_cumulation)
 
 and off-grid evaluation uses piecewise-linear interpolation. Equations {eq}`eq-ispline_mpc`--{eq}`eq-ispline_cumulation` guarantee, by construction and without any auxiliary penalty, that the consumption rule is non-negative, monotonically increasing in $k$, concave in $k$, and feasible ($c \le m$). In code, $B$ is the matrix `ispline_basis`, $\alpha$ and $\widetilde w$ come from the two heads of `actor_c_grid`, and the cumulation is the closing block of that same function.
-**Fischer--Burmeister KKT loss.** Households face a borrowing constraint $k_{t+1} \ge 0$. The Karush--Kuhn--Tucker conditions of the household problem split into two regimes: at an interior optimum the Euler equation holds with equality, while at a binding constraint the Euler equation can be slack but next-period capital is zero. Define the (relative) Euler residual and the (relative) savings slack (in this section $g$ is reused as the Euler residual, matching the tutorial code's variable name; it is *not* the household policy function $g(k,\varepsilon,\ldots)$ of {ref}`sec-young_method`)
-$$
-g \;=\; \frac{c_{\text{Euler}} - c}{c}, \qquad s \;=\; \frac{k'}{c},$$ where $c_{\text{Euler}} = (u')^{-1}\!\bigl(\beta\,\mathbb{E}_t [R'\,u'(c')]\bigr)$ is the consumption level implied by the Euler equation given the network's continuation policy. The KKT pair is then $$g = 0,\ s \ge 0 \quad\text{(interior)} \qquad\text{or}\qquad g \ge 0,\ s = 0 \quad\text{(constrained)},$$ which is a complementarity condition. The Fischer--Burmeister envelope, in the same sign convention used in Ch. {ref}`ch-irbc` and Ch. {ref}`ch-olg`,
-$$
 
+**Fischer--Burmeister KKT loss.** Households face a borrowing constraint $k_{t+1} \ge 0$. The Karush--Kuhn--Tucker conditions of the household problem split into two regimes: at an interior optimum the Euler equation holds with equality, while at a binding constraint the Euler equation can be slack but next-period capital is zero. Define the (relative) Euler residual and the (relative) savings slack (in this section $g$ is reused as the Euler residual, matching the tutorial code's variable name; it is *not* the household policy function $g(k,\varepsilon,\ldots)$ of {ref}`sec-young_method`) $$g \;=\; \frac{c_{\text{Euler}} - c}{c}, \qquad s \;=\; \frac{k'}{c},$$ where $c_{\text{Euler}} = (u')^{-1}\!\bigl(\beta\,\mathbb{E}_t [R'\,u'(c')]\bigr)$ is the consumption level implied by the Euler equation given the network's continuation policy. The KKT pair is then $$g = 0,\ s \ge 0 \quad\text{(interior)} \qquad\text{or}\qquad g \ge 0,\ s = 0 \quad\text{(constrained)},$$ which is a complementarity condition. The Fischer--Burmeister envelope, in the same sign convention used in Ch. {ref}`ch-irbc` and Ch. {ref}`ch-olg`,
+
+$$
 \mathrm{FB}(g, s) \;=\; g \;+\; s \;-\; \sqrt{g^2 + s^2 + \epsilon_{\text{fb}}}
 $$ (eq-fb)
+
 is smooth and satisfies $\mathrm{FB}(g,s) = 0$ if and only if $\min(g, s) = 0$ with both non-negative; the small constant $\epsilon_{\text{fb}}$ (set to $10^{-12}$ in the notebooks) is a numerical stabilizer for the square root. The upstream JAX tutorial code uses the negative-sign variant $\sqrt{g^2+s^2+\epsilon}-g-s$, which has the same zero set when squared. The training loss is the buffer-and-grid average of $\mathrm{FB}^2$, $$\mathcal{L}(\rho) \;=\; \mathbb{E}_{(z^H,\mu)\sim\mathcal{B}}\biggl[\, \frac{1}{N_\varepsilon (N+1)} \sum_{\varepsilon,n} \mathrm{FB}\!\bigl(g_{\varepsilon,n}(\rho), s_{\varepsilon,n}(\rho)\bigr)^2 \,\biggr],$$ so that one differentiable scalar simultaneously enforces the Euler equation in the interior region and the complementarity condition at the borrowing constraint, without case splits or shadow-price augmentation. This reuses the smooth complementarity construction of {cite:t}`fischer1992special` that is standard in nonlinear programming, applied here to a heterogeneous-agent equilibrium loss.
 
 **Putting the pieces together: the HA training loop.** The Krusell--Smith tutorial assembles the encoder, the I-spline policy head, Young's distribution step, and the Fischer--Burmeister loss into a single replay-buffer training loop. {prf:ref}`algo-ks_seqspace` states it explicitly.

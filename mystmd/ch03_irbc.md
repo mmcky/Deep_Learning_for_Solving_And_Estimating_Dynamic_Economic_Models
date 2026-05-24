@@ -100,8 +100,9 @@ $$
 \begin{aligned}
 \frac{\partial \Gamma^j}{\partial k^{j\prime}} &= \kappa\left(\frac{k^{j\prime}}{k^j} - 1\right), &
 \frac{\partial \Gamma^j}{\partial k^j} &= \frac{\kappa}{2}\left(1 - \left(\frac{k^{j\prime}}{k^j}\right)^{\!2}\right).
+\label{eq:irbc_adjcost_derivs}
 \end{aligned}
-$$ (eq-irbc_adjcost_derivs)
+$$
 
 Note that $\partial\Gamma^j/\partial k^j$ is *negative* whenever $k^{j\prime} > k^j$, i.e. in expanding states. Consequently the term $-\partial\Gamma^j/\partial k^j$ that appears in the marginal product of capital below {eq}`eq-irbc_mpk` *raises* MPK in expansion phases; a reader who plugs in $|\partial\Gamma/\partial k|$ here will introduce a sign error. Investment is irreversible: $I^j = k^{j\prime} - (1-\delta)k^j \geq 0$.
 
@@ -206,7 +207,8 @@ $$
 \frac{\partial \mathcal{L}}{\partial k_{t+1}^j}
 = \beta^t \!\left[-\lambda_t\!\left(1 + \frac{\partial \Gamma_t^j}{\partial k_{t+1}^j}\right) + \mu_t^j\right] \\
 + \beta^{t+1}\,\mathbb{E}_t\!\left[\lambda_{t+1}\!\left(\frac{\partial Y_{t+1}^j}{\partial k_{t+1}^j} + (1-\delta) - \frac{\partial \Gamma_{t+1}^j}{\partial k_{t+1}^j}\right) - \mu_{t+1}^j(1-\delta)\right] = 0.
-$$ (eq-irbc_foc_k_raw)
+\label{eq:irbc_foc_k_raw}
+$$
 
 Now define the *marginal product of capital* (inclusive of depreciation and adjustment cost effects):
 

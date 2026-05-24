@@ -21,6 +21,8 @@ Usage:
 Requires: pdflatex (TeX Live), pdf2svg.
 """
 
+from __future__ import annotations
+
 import argparse
 import re
 import shutil

@@ -100,7 +100,18 @@ echo ""
 # mystmd/tikz_overrides.py BEFORE the upstream pipeline runs — the
 # postprocess reads that file at startup to swap admonition placeholders
 # for {figure} directives. mtime-cached, so a no-op re-run is fast.
-python3 "$SCRIPT_DIR/scripts/render_tikz.py"
+#
+# Uses `uv run --no-project python` to match the book-dp1/dp2 convention:
+# avoids relying on whatever `python3` happens to be on PATH (macOS ships
+# 3.9, which is too old for modern type-annotation syntax). uv resolves
+# to a recent Python automatically. Falls back to plain `python3` if uv
+# isn't installed — the render script uses `from __future__ import
+# annotations` so it still runs on 3.9+.
+if command -v uv >/dev/null 2>&1; then
+  uv run --no-project python "$SCRIPT_DIR/scripts/render_tikz.py"
+else
+  python3 "$SCRIPT_DIR/scripts/render_tikz.py"
+fi
 
 bash "$TOOL_DIR/scripts/convert.sh" \
   --config "$SCRIPT_DIR/config.yaml" "$@"
