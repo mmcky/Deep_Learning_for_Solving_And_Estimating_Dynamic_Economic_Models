@@ -17,7 +17,7 @@ In the Brock--Mirman and IRBC models of Chapters {ref}`ch-deqn`--{ref}`ch-irbc`
 
 An OLG economy consists of $A$ cohorts that coexist in each period: a new cohort of age 1 is born, the oldest cohort of age $A$ dies, and everyone else ages by one period. Crucially, the number of agent types is *finite*, so the cross-sectional distribution has only $A$ entries and the state space remains finite-dimensional, in contrast to the continuum-of-agents models treated in Chapter {ref}`ch-young`. The mechanism that ties the three phenomena above together is consumption smoothing over a hump-shaped earnings path (Figure {numref}`fig-olg_lifecycle`): because labor income rises and then falls over the lifecycle while agents prefer a steady consumption stream, they accumulate assets in their high-earning years and run them down afterwards, and the equilibrium interest rate is whatever clears the resulting demand for savings against the economy's capital stock.
 
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/fig-olg_lifecycle.svg
 :name: fig-olg_lifecycle
 
 Stylized lifecycle profiles in an OLG economy (schematic, not a solution of the model). Labor income (blue) is hump-shaped, peaking in mid-career, while agents prefer a roughly flat consumption path (green); so they accumulate assets out of income during their high-earning years and run them down near the end of life. The asset profile (red, dashed) is therefore a hump that starts near zero for the newborn cohort, peaks toward the end of working life, and returns to zero for the oldest cohort, which consumes everything. The 6-agent analytic model of {ref}`sec-olg_analytic` is a stripped-down version of this picture (only the youngest cohort earns labor income); the 56-agent benchmark of {ref}`sec-olg_56` reproduces the full hump.
@@ -28,8 +28,8 @@ We develop the OLG framework in two stages. Section {ref}`sec-olg_analytic` wor
 (sec-olg_analytic)=
 ## The 6-Agent Analytic OLG Model
 (sec-olg_setup)=
-% Unknown environment: remarkbox
-::: remarkbox
+```{prf:remark}
+
 Before stepping through the formal model, it is worth seeing the full DEQN pipeline in one breath. The same five steps apply to every model in this script.
 
 1.  **State and policy.** Stack the 6 cohort capital holdings, the aggregate $K_t$, prices $(r_t, w_t)$, the TFP shock $\eta_t$, and the depreciation shock $\delta_t$ into a state vector $\x_t$. A single MLP $\mathcal{N}_\theta(\x_t) \to \R^{5}$ outputs the savings of cohorts 1--5 (cohort 6 saves nothing).
@@ -43,7 +43,8 @@ Before stepping through the formal model, it is worth seeing the full DEQN pipel
 5.  **Diagnostics.** At convergence, check (i) the average savings rate by cohort against the closed-form $\beta_h$ in Eq. {eq}`eq-olg_savings_rate` below, (ii) Euler residuals across the simulated ergodic set, (iii) (in the 56-agent benchmark only) the bond-market-clearing residual, and (iv) policy-drift / time-invariance on a fixed anchor cloud: evaluate the policy on `X_anchor` after each monitoring interval and flag the run as *time-invariant* once `policy_drift_rms` and `policy_drift_max` fall below `TIME_INVARIANCE_TOL_RMS` and `TIME_INVARIANCE_TOL_MAX`. In the 6-agent analytic model, capital-market clearing is satisfied by construction, since aggregate next-period capital is taken as the sum of cohort savings.
 
 The notebook `lecture_08_08_OLG_Analytic_DEQN_persistent.ipynb` ships with a `RUN_MODE` switch: `"smoke"` ($\sim$30 s, sanity check), `"teaching"` ($\sim$5 min, savings close to the closed form and mean Euler residuals $\sim 10^{-3}$ on the simulated cloud), and `"production"` (longer run, Table 3-level Euler accuracy on the full ergodic set); a feedback-free exogenous-sampling companion is available as `lecture_08_07_OLG_Analytic_DEQN_exogenous.ipynb`. A fifth notebook, `lecture_08_11_OLG_Exercise.ipynb`, is a self-contained warm-up (closed-form savings rates, a single-cohort lifecycle simulation, and a discount-factor comparison) on the same analytic model. The 56-agent benchmark of {ref}`sec-olg_56` (notebook `lecture_08_10_OLG_Benchmark_DEQN_persistent.ipynb`, with the exogenous-sampling companion `lecture_08_09_OLG_Benchmark_DEQN_exogenous.ipynb`) runs in a few hours on a GPU with the *same* code template.
-:::
+```
+
 
 {cite:t}`Krueger20041411` proposed a deliberately simple OLG model with a *closed-form solution*, making it an ideal validation benchmark for the DEQN approach. We develop it here as the first of the two OLG instances of this chapter; {ref}`sec-olg_deqn` maps it to a DEQN and validates the trained network against the closed form derived below.
 
@@ -121,7 +122,7 @@ The optimal policy is then $k'^h = \beta_h \cdot \mathrm{inc}^h$: each agent sav
 
 Young agents save more (more periods ahead); old agents save less; Figure {numref}`fig-olg6_savings` plots the same numbers across $h$. This vector is the validation target: at convergence, the trained network's average sigmoid output should reproduce $\beta_h$ cohort by cohort.
 
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/fig-olg6_savings.svg
 :name: fig-olg6_savings
 
 Closed-form savings rates βh from Table {numref}`tab-olg6_savings_rates` for the 6-agent analytic OLG (β = 0.7, log utility). The monotone decline with age reflects the shrinking forward horizon: cohort h has only A − h remaining periods over which to consume future income, so the marginal incentive to save weakens as h grows. This is the validation target the trained DEQN’s average sigmoid output should match cohort by cohort.
@@ -203,10 +204,11 @@ $$ (eq-olg_loss)
 
 The network takes a 40-dimensional input (the extended state {eq}`eq-olg_state`, $16 + 4 \times 6$) and outputs 5 savings *rates* $\hat\beta^h$ via a $40 \to 100 \to 50 \to 5$ architecture with ReLU hidden layers and a sigmoid savings-fraction output ($\approx 9{,}400$ parameters). Training uses the episode-based procedure from Chapter {ref}`ch-deqn`: the current network generates a capital path (episode), equilibrium residuals are computed and used for SGD updates, and a new episode is simulated periodically. The companion notebook exposes a `RUN_MODE` switch with three calibrated budgets: `"smoke"` ($\sim$25 training segments, $\sim$30 s on CPU; a code-path sanity check, well short of convergence), `"teaching"` ($\sim$500 segments, $\sim$5 min on CPU; savings rates match the closed form to a few parts in $10^{4}$ and mean relative Euler errors are already $\sim 10^{-3}$ on the simulated cloud, though larger off-trajectory), and `"production"` ($\sim$10,000 segments with longer trajectories, several hours on CPU; mean Euler errors $\sim 10^{-3}$ or below, matching Table 3 of {cite:t}`azinovicDEEPEQUILIBRIUMNETS2022`). Adam is used throughout (learning rate $\sim 3\times 10^{-4}$ in the short presets, $10^{-5}$ in the production preset); the analogous decay to $10^{-6}$ used by the 56-agent benchmark ({ref}`sec-olg_56`) is not needed at the analytic model's scale.
 
-% Unknown environment: keyinsightbox
-::: keyinsightbox
+```{prf:remark}
+
 The 6-agent analytic OLG provides a known ground truth against which the DEQN can be validated exactly. This validation step gives confidence that the same framework will produce reliable results for models without closed-form solutions.
-:::
+```
+
 
 (sec-olg_fb)=
 ## Inequality Constraints and KKT Complementarity
@@ -403,15 +405,17 @@ Production training uses 60,000 episodes at lr $= 10^{-5}$ followed by 140,000 e
 
 The trained model produces economically plausible lifecycle patterns. Capital savings $k'^h$ follow a hump shape that mirrors the labor income profile: young agents save little (borrowing constraint binds), mid-career agents accumulate rapidly, and older agents decumulate. Bond holdings $b'^h$ are initially negative (young agents borrow against future income) and increase with age as agents shift from illiquid capital to liquid bonds. Bond prices vary across shock states, with higher prices in high-TFP states reflecting stronger demand for savings. In the teaching run the Euler residuals are still large enough to treat the output as diagnostic; in production runs the mean Euler equation errors are of order $10^{-4}$--$10^{-3}$ for both capital and bond equations (matching Table 3 of {cite:t}`azinovicDEEPEQUILIBRIUMNETS2022`), corresponding to a $\sim$0.01%--0.1% deviation in consumption. Market clearing residuals are comparably small. Convergence is also confirmed by the policy-drift check on the fixed anchor cloud: the run is treated as time-invariant once `policy_drift_rms` and `policy_drift_max` fall below their prescribed tolerances.
 
-% Unknown environment: keyinsightbox
-::: keyinsightbox
-The *same algorithm* that solved the 6-agent model scales to 56 agents with two assets and inequality constraints. Only the network size and training duration change; the DEQN framework itself is unchanged. The 56-agent benchmark has a 113-dimensional minimal state and a 240-dimensional engineered network input, both infeasible for traditional grid-based methods.
-:::
+```{prf:remark}
 
-% Unknown environment: keyinsightbox
-::: keyinsightbox
+The *same algorithm* that solved the 6-agent model scales to 56 agents with two assets and inequality constraints. Only the network size and training duration change; the DEQN framework itself is unchanged. The 56-agent benchmark has a 113-dimensional minimal state and a 240-dimensional engineered network input, both infeasible for traditional grid-based methods.
+```
+
+
+```{prf:remark}
+
 OLG models discretise the cross-section into a finite number of cohorts $A$, so the minimal state vector contains the aggregate shock together with the cohort asset holdings and has dimension $\mathcal{O}(A)$. Market clearing $\sum_h k_{t+1}^h = K_{t+1}$ closes the model and is the natural place to encode aggregation exactly via a market-clearing output layer (Chapter {ref}`ch-deqn`, footnote on Azinovic--Yang & Žemlička 2024). No-short-sale-of-capital and collateral constraints introduce KKT complementarity, which we enforce by combining softplus output activations (for non-negativity) with squared product residuals $(a\cdot b)^2$ in the loss. Across both instances, the 6-agent analytic OLG and the 56-agent IER benchmark, the *same* training loop covers the spectrum from textbook closed-form validation to research-scale scalability.
-:::
+```
+
 
 (further-reading)=
 ## Further Reading

@@ -6,6 +6,7 @@
 **Round 3 update:** 2026-05-25 — re-tally after upstream landed fixes for follow-ups #35, #36, #37.
 **Round 4 update:** 2026-05-25 — drill into deferred items; 2 new bugs filed (#39 algorithm label, #40 HTML entity in math); 2 prior "gaps" resolved as counting artifacts.
 **Round 5 update:** 2026-05-25 — re-tally after upstream landed fixes for #38, #39, #40 *and* a major refactor (P3a series, 11 commits) splitting `postprocess.py` into a `transforms/` package. #38 and #40 work; #39 only partially (filed [#43](https://github.com/QuantEcon/claude-latex-to-myst/issues/43)). The P3a refactor introduced a critical regression: module double-load drops `TIKZ_FIGURE_MAP` content silently, breaking **all 88 figures** ([#42](https://github.com/QuantEcon/claude-latex-to-myst/issues/42) filed). Round 4 also under-reported KaTeX warnings — re-grep surfaces 9 pre-existing instances of `\,^\circ` and `\tag*` patterns that KaTeX can't handle (not a refactor regression).
+**Round 6 update:** 2026-05-25 — #42 closed with the `sys.modules['postprocess']` aliasing fix (option B from the proposal). Re-tally: **all 88 figures restored**, all cross-ref classes resolve cleanly, citations clean. The fix is generic — every `transforms/` module that late-imports `postprocess` for state now resolves to the same instance, closing the whole class of bugs at once.
 **Branch:** `mystmd-conversion`
 **Sources:**
 - `lecture_script/Deep_Learning_for_Solving_And_Estimating_Dynamic_Economic_Models.tex` (24,557 source lines, 329-page PDF)
@@ -18,13 +19,13 @@
 
 ---
 
-## 1. Headline result (Round 5)
+## 1. Headline result (Round 6)
 
-| Dimension | Source | MyST | Match? | R4 | R3 | R2 | R1 |
-|---|---|---|---|---|---|---|---|
-| Chapters / sections / subsections / subsubsections | 22/144/81/5 | 22/144/81/5 | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Paragraph heads / footnotes | 385 / 24 | 385 / 24 | ✅ | ✅ | ⚠️ glob | ⚠️ same | ⚠️ same |
-| Figure placeholders | 88 | **0** | ❌ #42 | ✅ | ✅ | ✅ | ✅ |
+| Dimension | Source | MyST | Match? | R5 | R4 | R3 | R2 | R1 |
+|---|---|---|---|---|---|---|---|---|
+| Chapters / sections / subsections / subsubsections | 22/144/81/5 | 22/144/81/5 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Paragraph heads / footnotes | 385 / 24 | 385 / 24 | ✅ | ✅ | ✅ | ⚠️ glob | ⚠️ same | ⚠️ same |
+| Figure placeholders | 88 | **88 / 88 rendering** | ✅ | ❌ #42 | ✅ | ✅ | ✅ | ✅ |
 | Captioned tables — anchors / `{list-table}` AST | 41 / 41 | 41 / 4 | ⚠️ #34 | ⚠️ same | ⚠️ same | ⚠️ same | ⚠️ same |
 | `\label{alg:X}` cross-ref round-trip | 2 labels | broken (still auto-name) | ⚠️ #43 | ⚠️ #39 | n/a | n/a | n/a |
 | Unique `{numref}` cross-ref targets | — | 125 / 125 | ✅ | ✅ | ✅ | ✅ | ✅ |
@@ -264,7 +265,7 @@ Verified against `mystmd/ch11_climate.md:911–944`. Result: **substantial match
 
 | Item | Tracker | Status | Severity |
 |---|---|---|---|
-| **P3a refactor: TIKZ_FIGURE_MAP empty at resolve_tikz_figures call time — every `tikz_overrides.py`-using book has all figures broken** | [#42](https://github.com/QuantEcon/claude-latex-to-myst/issues/42) | ⏳ open | **critical** |
+| **P3a refactor: TIKZ_FIGURE_MAP empty at resolve_tikz_figures call time — every `tikz_overrides.py`-using book has all figures broken** | [#42](https://github.com/QuantEcon/claude-latex-to-myst/issues/42) | ✅ closed — `sys.modules` aliasing fix + subprocess regression test | (was critical) |
 | #39 follow-up: `_extract_caption` doesn't handle `\caption{}\label{}` when both come BEFORE the algorithm body (the dominant LaTeX convention) | [#43](https://github.com/QuantEcon/claude-latex-to-myst/issues/43) | ⏳ open | medium |
 | Multi-row `\begin{align}` with per-row `\tag*{...}` breaks KaTeX (Multiple \tag) — converter could drop, split, or convert | [#45](https://github.com/QuantEcon/claude-latex-to-myst/issues/45) | ⏳ open | low |
 | `\,^\circ\mathrm{C}` breaks KaTeX (`Got group of unknown type: 'internal'`) — investigation only; likely KaTeX upstream | [#46](https://github.com/QuantEcon/claude-latex-to-myst/issues/46) | ⏳ open | low (note) |

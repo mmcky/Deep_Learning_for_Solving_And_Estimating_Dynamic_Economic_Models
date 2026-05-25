@@ -9,7 +9,7 @@ This final chapter steps back from the individual methods and applications to id
 
 The methods presented in this course, namely DEQNs, PINNs, deep surrogates, and GP + BAL, do not all use the same estimator, but they share a common computational workflow: a flexible function approximator, a deep network or a Gaussian-process kernel, encodes the economic object of interest; structural information enters through residuals, hard constraints, model-generated training data, or an acquisition rule; and a differentiable or Bayesian inference machinery delivers training, sensitivity analysis, and uncertainty quantification.
 
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/fig-unifying_paradigm.svg
 :name: fig-unifying_paradigm
 
 The shared computational workflow of the four methods of this course (DEQNs, PINNs, deep surrogates, and GP + BAL): a flexible function approximator (a deep network or a Gaussian-process kernel) plays the role of the unknown economic object; structural information enters through equilibrium residuals and hard constraints (DEQNs, PINNs), through model-generated training data and parameter pseudo-states (deep surrogates), or through the prior, the simulator, and the acquisition rule (GP + BAL); and a differentiable or Bayesian inference layer supplies the gradients, the posterior, and the design rule needed for training, sensitivity analysis, and uncertainty quantification.
@@ -55,7 +55,7 @@ The takeaway is that no single methodology is the "right" one for these benchmar
 
 The four method families do not sit in isolated boxes. Figure {numref}`fig-unified_view_methods` maps the bridges between them: which methods share a state representation, which methods share an inference machinery, and where one method layers naturally on top of another. Discrete- and continuous-time formulations connect DEQNs and PINNs; deep surrogates and GP + BAL share the pseudo-state and uncertainty-quantification idea; and the lower row of the figure can be read as a pipeline (solve $\to$ amortize $\to$ quantify) rather than as four parallel choices.
 
-```{admonition} Figure (TikZ — needs manual conversion)
+```{figure} figures/fig-unified_view_methods.svg
 :name: fig-unified_view_methods
 
 Bridges between the four method families. The core box restates the shared workflow: a flexible approximator (network or kernel), with economic structure encoded in the objective or training design, trained or updated through a differentiable or Bayesian pipeline. The dashed grey arrows mark the two main bridges, between discrete- and continuous-time residual solvers (DEQN ↔︎ PINN) and between deep surrogates and the GP + BAL uncertainty layer that sits on top of them.
@@ -164,8 +164,8 @@ The convergence of abundant compute, mature software ecosystems (TensorFlow, PyT
 
 For further reading, we refer to the comprehensive survey by {cite:t}`fernandezvillaverde2024taming`, the methodological foundations laid in {cite:t}`azinovicDEEPEQUILIBRIUMNETS2022`, and the applications in {cite:t}`rennerscheidegger_2018`, {cite:t}`friedlDeep2023`, {cite:t}`han2023deepham`, {cite:t}`payne2025deepsam`, {cite:t}`kase2022estimating`, {cite:t}`chen2026Deep`, {cite:t}`kubler2025using`, and {cite:t}`fernandezvillaverde2025climate`. The list of references in these notes is necessarily incomplete; for a full bibliography, we refer the reader to the cited papers and the references therein.
 
-% Unknown environment: keyinsightbox
-::: keyinsightbox
+```{prf:remark}
+
 - All four method families share one paradigm: *neural network as function approximator* $+$ *economic structure in the loss* $+$ *automatic differentiation for training*.
 
 - Knowing when *not* to use deep learning is part of using it well: classical projection or perturbation often dominates in low dimension; exact likelihood beats simulation when both are available; a well-specified GP is often the better choice at small $n$ and moderate dimension, when uncertainty is the deliverable.
@@ -173,7 +173,8 @@ For further reading, we refer to the comprehensive survey by {cite:t}`fernandezv
 - Open frontiers: convergence theory, hybrid global/local methods, real-time policy analysis, large structural estimation, climate--economy IAMs, full HA models with aggregate shocks, operator learning.
 
 - The right question for a research project is rarely "which of these four methods?" but "which combination?", e.g. DEQN $+$ surrogate for estimation, PINN $+$ GP for sensitivity, or all of the above for climate policy.
-:::
+```
+
 
 (exercises)=
 ## Exercises
