@@ -218,7 +218,7 @@ The architecture that implements {eq}`eq-dnn` is sketched in Figure {numref}`f
 ```{figure} figures/fig-deep_ff_net.svg
 :name: fig-deep_ff_net
 
-An L-layer deep feedforward network. Each layer applies an affine map followed by a pointwise nonlinearity; the composition realizes Eq. [eq:dnn]. Depth (rather than width) is what gives neural networks their efficient representational power for compositionally structured functions.
+An L-layer deep feedforward network. Each layer applies an affine map followed by a pointwise nonlinearity; the composition realizes Eq. {ref}`eq-dnn`. Depth (rather than width) is what gives neural networks their efficient representational power for compositionally structured functions.
 ```
 
 A useful geometric intuition, popularized by {cite:t}`chollet2017deeplearning`, is that each layer of the network performs a nonlinear coordinate transformation, successively "untangling" the manifold on which the data lies. In the input space, the data may be entangled in complex ways (e.g., two classes forming concentric spirals); each hidden layer warps the space so that the data become progressively more linearly separable. By the final hidden layer, a simple linear readout suffices. This perspective, formalized also by {cite:t}`goodfellow2016deep`, explains why depth is so powerful: each layer adds an additional coordinate transformation, and the composition of many simple transformations can represent very complex mappings with far fewer parameters than a single, wide layer would require.
@@ -413,7 +413,7 @@ For PDE applications (Chapter {ref}`ch-pinn`), the choice of activation functio
 ```{figure} figures/fig-activations.svg
 :name: fig-activations
 
-Seven representative activation functions from Table 1.2. Sigmoid and tanh saturate at large |z| (vanishing gradients); ReLU is non-saturating but kinked at the origin; Leaky ReLU and ELU repair the dead-neuron problem with a small negative response; Swish and Softplus are everywhere C∞, which the PINN chapter (Chapter [ch:pinn]) requires.
+Seven representative activation functions from Table {ref}`tab-activations`. Sigmoid and tanh saturate at large |z| (vanishing gradients); ReLU is non-saturating but kinked at the origin; Leaky ReLU and ELU repair the dead-neuron problem with a small negative response; Swish and Softplus are everywhere C∞, which the PINN chapter (Chapter {ref}`ch-pinn`) requires.
 ```
 
 (sec-vanishing)=
@@ -512,8 +512,7 @@ Before discussing overfitting formally, it is essential to fix the experimental 
 
 The key discipline is that no decision about the model (not hyperparameter tuning, not architecture, not early-stopping patience) may be informed by the test set. Using the test set multiple times turns it into an implicit validation set and invalidates its role as a measure of out-of-sample error. For small datasets, $k$-fold cross-validation replaces the fixed train/validation split: the training data are partitioned into $k$ equal folds; for each fold, the model is trained on the other $k-1$ folds and evaluated on the held-out fold; the $k$ resulting validation scores are averaged. Common choices are $k = 5$ or $k = 10$; the test set is always held separately. In DEQNs and PINNs (Chapters {ref}`ch-deqn` and {ref}`ch-pinn`), training and validation points are drawn from the same state distribution, and "generalization" is measured against an *independently simulated test trajectory* rather than a held-out labeled set.
 
-A model that memorizes the training data but fails on unseen examples is said to *overfit*. To understand overfitting precisely, consider the following thought experiment. The decomposition below is the classical bias/variance analysis of {cite:t}`geman1992biasvariance`, which provided the canonical framework for thinking about generalization in neural networks long before modern overparameterized regimes were studied. Suppose we draw many independent training sets $\mathcal{D}$, each of size $n$, from the same data-generating process $y = f(\x) + \varepsilon$, where $\varepsilon$ is zero-mean noise with variance $\sigma^2$. On each training set we fit our model, obtaining a predictor $\hat{f}_{\mathcal{D}}$. Conditioning on a fixed test input $\x_0$ and averaging over both the training set and the new test noise $\varepsilon_0$, the squared prediction error decomposes into exactly three terms:
-
+A model that memorizes the training data but fails on unseen examples is said to *overfit*. To understand overfitting precisely, consider the following thought experiment. The decomposition below is the classical bias/variance analysis of {cite:t}`geman1992biasvariance`, which provided the canonical framework for thinking about generalization in neural networks long before modern overparameterized regimes were studied. Suppose we draw many independent training sets $\mathcal{D}$, each of size $n$, from the same data-generating process $y = f(\x) + \varepsilon$, where $\varepsilon$ is zero-mean noise with variance $\sigma^2$. On each training set we fit our model, obtaining a predictor $\hat{f}_{\mathcal{D}}$. Conditioning on a fixed test input $\x_0$ and averaging over both the training set and the new test noise $\varepsilon_0$, the squared prediction error decomposes into exactly three terms: (eq-bias-variance)=
 $$
 \begin{aligned}
 \mathbb{E}_{\mathcal{D},\varepsilon_0}
@@ -525,7 +524,6 @@ $$
 \underbrace{\mathbb{E}_{\mathcal{D}}\!\bigl[(\hat{f}_{\mathcal{D}}(\x_0) - \mathbb{E}_{\mathcal{D}}[\hat{f}_{\mathcal{D}}(\x_0)])^2\bigr]}_{\text{Variance}}
 \;+\;
 \underbrace{\sigma^2}_{\text{Irreducible noise}}.
-\label{eq:bias-variance}
 \end{aligned}
 $$
 
@@ -622,14 +620,14 @@ Three practical remedies partially alleviate the pathology without changing the 
 ### Long Short-Term Memory (LSTM) and GRUs
 Before writing equations, it helps to keep a plain-language picture in mind. A vanilla RNN asks one hidden state $\h_t$ to do three jobs at once: retain useful old information, absorb new information, and expose the relevant part to the next layer. This is a fragile design. The LSTM separates these tasks. It keeps a dedicated *memory lane* $\bm{C}_t$ flowing through time and at each date makes three soft decisions: what to keep, what to write, and what to reveal. That is the intuition behind the gate equations below.
 
-The LSTM cell {cite:p}`hochreiter1997long` replaces the single-state recurrence $\h_t = \sigma(\Wh\h_{t-1} + \Wx\x_t)$ by a pair of states: a *cell state* $\bm{C}_t$ that flows along the top of the cell with *additive* updates, and a *hidden state* $\h_t$ that is read off it. Three learned sigmoid gates, each depending on the concatenation $[\h_{t-1}, \x_t]$, control what information flows through:
-
+The LSTM cell {cite:p}`hochreiter1997long` replaces the single-state recurrence $\h_t = \sigma(\Wh\h_{t-1} + \Wx\x_t)$ by a pair of states: a *cell state* $\bm{C}_t$ that flows along the top of the cell with *additive* updates, and a *hidden state* $\h_t$ that is read off it. Three learned sigmoid gates, each depending on the concatenation $[\h_{t-1}, \x_t]$, control what information flows through: (eq-lstm_f)=
+(eq-lstm_C)=
 $$
 \begin{aligned}
-\bm{f}_t       &= \sigma\!\big(\W_f\,[\h_{t-1}, \x_t] + \bb_f\big) && \text{(forget gate)} \label{eq:lstm_f}\\
+\bm{f}_t       &= \sigma\!\big(\W_f\,[\h_{t-1}, \x_t] + \bb_f\big) && \text{(forget gate)} \\
 \bm{i}_t       &= \sigma\!\big(\W_i\,[\h_{t-1}, \x_t] + \bb_i\big) && \text{(input gate)}  \\
 \tilde{\bm{C}}_t &= \tanh\!\big(\W_C\,[\h_{t-1}, \x_t] + \bb_C\big) && \text{(candidate cell)} \\
-\bm{C}_t       &= \bm{f}_t \odot \bm{C}_{t-1} + \bm{i}_t \odot \tilde{\bm{C}}_t && \text{(cell state update)} \label{eq:lstm_C}\\
+\bm{C}_t       &= \bm{f}_t \odot \bm{C}_{t-1} + \bm{i}_t \odot \tilde{\bm{C}}_t && \text{(cell state update)} \\
 \bm{o}_t       &= \sigma\!\big(\W_o\,[\h_{t-1}, \x_t] + \bb_o\big) && \text{(output gate)} \\
 \h_t           &= \bm{o}_t \odot \tanh(\bm{C}_t)                   && \text{(hidden state).}
 \end{aligned}
@@ -762,12 +760,12 @@ Three properties make this choice useful. First, each coordinate $2k$ is a sine 
 
 (sec-transformer_block)=
 #### The Transformer Block
-Single attention layers, even multi-headed, are not yet expressive enough: they are essentially linear in the values, with a nonlinear mixing pattern. A full *Transformer block* wraps one MHA layer and one pointwise MLP with residual connections and LayerNorm:
-
+Single attention layers, even multi-headed, are not yet expressive enough: they are essentially linear in the values, with a nonlinear mixing pattern. A full *Transformer block* wraps one MHA layer and one pointwise MLP with residual connections and LayerNorm: (eq-tblock1)=
+(eq-tblock2)=
 $$
 \begin{aligned}
-\x^{+} &= \x + \mathrm{MHA}\!\big(\mathrm{LN}(\x)\big), \label{eq:tblock1}\\
-\x^{\mathrm{out}}  &= \x^{+} + \mathrm{MLP}\!\big(\mathrm{LN}(\x^{+})\big). \label{eq:tblock2}
+\x^{+} &= \x + \mathrm{MHA}\!\big(\mathrm{LN}(\x)\big), \\
+\x^{\mathrm{out}}  &= \x^{+} + \mathrm{MLP}\!\big(\mathrm{LN}(\x^{+})\big).
 \end{aligned}
 $$
 

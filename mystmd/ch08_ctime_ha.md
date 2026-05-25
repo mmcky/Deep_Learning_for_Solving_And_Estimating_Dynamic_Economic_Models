@@ -25,7 +25,7 @@ Chapters {ref}`ch-deqn`--{ref}`ch-young` formulated heterogeneous-agent models 
 
 - **Powerful numerical methods.** Finite differences, PINNs, and deep learning methods (EMINNs) can be applied directly to the PDE system.
 
-- **Connection to mean field games.** The coupled HJB--KFE system is precisely a *mean field game* (MFG) in the sense of {cite:t}`lasry2007mean`: each atomistic agent solves an HJB taking the cross-sectional density as given, while the density itself evolves via a KFE driven by those individual best responses. Equilibrium is the fixed point of this two-way coupling. Recasting the problem in MFG language gives access to a large mathematical literature on existence, uniqueness, and numerical analysis {cite:p}`carmona2018probabilistic,cardaliaguet2019master`.
+- **Connection to mean field games.** The coupled HJB--KFE system is precisely a *mean field game* (MFG) in the sense of {cite:t}`lasry2007mean:` each atomistic agent solves an HJB taking the cross-sectional density as given, while the density itself evolves via a KFE driven by those individual best responses. Equilibrium is the fixed point of this two-way coupling. Recasting the problem in MFG language gives access to a large mathematical literature on existence, uniqueness, and numerical analysis {cite:p}`carmona2018probabilistic,cardaliaguet2019master`.
 
 ##### Historical context.
 

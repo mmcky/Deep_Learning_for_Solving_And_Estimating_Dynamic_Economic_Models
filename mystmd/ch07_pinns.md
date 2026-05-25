@@ -77,7 +77,7 @@ Uniform random sampling is the simplest collocation strategy but not necessarily
 ```{figure} figures/fig-pinn_1d_ode_soft.svg
 :name: fig-pinn_1d_ode_soft
 
-PINN solution of the 1D ODE y″ = −1 on (0, 1) with y(0) = y(1) = 0 and the soft-penalty loss [eq:1d_ode_soft_loss]. The analytical solution $\tfrac12 x(1-x)$ (solid blue) is recovered to plotting accuracy by the converged network (dotted green); the dashed red curve illustrates a typical early-training iterate, which still misses the endpoints because the boundary penalty is enforced only approximately. Tick marks on the x-axis are the uniformly drawn collocation points. The curves above are TikZ illustrations rather than direct exports. Notebook lecture_11_01_ODE_PINN_ZeroBCs runs exactly this experiment; notebook lecture_11_02_ODE_PINN_SoftVsHardBCs then contrasts the soft penalty against the hard trial-solution construction of §1.3 on a non-zero-BC variant.
+PINN solution of the 1D ODE y″ = −1 on (0, 1) with y(0) = y(1) = 0 and the soft-penalty loss {ref}`eq-1d_ode_soft_loss`. The analytical solution $\tfrac12 x(1-x)$ (solid blue) is recovered to plotting accuracy by the converged network (dotted green); the dashed red curve illustrates a typical early-training iterate, which still misses the endpoints because the boundary penalty is enforced only approximately. Tick marks on the x-axis are the uniformly drawn collocation points. The curves above are TikZ illustrations rather than direct exports. Notebook lecture_11_01_ODE_PINN_ZeroBCs runs exactly this experiment; notebook lecture_11_02_ODE_PINN_SoftVsHardBCs then contrasts the soft penalty against the hard trial-solution construction of {ref}`sec-bc_soft_hard` on a non-zero-BC variant.
 ```
 
 Figure {numref}`fig-pinn_1d_ode_soft` shows this calculation graphically. This simple example illustrates the key ingredients of every PINN: (i) a neural network that approximates the unknown function, (ii) automatic differentiation to compute derivatives, (iii) a loss function built from the PDE residual (plus, here, a boundary penalty), and (iv) collocation points sampled from the domain interior. The same machinery extends directly to PDEs in two or more dimensions, as we demonstrate in the following applications.
@@ -127,7 +127,7 @@ which has the anchor-plus-mask form {eq}`eq-trial`: the anchor $A$ matches the 
 ```{figure} figures/fig-pinn_1d_ode.svg
 :name: fig-pinn_1d_ode
 
-PINN solution of the 1D ODE y″ + y = 0 on [0, π/2] with the hard-BC trial solution [eq:1d_ode_trial]. The analytical solution sin (x) (solid blue) is recovered to plotting accuracy by the converged network (dotted green); the dashed red curve illustrates a typical early-training iterate. Tick marks on the x-axis are the uniformly drawn collocation points. The curves above are TikZ illustrations rather than direct exports. Notebook lecture_11_02_ODE_PINN_SoftVsHardBCs contrasts this hard-trial-solution construction with the soft-penalty alternative on a non-zero-BC variant.
+PINN solution of the 1D ODE y″ + y = 0 on [0, π/2] with the hard-BC trial solution {ref}`eq-1d_ode_trial`. The analytical solution sin (x) (solid blue) is recovered to plotting accuracy by the converged network (dotted green); the dashed red curve illustrates a typical early-training iterate. Tick marks on the x-axis are the uniformly drawn collocation points. The curves above are TikZ illustrations rather than direct exports. Notebook lecture_11_02_ODE_PINN_SoftVsHardBCs contrasts this hard-trial-solution construction with the soft-penalty alternative on a non-zero-BC variant.
 ```
 
 Figure {numref}`fig-pinn_1d_ode` confirms that the converged trial solution recovers $\sin x$ to plotting accuracy, with the boundary values exact by construction; contrast the early-training iterate of Figure {numref}`fig-pinn_1d_ode_soft`, which still misses the endpoints under the soft penalty.
@@ -281,12 +281,12 @@ $$
 V(a) = \max_c \left\{\frac{c^{1-\gamma}}{1-\gamma}\,\Delta t + e^{-\rho\,\Delta t}\,V\!\bigl(a + (ra - c)\,\Delta t\bigr)\right\} + \mathcal{O}(\Delta t^2).
 $$ (eq-cake_bellman_dt)
 
-Now expand both the discount factor and the value function to first order in $\Delta t$:
-
+Now expand both the discount factor and the value function to first order in $\Delta t$: (eq-cake_expand_disc)=
+(eq-cake_expand_V)=
 $$
 \begin{aligned}
-e^{-\rho\,\Delta t} &\approx 1 - \rho\,\Delta t, \label{eq:cake_expand_disc} \\
-V\!\bigl(a + (ra - c)\,\Delta t\bigr) &\approx V(a) + V'(a)\,(ra - c)\,\Delta t. \label{eq:cake_expand_V}
+e^{-\rho\,\Delta t} &\approx 1 - \rho\,\Delta t,  \\
+V\!\bigl(a + (ra - c)\,\Delta t\bigr) &\approx V(a) + V'(a)\,(ra - c)\,\Delta t.
 \end{aligned}
 $$
 
@@ -381,7 +381,9 @@ The PINN notebooks of this chapter use a two-stage pipeline: *Adam* on resampled
 ```
 
 
-``` {caption="PINN residual for the HJB equation (PyTorch)."}
+```{code-block} text
+:caption: PINN residual for the HJB equation (PyTorch).
+
 def pde_residual(model, a, gamma, rho, r):
     a.requires_grad_(True)
     V = model(a)
@@ -392,7 +394,6 @@ def pde_residual(model, a, gamma, rho, r):
     R = rho * V - (u_c + safe_Va * (r * a - c))
     return R
 ```
-
 (sec-ct_hank)=
 ## Continuous-Time Heterogeneous Agent Models
 Many frontier models in macroeconomics feature a continuum of agents who face idiosyncratic risk and interact through equilibrium prices. Chapter {ref}`ch-young` studied the discrete-time version with Young's histogram method inside a DEQN. In continuous time the same economic question becomes a *coupled PDE system*: a Hamilton--Jacobi--Bellman equation for individual optimization and a Kolmogorov forward (Fokker--Planck) equation for the stationary cross-sectional density, closed by a market-clearing condition that pins down prices. This is the canonical example of a PINN applied to a *system* of equilibrium PDEs, in contrast to the single HJB of the cake-eating problem ({ref}`sec-cake_eating_hjb`) and the single Black--Scholes PDE ({ref}`sec-bs_pinn`): a PINN parameterizes the value function and the density by two networks $\hat V_\theta(a,z)$, $\hat g_\psi(a,z)$ and minimizes a four-term loss -- the HJB residual, the KFE residual, the no-flux boundary residual at the borrowing constraint, and a mass-normalization residual -- with the loss-balancing and boundary-layer issues familiar from the rest of this chapter.
@@ -403,7 +404,7 @@ The full development -- the stochastic-calculus background, the formal HJB and K
 ## Application: Black--Scholes PDE
 The Black--Scholes PDE has a closed-form solution, so a PINN run on it is not motivated by the absence of an analytical answer. The pedagogical purpose is exactly the opposite: it is a known-answer benchmark. We verify that the same PINN recipe (smooth activations, hard or soft BCs, autodiff for $V_S$ and $V_{SS}$, Adam-then-L-BFGS) reproduces a textbook formula on a clean domain before applying it to PDEs without closed forms (American options, jump diffusions, multi-asset pricing, HJBs with multiple state variables). If the network cannot recover Black--Scholes to plotting accuracy, no further trust should be placed in its output on harder problems.
 
-The Black--Scholes PDE for a European call option with strike $K$, maturity $T$, risk-free rate $r$, and volatility $\sigma$ is the canonical option-pricing benchmark of {cite:t}`black1973pricing`:
+The Black--Scholes PDE for a European call option with strike $K$, maturity $T$, risk-free rate $r$, and volatility $\sigma$ is the canonical option-pricing benchmark of {cite:t}`black1973pricing:`
 
 $$
 \frac{\partial V}{\partial t} + \frac{1}{2}\sigma^2 S^2 \frac{\partial^2 V}{\partial S^2} + rS\frac{\partial V}{\partial S} - rV = 0,
@@ -446,7 +447,7 @@ FNO parameterizes a kernel integral operator by truncating it in Fourier space a
 ```{figure} figures/fig-operator_learning_bridge.svg
 :name: fig-operator_learning_bridge
 
-Operator learning generalizes PINNs by amortising over an entire parametric family of PDEs. For economic applications such as option-price surfaces over (K, T), value functions across a parameter range, or HJB sweeps for sensitivity analysis (Chapter [ch:gp]), training the operator once gives instant predictions at test time.
+Operator learning generalizes PINNs by amortising over an entire parametric family of PDEs. For economic applications such as option-price surfaces over (K, T), value functions across a parameter range, or HJB sweeps for sensitivity analysis (Chapter {ref}`ch-gp`), training the operator once gives instant predictions at test time.
 ```
 
 Figure {numref}`fig-operator_learning_bridge` summarizes this progression from one-instance PINNs to operator-learning architectures. In the rest of this script, we mostly stay with PINNs because the focus is on solving one model carefully; we revisit operator learning briefly in Chapter {ref}`ch-outlook` and point readers who want to amortise across an entire parametric family of PDEs to {cite:t}`lu2021learning` {cite}`li2021fourier`.

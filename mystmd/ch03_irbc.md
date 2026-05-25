@@ -94,13 +94,11 @@ $$
 \Gamma^j = \frac{\kappa}{2}\, k^j \left(\frac{k^{j\prime}}{k^j} - 1\right)^{\!2},
 $$ (eq-irbc_adjcost)
 
-with marginal derivatives that appear in the Euler equations:
-
+with marginal derivatives that appear in the Euler equations: (eq-irbc_adjcost_derivs)=
 $$
 \begin{aligned}
 \frac{\partial \Gamma^j}{\partial k^{j\prime}} &= \kappa\left(\frac{k^{j\prime}}{k^j} - 1\right), &
 \frac{\partial \Gamma^j}{\partial k^j} &= \frac{\kappa}{2}\left(1 - \left(\frac{k^{j\prime}}{k^j}\right)^{\!2}\right).
-\label{eq:irbc_adjcost_derivs}
 \end{aligned}
 $$
 
@@ -358,11 +356,13 @@ where $N_s$ is the number of training states. When the individual loss component
 
 The architecture is a 2-hidden-layer Swish network with a softplus output head. In the smooth benchmark the head has dimension $N + 1$ (the $N$ capital choices and the resource-constraint multiplier $\lambda$); in the irreversible extension the head expands to $2N + 1$, adding the irreversibility multipliers $\mu^j \ge 0$ (softplus enforces non-negativity by construction). Only the irreversible loss carries a non-textbook line, the Fischer--Burmeister smoothing of the complementarity $0 \le \mu^j \perp I^j \ge 0$:
 
-``` {#lst:irbc_fb caption="Fischer--Burmeister smoothing of $\\mu \\perp I$ (irreversible companion notebook only)." label="lst:irbc_fb"}
+```{code-block} text
+:name: lst-irbc_fb
+:caption: Fischer--Burmeister smoothing of $\\mu \\perp I$ (irreversible companion notebook only).
+
 def fischer_burmeister(mu, I, eps=1e-4):
     return mu + I - tf.sqrt(mu**2 + I**2 + eps**2)
 ```
-
 This residual is then squared elementwise and averaged across the mini-batch and across the $N$ countries, in line with the squared-residual treatment of the Euler and ARC blocks; that elementwise square is what makes the gradient field push iterates toward the complementarity axes (see Figure {numref}`fig-fb_zeroset`). Inside the per-batch cost function of the irreversible notebook, this residual is squared and averaged alongside the Euler-equation residual (whose conditional expectation is handled by the Stroud-3 monomial rule of {ref}`sec-monomial_cubature` -- $2(N+1)$ nodes for the $N$ idiosyncratic and one aggregate shock) and the aggregate-resource-constraint residual. The smooth companion implements the same `compute_cost` pipeline with the $\mu^j$ outputs and the FB block removed.
 
 (sec-irbc_persistent_simulation)=
@@ -433,7 +433,7 @@ The key advantage of the DEQN approach is its scaling behavior: while traditiona
 
 ##### Comparison with adaptive sparse grids.
 
-The approach of {cite:t}`ECTA`:ECTA1716 handles kinks in the policy function (e.g., those induced by the irreversibility constraint) by *refining* the grid locally around the kink using hierarchical surplus indicators. This keeps the method accurate but the grid remains anchored to a hypercube, so computation still scales poorly once the number of active kinks or the dimensionality grows. DEQNs do not represent kinks by grid refinement; instead, they fit a smooth approximator (Swish/softplus network) to the Fischer--Burmeister-regularized problem, which produces a globally smooth policy that tracks the true piecewise structure without needing localized grid points. The two methods are therefore complementary: adaptive sparse grids give deterministic error bounds on a hypercube; DEQNs give simulation-based error bounds on the ergodic set with no grid at all. From a theoretical perspective, {cite:t}`montanelli2019deep` establish error bounds showing that deep ReLU networks can approximate functions on sparse grids without the exponential growth in parameters that afflicts classical polynomial methods, providing formal underpinning for why deep learning can mitigate (though not eliminate) the high-dimensional approximation cost. Exact runtimes depend on architectural choices, quadrature design, and hardware; the robust finding is that the DEQN formulation avoids explicit tensor-product state grids and remains computationally viable in dimensions where standard methods become prohibitively expensive.
+The approach of {cite:t}`ECTA:ECTA1716` handles kinks in the policy function (e.g., those induced by the irreversibility constraint) by *refining* the grid locally around the kink using hierarchical surplus indicators. This keeps the method accurate but the grid remains anchored to a hypercube, so computation still scales poorly once the number of active kinks or the dimensionality grows. DEQNs do not represent kinks by grid refinement; instead, they fit a smooth approximator (Swish/softplus network) to the Fischer--Burmeister-regularized problem, which produces a globally smooth policy that tracks the true piecewise structure without needing localized grid points. The two methods are therefore complementary: adaptive sparse grids give deterministic error bounds on a hypercube; DEQNs give simulation-based error bounds on the ergodic set with no grid at all. From a theoretical perspective, {cite:t}`montanelli2019deep` establish error bounds showing that deep ReLU networks can approximate functions on sparse grids without the exponential growth in parameters that afflicts classical polynomial methods, providing formal underpinning for why deep learning can mitigate (though not eliminate) the high-dimensional approximation cost. Exact runtimes depend on architectural choices, quadrature design, and hardware; the robust finding is that the DEQN formulation avoids explicit tensor-product state grids and remains computationally viable in dimensions where standard methods become prohibitively expensive.
 
 Beyond the IRBC setting, closely related neural-equilibrium methods have been applied to other policy-relevant problems. {cite:t}`nuno2024monetary` use DEQNs to compute optimal *monetary policy rules* under persistent supply shocks, replacing the linearization step around steady state with a globally trained policy network. {cite:t}`bretscherRicardianBusinessCycles2022` apply DEQN to multi-country international real business cycles with comparative advantage. Most recently, {cite:t}`azinovicyangzemlicka2025sequencespace` replace the endogenous cross-sectional state with a *truncated history of exogenous aggregate shocks* (the sequence-space representation), so that the network's input dimension scales with the truncation horizon rather than with the number of agents, which is the heterogeneous-agent extension developed in Chapter {ref}`ch-young`.
 
@@ -453,7 +453,7 @@ Beyond the IRBC setting, closely related neural-equilibrium methods have been ap
 
 (further-reading)=
 ## Further Reading
-- {cite:t}`ECTA`:ECTA1716, adaptive sparse grids for IRBC, the classical-method benchmark this chapter contrasts with.
+- {cite:t}`ECTA:ECTA1716`, adaptive sparse grids for IRBC, the classical-method benchmark this chapter contrasts with.
 
 - {cite:t}`pichler2011`, an IRBC-specific application of the monomial rule of {ref}`sec-monomial_cubature`, useful as a sanity check for the multi-country setting.
 

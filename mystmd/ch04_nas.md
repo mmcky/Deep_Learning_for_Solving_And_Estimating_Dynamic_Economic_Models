@@ -217,12 +217,14 @@ Stylized sketch of the multi-component loss-scale problem, drawn to mimic what o
 
 Figure {numref}`fig-multi_component_loss` illustrates the typical behavior: without adaptive reweighting, the optimizer focuses almost exclusively on $\ell_1$ (the largest component), allowing $\ell_2$ to stagnate; with adaptive loss balancing (e.g., ReLoBRaLo, GradNorm), all components converge at comparable rates. As a concrete reference, an unweighted run of the two-country IRBC training loop in the companion notebook typically prints something like the trace below (numbers indicative, seed-dependent):
 
-``` {#lst:irbc_residual_trace caption="Indicative residual log from an unweighted two-country IRBC run; the largest component falls quickly, the smaller component stalls." label="lst:irbc_residual_trace" basicstyle="\\ttfamily\\footnotesize"}
+```{code-block} text
+:name: lst-irbc_residual_trace
+:caption: Indicative residual log from an unweighted two-country IRBC run; the largest component falls quickly, the smaller component stalls.
+
 epoch    0:  ell_1=49.700  ell_2=0.510  ell_arc=4.820
 epoch  200:  ell_1=0.0123  ell_2=0.494  ell_arc=0.041
 epoch  500:  ell_1=8.2e-4  ell_2=0.470  ell_arc=3.5e-3
 ```
-
 The pathology is immediate: $\ell_1$ drops four orders of magnitude while $\ell_2$ barely moves. Replacing the equal weights with ReLoBRaLo ({ref}`sec-relobralo`) typically produces a trace in which all three components decay together; see the companion notebook for the actual ReLoBRaLo trace on the same seed. Reported convergence-speed improvements vary across schemes and benchmarks; multi-physics PINN benchmarks have shown substantial gains with ReLoBRaLo {cite:p}`bischof2025relobralo`, while gains on DEQN-style Euler-equation losses tend to be smaller and problem-specific (the multi-component scale gap there is usually one to two orders of magnitude rather than the four to six common in PINN systems). A complementary line uses Neural-Tangent-Kernel diagnostics to choose the weights {cite:p}`wang2022when`, and an older multi-task baseline weights losses by their predictive uncertainty {cite:p}`kendall2018multi`.
 
 ### Summary of Balancing Methods

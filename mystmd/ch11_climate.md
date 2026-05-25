@@ -16,7 +16,7 @@ Integrated assessment models (IAMs) formalize this coupling. The economy produce
 ```{figure} figures/fig-iam_feedback_loop.svg
 :name: fig-iam_feedback_loop
 
-The integrated-assessment feedback loop. The economy produces output and CO2 emissions; emissions accumulate in the atmosphere and raise global mean temperature (ΔT); higher temperatures generate damages that reduce output and consumption, which in turn shape the path of future emissions. An IAM closes this loop and uses it to quantify the welfare cost of additional emissions, summarized by the social cost of carbon [eq:scc].
+The integrated-assessment feedback loop. The economy produces output and CO2 emissions; emissions accumulate in the atmosphere and raise global mean temperature (ΔT); higher temperatures generate damages that reduce output and consumption, which in turn shape the path of future emissions. An IAM closes this loop and uses it to quantify the welfare cost of additional emissions, summarized by the social cost of carbon {ref}`eq-scc`.
 ```
 
 The central output of an IAM is the **social cost of carbon** (SCC): the marginal welfare cost of one additional unit of CO$_2$ emissions, measured in consumption-equivalent units. When emissions are measured in GtC (gigatons of carbon), the SCC has units of consumption per GtC. Conversion to USD per tCO$_2$ requires first applying the consumption-to-USD numeraire and then converting the carbon mass unit: one tCO$_2$ contains $12/44$ tons of carbon, so a price expressed per ton of carbon is divided by $44/12$ to obtain the corresponding price per ton of CO$_2$ (and a GtC price is also divided by $10^9$). Formally,
@@ -208,12 +208,12 @@ Business-as-usual industrial emissions in CDICE (in GtCO2/yr) under the nine com
 
 (sec-dice_temperature)=
 ### Two-layer energy balance and radiative forcing
-A two-layer energy balance model links carbon concentrations to temperature:
-
+A two-layer energy balance model links carbon concentrations to temperature: (eq-temp_at)=
+(eq-temp_oc)=
 $$
 \begin{aligned}
-T^{\mathrm{AT}}_{t+1} &= T^{\mathrm{AT}}_t + c_1 \bigl(F_t - \lambda\, T^{\mathrm{AT}}_t - c_3(T^{\mathrm{AT}}_t - T^{\mathrm{OC}}_t)\bigr), \label{eq:temp_at} \\
-T^{\mathrm{OC}}_{t+1} &= T^{\mathrm{OC}}_t + c_4 \bigl(T^{\mathrm{AT}}_t - T^{\mathrm{OC}}_t\bigr), \label{eq:temp_oc}
+T^{\mathrm{AT}}_{t+1} &= T^{\mathrm{AT}}_t + c_1 \bigl(F_t - \lambda\, T^{\mathrm{AT}}_t - c_3(T^{\mathrm{AT}}_t - T^{\mathrm{OC}}_t)\bigr),  \\
+T^{\mathrm{OC}}_{t+1} &= T^{\mathrm{OC}}_t + c_4 \bigl(T^{\mathrm{AT}}_t - T^{\mathrm{OC}}_t\bigr),
 \end{aligned}
 $$
 
@@ -228,7 +228,7 @@ Figure {numref}`fig-cdice_climate_topology` summarizes the full topology of the
 ```{figure} figures/fig-cdice_climate_topology.svg
 :name: fig-cdice_climate_topology
 
-Topology of the CDICE climate side. Total emissions Et enter the atmospheric carbon box MtAT, leak into the upper- and lower-ocean carbon boxes at exchange rates b12 and b23, and drive radiative forcing Ft through the logarithmic CO2 relation. The two-layer energy balance maps Ft into the atmospheric temperature TtAT via c1, with c3, c4 governing the heat exchange between atmosphere and ocean. The dashed arrow closes the loop through the damage function back into output (developed in §1.2.7). Five climate states (MAT, MUO, MLO, TAT, TOC) form the climate-side block of the DEQN state vector [eq:iam_state].
+Topology of the CDICE climate side. Total emissions Et enter the atmospheric carbon box MtAT, leak into the upper- and lower-ocean carbon boxes at exchange rates b12 and b23, and drive radiative forcing Ft through the logarithmic CO2 relation. The two-layer energy balance maps Ft into the atmospheric temperature TtAT via c1, with c3, c4 governing the heat exchange between atmosphere and ocean. The dashed arrow closes the loop through the damage function back into output (developed in {ref}`sec-dice_damages`). Five climate states (MAT, MUO, MLO, TAT, TOC) form the climate-side block of the DEQN state vector {ref}`eq-iam_state`.
 ```
 
 The parameter $\lambda = F_{\mathrm{2\times CO_2}} / \Delta T_{\mathrm{AT},\times 2}$ is determined by the *equilibrium climate sensitivity* (ECS), defined as the long-run atmospheric warming from a doubling of CO$_2$ concentration. We treat $\lambda$ as a deterministic constant in the baseline model; {ref}`sec-bayesian_learning` promotes it to a learnable Gaussian parameter, with the additive feedback term $\varphi_{1C}\tilde f_{t+1} T^{\mathrm{AT}}_t$ entering the right-hand side of {eq}`eq-temp_at` and the coefficient $\varphi_{1C}$ defined in that subsection. ECS is one of the most consequential and uncertain parameters in climate science {cite:p}`roe2007climate,knutti2017beyond`. Observational and model-based estimates place ECS in a *likely* (66 %) range of 2.5°C--4°C and a *very likely* (90 %) range of 2°C--5°C, with a best estimate of approximately 3°C {cite:p}`calvinIPCC2023Climate2023a`; ECS uncertainty is one of the largest single sources of variance in the SCC.
@@ -473,7 +473,7 @@ $$
 \hat{\beta}_t \;:=\; \exp\!\left(-\rho + \left(1-\frac{1}{\psi}\right) g^A_t + g^L_t\right),
 $$ (eq-iam_eff_beta)
 
-where $g^A_t := \ln(A_{t+1}/A_t)$ and $g^L_t := \ln(L_{t+1}/L_t)$ are annual log changes. Equation {eq}`eq-iam_eff_beta` mirrors Equation (38) of Online Appendix D of {cite:t}`Folini_2021`: the population term enters linearly because $L_t$ enters the felicity weight $L_t (C_t/L_t)^{1-1/\psi}$ linearly, while the productivity term inherits the $1-1/\psi$ exponent from the per-effective-capita rescaling of consumption. All intertemporal equations below use $\hat{\beta}_t$ in place of $e^{-\rho}$. For a non-annual time step, replace $\rho$ by $\rho\Delta_t$ and $g^A_t, g^L_t$ by their per-period analogues.
+where $g^A_t := \ln(A_{t+1}/A_t)$ and $g^L_t := \ln(L_{t+1}/L_t)$ are annual log changes. Equation {eq}`eq-iam_eff_beta` mirrors Equation (38) of Online Appendix D of {cite:t}`Folini_2021:` the population term enters linearly because $L_t$ enters the felicity weight $L_t (C_t/L_t)^{1-1/\psi}$ linearly, while the productivity term inherits the $1-1/\psi$ exponent from the per-effective-capita rescaling of consumption. All intertemporal equations below use $\hat{\beta}_t$ in place of $e^{-\rho}$. For a non-annual time step, replace $\rho$ by $\rho\Delta_t$ and $g^A_t, g^L_t$ by their per-period analogues.
 
 ##### Sign convention for the climate multipliers.
 
@@ -498,20 +498,20 @@ Before writing the FOCs and the loss, Table {numref}`tab-cdice_multipliers` col
 
 ##### Key FOCs in normalized form.
 
-After normalization, the most important first-order conditions become (see Online Appendix D of {cite:t}`Folini_2021` for the complete set of 14 equations):
-
+After normalization, the most important first-order conditions become (see Online Appendix D of {cite:t}`Folini_2021` for the complete set of 14 equations): (eq-iam_foc_c)=
+(eq-iam_foc_k)=
+(eq-iam_foc_mu)=
 $$
 \begin{aligned}
 \frac{\partial \mathcal{L}}{\partial c_t} = 0 \;&\Leftrightarrow\;
 c_t^{-1/\psi}\,A_t^{1-1/\psi}\,L_t - \hat{\lambda}_t = 0,
-\label{eq:iam_foc_c}\\[4pt]
+\\[4pt]
 \frac{\partial \mathcal{L}}{\partial k_{t+1}} = 0 \;&\Leftrightarrow\;
 \exp\!\bigl(g^A_t + g^L_t\bigr)\,\hat{\lambda}_t - \hat{\beta}_t\Bigl\{\hat{\lambda}_{t+1}\bigl[\bigl(1-\Omega(T_{\mathrm{AT},t+1}) - \Theta(\mu_{t+1})\bigr)\alpha k_{t+1}^{\alpha-1} + (1-\delta)\bigr] \nonumber\\
 &\quad + \hat{\nu}^{\mathrm{AT}}_{t+1}\,\sigma_{t+1}(1-\mu_{t+1})A_{t+1}L_{t+1}\alpha k_{t+1}^{\alpha-1}\Bigr\} = 0,
-\label{eq:iam_foc_k}\\[4pt]
+\\[4pt]
 \frac{\partial \mathcal{L}}{\partial \mu_t} = 0 \;&\Leftrightarrow\;
 \hat{\lambda}_t\,\Theta'(\mu_t)\,k_t^\alpha + \hat{\lambda}^\mu_t + \hat{\nu}^{\mathrm{AT}}_t\,\sigma_t\,A_t\,L_t\,k_t^\alpha = 0.
-\label{eq:iam_foc_mu}
 \end{aligned}
 $$
 
@@ -590,27 +590,33 @@ The network architecture uses two hidden layers with 1024 units each, SELU activ
 
 ##### The 8 loss components.
 
-Each remaining equilibrium condition from {ref}`sec-dice_lagrangian` becomes a residual $l_m = 0$, and the network is asked to drive every $l_m$ to zero simultaneously along simulated paths. The mapping is one-for-one: $l_1$ is the capital-Euler FOC {eq}`eq-iam_foc_k`; $l_2$ is the budget constraint that closes {eq}`eq-capital_accumulation`; $l_3$, $l_4$, $l_5$ are the three carbon-reservoir envelope conditions, of which $l_3$ is {eq}`eq-iam_env_mat`; $l_6$ and $l_7$ are the two temperature-layer envelopes; and $l_8$ is the Fischer--Burmeister smoothing {eq}`eq-iam_fb` of the KKT slack on $\mu_t \le 1$, evaluated at the implied multiplier {eq}`eq-iam_lambdamu_implied`. The consumption FOC {eq}`eq-iam_foc_c` and the abatement FOC {eq}`eq-iam_foc_mu` are enforced *exactly* via the inversions in {eq}`eq-iam_c_recovery` and {eq}`eq-iam_lambdamu_implied`, which is why the loss list contains eight entries instead of nine. Written out, the eight components are:
-
+Each remaining equilibrium condition from {ref}`sec-dice_lagrangian` becomes a residual $l_m = 0$, and the network is asked to drive every $l_m$ to zero simultaneously along simulated paths. The mapping is one-for-one: $l_1$ is the capital-Euler FOC {eq}`eq-iam_foc_k`; $l_2$ is the budget constraint that closes {eq}`eq-capital_accumulation`; $l_3$, $l_4$, $l_5$ are the three carbon-reservoir envelope conditions, of which $l_3$ is {eq}`eq-iam_env_mat`; $l_6$ and $l_7$ are the two temperature-layer envelopes; and $l_8$ is the Fischer--Burmeister smoothing {eq}`eq-iam_fb` of the KKT slack on $\mu_t \le 1$, evaluated at the implied multiplier {eq}`eq-iam_lambdamu_implied`. The consumption FOC {eq}`eq-iam_foc_c` and the abatement FOC {eq}`eq-iam_foc_mu` are enforced *exactly* via the inversions in {eq}`eq-iam_c_recovery` and {eq}`eq-iam_lambdamu_implied`, which is why the loss list contains eight entries instead of nine. Written out, the eight components are: (eq-iam_l1)=
+(eq-iam_l2)=
+(eq-iam_l3)=
+(eq-iam_l4)=
+(eq-iam_l5)=
+(eq-iam_l6)=
+(eq-iam_l7)=
+(eq-iam_l8)=
 $$
 \begin{aligned}
 l_1 &:= \exp\!\bigl(g^A_t + g^L_t\bigr)\,\hat{\lambda}_t - \hat{\beta}_t\Bigl\{\hat{\lambda}_{t+1}\bigl[\bigl(1-\Omega(T_{\mathrm{AT},t+1}) - \Theta(\mu_{t+1})\bigr)\alpha k_{t+1}^{\alpha-1} + (1-\delta)\bigr] \nonumber\\
     &\quad + \hat{\nu}^{\mathrm{AT}}_{t+1}\,\sigma_{t+1}(1-\mu_{t+1})A_{t+1}L_{t+1}\alpha k_{t+1}^{\alpha-1}\Bigr\}
-    \tag*{\text{(capital Euler)}}\label{eq:iam_l1}\\[3pt]
+    \tag*{\text{(capital Euler)}}\\[3pt]
 l_2 &:= \bigl(1-\Omega(T_{\mathrm{AT},t}) - \Theta(\mu_t)\bigr)\,k_t^\alpha + (1-\delta)\,k_t - c_t - \exp\!\bigl(g^A_t + g^L_t\bigr)\,k_{t+1}
-    \tag*{\text{(budget)}}\label{eq:iam_l2}\\[3pt]
+    \tag*{\text{(budget)}}\\[3pt]
 l_3 &:= \hat{\nu}^{\mathrm{AT}}_t - \hat{\beta}_t\!\left[\hat{\nu}^{\mathrm{AT}}_{t+1}(1-b_{12}) + \hat{\nu}^{\mathrm{UO}}_{t+1}\,b_{12} + \hat{\eta}^{\mathrm{AT}}_{t+1}\,c_1\,F_{\mathrm{2\times CO_2}}\,\tfrac{1}{\ln 2\,M_{\mathrm{AT},t+1}}\right]
-    \tag*{\text{(atm.\ carbon)}}\label{eq:iam_l3}\\[3pt]
+    \tag*{\text{(atm.\ carbon)}}\\[3pt]
 l_4 &:= \hat{\nu}^{\mathrm{UO}}_t - \hat{\beta}_t\!\Bigl[\hat{\nu}^{\mathrm{AT}}_{t+1}\,b_{12}\,\tfrac{M^{\mathrm{AT}}_{\mathrm{EQ}}}{M^{\mathrm{UO}}_{\mathrm{EQ}}} + \hat{\nu}^{\mathrm{UO}}_{t+1}\!\Bigl(1-b_{12}\tfrac{M^{\mathrm{AT}}_{\mathrm{EQ}}}{M^{\mathrm{UO}}_{\mathrm{EQ}}}-b_{23}\Bigr) + \hat{\nu}^{\mathrm{LO}}_{t+1}\,b_{23}\Bigr]
-    \tag*{\text{(upper ocean C)}}\label{eq:iam_l4}\\[3pt]
+    \tag*{\text{(upper ocean C)}}\\[3pt]
 l_5 &:= \hat{\nu}^{\mathrm{LO}}_t - \hat{\beta}_t\!\Bigl[\hat{\nu}^{\mathrm{UO}}_{t+1}\,b_{23}\,\tfrac{M^{\mathrm{UO}}_{\mathrm{EQ}}}{M^{\mathrm{LO}}_{\mathrm{EQ}}} + \hat{\nu}^{\mathrm{LO}}_{t+1}\!\Bigl(1-b_{23}\,\tfrac{M^{\mathrm{UO}}_{\mathrm{EQ}}}{M^{\mathrm{LO}}_{\mathrm{EQ}}}\Bigr)\Bigr]
-    \tag*{\text{(lower ocean C)}}\label{eq:iam_l5}\\[3pt]
+    \tag*{\text{(lower ocean C)}}\\[3pt]
 l_6 &:= \hat{\eta}^{\mathrm{AT}}_t - \hat{\beta}_t\!\Bigl[-\hat{\lambda}_{t+1}\,\Omega'(T_{\mathrm{AT},t+1})\,k_{t+1}^\alpha + \hat{\eta}^{\mathrm{AT}}_{t+1}\!\Bigl(1-c_1\,\tfrac{F_{\mathrm{2\times CO_2}}}{\Delta T_{\mathrm{AT},\times 2}}-c_1 c_3\Bigr) + \hat{\eta}^{\mathrm{OC}}_{t+1}\,c_4\Bigr]
-    \tag*{\text{(atm.\ temp.)}}\label{eq:iam_l6}\\[3pt]
+    \tag*{\text{(atm.\ temp.)}}\\[3pt]
 l_7 &:= \hat{\eta}^{\mathrm{OC}}_t - \hat{\beta}_t\!\left[\hat{\eta}^{\mathrm{AT}}_{t+1}\,c_1 c_3 + \hat{\eta}^{\mathrm{OC}}_{t+1}(1-c_4)\right]
-    \tag*{\text{(ocean temp.)}}\label{eq:iam_l7}\\[3pt]
+    \tag*{\text{(ocean temp.)}}\\[3pt]
 l_8 &:= \hat{\lambda}^{\mu,\mathrm{impl}}_t + (1-\mu_t) - \sqrt{(\hat{\lambda}^{\mu,\mathrm{impl}}_t)^2 + (1-\mu_t)^2 + \varepsilon_{\mathrm{FB}}}
-    \tag*{\text{(Fischer--Burmeister, implied multiplier)}}\label{eq:iam_l8}
+    \tag*{\text{(Fischer--Burmeister, implied multiplier)}}
 \end{aligned}
 $$
 
@@ -754,12 +760,12 @@ $$
 y_{t+1} \;:=\; \varphi_{1C}\,T^{\mathrm{AT}}_t\,\tilde f_{t+1} \;+\; \tilde\epsilon_{T,t+1},\qquad \tilde\epsilon_{T,t+1} \sim \mathcal N(0, S_{\epsilon_T}),
 $$ (eq-bayes_signal)
 
-and conjugate Gaussian--Gaussian updating delivers the posterior
-
+and conjugate Gaussian--Gaussian updating delivers the posterior (eq-bayes_mean)=
+(eq-bayes_var)=
 $$
 \begin{aligned}
-\mu_{f,t+1} &= \frac{S_{\epsilon_T}\,\mu_{f,t} + \varphi_{1C}\,T^{\mathrm{AT}}_t\,S_{f,t}\,y_{t+1}}{S_{\epsilon_T} + (\varphi_{1C}\,T^{\mathrm{AT}}_t)^2\,S_{f,t}}, \label{eq:bayes_mean}\\
-S_{f,t+1} &= \frac{S_{\epsilon_T} \cdot S_{f,t}}{S_{\epsilon_T} + (\varphi_{1C}\,T^{\mathrm{AT}}_t)^2\,S_{f,t}}, \label{eq:bayes_var}
+\mu_{f,t+1} &= \frac{S_{\epsilon_T}\,\mu_{f,t} + \varphi_{1C}\,T^{\mathrm{AT}}_t\,S_{f,t}\,y_{t+1}}{S_{\epsilon_T} + (\varphi_{1C}\,T^{\mathrm{AT}}_t)^2\,S_{f,t}}, \\
+S_{f,t+1} &= \frac{S_{\epsilon_T} \cdot S_{f,t}}{S_{\epsilon_T} + (\varphi_{1C}\,T^{\mathrm{AT}}_t)^2\,S_{f,t}},
 \end{aligned}
 $$
 
@@ -923,12 +929,12 @@ The OLG-IAM uses a much simpler climate side than the 5-state CDICE module of {r
 ```{figure} figures/fig-cdice_vs_tcre.svg
 :name: fig-cdice_vs_tcre
 
-Climate side of CDICE versus TCRE. The 5-state CDICE module on the left, in which atmospheric carbon, two ocean carbon reservoirs, atmospheric temperature, and ocean temperature all enter the planner’s state, is collapsed in the OLG-IAM to a single algebraic relation between cumulative emissions and atmospheric temperature, TtAT ≈ σCCR Et. The simplification trades fidelity to short-run climate dynamics for tractability of the 12-cohort heterogeneous-agent state space and is what makes the bilevel policy search of §1.12 end-to-end feasible.
+Climate side of CDICE versus TCRE. The 5-state CDICE module on the left, in which atmospheric carbon, two ocean carbon reservoirs, atmospheric temperature, and ocean temperature all enter the planner’s state, is collapsed in the OLG-IAM to a single algebraic relation between cumulative emissions and atmospheric temperature, TtAT ≈ σCCR Et. The simplification trades fidelity to short-run climate dynamics for tractability of the 12-cohort heterogeneous-agent state space and is what makes the bilevel policy search of {ref}`sec-pareto_carbon_tax` end-to-end feasible.
 ```
 
 (sec-olg_iam)=
 ### The OLG-IAM Model
-The model features $A=12$ overlapping generations of selfish agents (ages 20--80 in 5-year periods), a competitive firm, and a simplified, cumulative-emissions climate module in the spirit of {cite:t}`dietz2019cumulative`:
+The model features $A=12$ overlapping generations of selfish agents (ages 20--80 in 5-year periods), a competitive firm, and a simplified, cumulative-emissions climate module in the spirit of {cite:t}`dietz2019cumulative:`
 
 - **Technology:** Output is $Y_t = \Omega_t(T_t)\,\Phi(\mu_t)\,K_t^\alpha L_t^{1-\alpha}$ with retained-output damage factor $\Omega_t$ and net-of-abatement-cost factor $\Phi(\mu_t) = 1 - \theta_1\mu_t^{\theta_2}$; emissions are $e_t = (1-\mu_t)\kappa_t Y_t$ with stochastic carbon intensity $\kappa_t$; the period resource constraint is $C_t + K_{t+1} = Y_t + (1-\delta)K_t$.
 
@@ -967,7 +973,7 @@ At each design point $\vartheta = (\vartheta_{\mathrm{tax}}, \omega)$, the train
 ```{figure} figures/jpe_gp_welfare_contour.png
 :name: fig-gp_welfare_contour
 
-Gaussian-process welfare surrogate over the two-dimensional tax-parameter slice (ϑ0, ϑE) of the linear-in-cumulative-emissions rule, with transfer shares ω held at the Pareto-optimal solution. The contour exposes the low-dimensional welfare surface on which the constrained optimizer of Eq. [eq:pareto_opt] searches once the DEQN has amortized the equilibrium solve. Figure extracted from .
+Gaussian-process welfare surrogate over the two-dimensional tax-parameter slice (ϑ0, ϑE) of the linear-in-cumulative-emissions rule, with transfer shares ω held at the Pareto-optimal solution. The contour exposes the low-dimensional welfare surface on which the constrained optimizer of Eq. {ref}`eq-pareto_opt` searches once the DEQN has amortized the equilibrium solve. Figure extracted from .
 ```
 
 ##### Step 3: Constrained optimization.
@@ -1011,13 +1017,13 @@ which sum to one up to rounding. Figure {numref}`fig-pareto_transfer_profile` p
 ```{figure} figures/jpe_pareto_linear_tax.png
 :name: fig-pareto_tax_main
 
-Pareto-improving cumulative-emissions tax with optimized intergenerational transfers, at the coefficients of [eq:pareto_linear_tax_coefficients]–[eq:pareto_linear_transfer_shares]. The tax is less aggressive than the unconstrained rule, but the optimized transfer system shields current cohorts while preserving climate-risk reduction for future cohorts. Aggregate welfare rises by about 0.42%. Figure extracted from .
+Pareto-improving cumulative-emissions tax with optimized intergenerational transfers, at the coefficients of {ref}`eq-pareto_linear_tax_coefficients`–{ref}`eq-pareto_linear_transfer_shares`. The tax is less aggressive than the unconstrained rule, but the optimized transfer system shields current cohorts while preserving climate-risk reduction for future cohorts. Aggregate welfare rises by about 0.42%. Figure extracted from .
 ```
 
 ```{figure} figures/fig-pareto_transfer_profile.svg
 :name: fig-pareto_transfer_profile
 
-Optimized transfer-share profile ωj across the 12 cohorts alive at t = 0, drawn directly from [eq:pareto_linear_transfer_shares]. The profile is decidedly non-monotone: the largest shares go to cohorts 1 (oldest), 5, and 8, which are precisely the cohorts the participation constraint Ũt ≥ Ut binds most tightly for under the un-transferred tax of Figure 1.11. The non-monotone shape is what allows a less aggressive cumulative-emissions tax to satisfy Pareto improvement at every age.
+Optimized transfer-share profile ωj across the 12 cohorts alive at t = 0, drawn directly from {ref}`eq-pareto_linear_transfer_shares`. The profile is decidedly non-monotone: the largest shares go to cohorts 1 (oldest), 5, and 8, which are precisely the cohorts the participation constraint Ũt ≥ Ut binds most tightly for under the un-transferred tax of Figure {ref}`fig-unconstrained_linear_tax`. The non-monotone shape is what allows a less aggressive cumulative-emissions tax to satisfy Pareto improvement at every age.
 ```
 
 The richer rule of {ref}`sec-pareto_carbon_tax` adds carbon intensity and a tipping-state statistic,
@@ -1032,7 +1038,7 @@ $$
 (\vartheta_0,\, \vartheta_E,\, \vartheta_\kappa,\, \vartheta_{TP}) = (-0.237,\, 0.203,\, 0.037,\, 0.012),
 $$ (eq-pareto_full_tax_coefficients)
 
-with the associated aggregate welfare gain rising only from about $0.42\%$ to about $0.45\%$. The cohort-by-cohort welfare profile (not plotted; see {cite:t}`kubler2025using` for the figure) again keeps every cohort weakly above its BAU baseline, and the marginal welfare improvement from the extra two policy-state coefficients is small. This is the substantive headline of {cite:t}`kubler2025using`: once intergenerational transfers are optimized, the simple cumulative-emissions tax captures most of the feasible Pareto-improving welfare gain. More policy-state variables improve the fit to climate risk, but the participation constraints bind tightly enough that the marginal welfare benefit of policy complexity is small. $D_t$ is a deterministic function of variables already in the SOLG state, so it can be evaluated inside each forward pass; the exact functional form is in the paper.
+with the associated aggregate welfare gain rising only from about $0.42\%$ to about $0.45\%$. The cohort-by-cohort welfare profile (not plotted; see {cite:t}`kubler2025using` for the figure) again keeps every cohort weakly above its BAU baseline, and the marginal welfare improvement from the extra two policy-state coefficients is small. This is the substantive headline of {cite:t}`kubler2025using:` once intergenerational transfers are optimized, the simple cumulative-emissions tax captures most of the feasible Pareto-improving welfare gain. More policy-state variables improve the fit to climate risk, but the participation constraints bind tightly enough that the marginal welfare benefit of policy complexity is small. $D_t$ is a deterministic function of variables already in the SOLG state, so it can be evaluated inside each forward pass; the exact functional form is in the paper.
 
 ##### Runtime in numbers.
 

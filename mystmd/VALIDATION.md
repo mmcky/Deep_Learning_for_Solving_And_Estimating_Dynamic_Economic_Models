@@ -1,9 +1,9 @@
 # MyST conversion — VALIDATION report
 
 **Scope:** structural counts + targeted spot-checks of the MyST/HTML build against the LaTeX source and rendered PDF.
-**Date:** 2026-05-24
+**Initial validation:** 2026-05-24 (commit `a26cddc`).
+**Round 2 update:** 2026-05-25 — re-tally after upstream landed fixes for issues #30–#33. Latest results in §1 reflect this run. Outstanding follow-ups are tracked in §5.
 **Branch:** `mystmd-conversion`
-**Commit at time of validation:** `9aafdcb`
 **Sources:**
 - `lecture_script/Deep_Learning_for_Solving_And_Estimating_Dynamic_Economic_Models.tex` (24,557 source lines, 329-page PDF)
 - `mystmd/*.md` (23 converted files: 12 chapters + 6 appendices + 5 frontmatter)
@@ -15,24 +15,33 @@
 
 ---
 
-## 1. Headline result
+## 1. Headline result (Round 2)
 
-| Dimension | Source | MyST | Match? |
-|---|---|---|---|
-| Chapters (incl. frontmatter + appendices) | 22 | 23 (12 ch + 6 app + 5 frontmatter incl. `index.md`) | ✅ |
-| Sections (`\section` / `## `) | 144 | 144 | ✅ |
-| Subsections (`\subsection` / `### `) | 81 | 81 | ✅ |
-| Subsubsections (`\subsubsection` / `#### `) | 5 | 5 | ✅ |
-| Paragraph heads (`\paragraph` / `##### `) | 385 | 372 | ⚠️ off by 13 |
-| Figure placeholders | 88 | **88 / 88 rendering** | ✅ |
-| Unique cross-ref targets — `{numref}` (fig/tab) | — | 125 / 125 resolve | ✅ |
-| Unique cross-ref targets — `{ref}` (sec/ch/app/etc.) | — | 102 / 103 resolve | ⚠️ 1 broken |
-| Unique cross-ref targets — `{eq}` | — | 142 / 160 resolve | ⚠️ 18 broken |
-| Unique citation keys vs `references.bib` | 254 in source | 5 partial-key extractions | ⚠️ |
-| Math macros declared in `myst.yml` | 16 used | 16 covered | ✅ |
-| tcolorbox callouts → `{prf:remark}` / `{prf:definition}` | 71 | 71 | ✅ |
+| Dimension | Source | MyST | Match? | Round 1 |
+|---|---|---|---|---|
+| Chapters (incl. frontmatter + appendices) | 22 | 23 (12 ch + 6 app + 5 frontmatter incl. `index.md`) | ✅ | ✅ |
+| Sections (`\section` / `## `) | 144 | 144 | ✅ | ✅ |
+| Subsections (`\subsection` / `### `) | 81 | 81 | ✅ | ✅ |
+| Subsubsections (`\subsubsection` / `#### `) | 5 | 5 | ✅ | ✅ |
+| Paragraph heads (`\paragraph` / `##### `) | 385 | 372 | ⚠️ off by 13 | ⚠️ same |
+| Figure placeholders | 88 | **88 / 88 rendering** | ✅ | ✅ |
+| Unique cross-ref targets — `{numref}` (fig/tab) | — | 125 / 125 resolve | ✅ | ✅ |
+| Unique cross-ref targets — `{ref}` | — | 90 / 102 resolve | ⚠️ 12 broken | ⚠️ 1 broken (different cause) |
+| Unique cross-ref targets — `{eq}` | — | 159 / 160 resolve | ⚠️ 1 broken | ⚠️ 18 broken |
+| Unique citation keys vs `references.bib` | 254 in source | 9 trailing-`:` regressions | ⚠️ | ⚠️ 5 partial-key extractions |
+| Math macros declared in `myst.yml` | 16 used | 16 covered | ✅ | ✅ |
+| tcolorbox callouts → `{prf:remark}` / `{prf:definition}` | 71 | 71 | ✅ | ✅ |
+| Caption `\ref{}` resolution (section/chapter refs) | — | working via `{ref}` directive | ✅ | ❌ resolved to wrong number |
 
-**Verdict:** the build is structurally faithful and visually usable. Six categories of gap remain (tables, multi-row align labels, paragraph-head loss, colon-bearing citation keys, listing labels, a few caption-context refs) — all enumerated below with concrete examples and routing recommendations.
+**Round 2 verdict:** the four landed upstream fixes (#30–#33) substantially closed Round 1's gaps. Net change:
+
+- ✅ **17 of 18** broken `{eq}` refs recovered (align per-row labels now anchored); 1 still missed in `\begin{multline}` → follow-up [#35](https://github.com/QuantEcon/claude-latex-to-myst/issues/35).
+- ✅ **Caption section/chapter refs** now preserve `{ref}` directive; MyST resolves with full project context.
+- ✅ **All 5** colon-key citations from Round 1 now round-trip correctly; but a regression — trailing `:` in prose now captured into 9 *different* keys → follow-up [#37](https://github.com/QuantEcon/claude-latex-to-myst/issues/37).
+- ✅ **2 of 3** new converter passes wired correctly (`{ref}` preservation, citation regex widening); the third (`convert_pandoc_attr_code_blocks`) is wired but its attrs regex can't handle `}` inside caption values → follow-up [#36](https://github.com/QuantEcon/claude-latex-to-myst/issues/36).
+- ⚠️ **Surfaced new gap:** caption-ref converter from #33 emits generic `{ref}` for ALL targets, including equation/algorithm/figure prefixes. 12 new broken refs traced to this → follow-up [#38](https://github.com/QuantEcon/claude-latex-to-myst/issues/38).
+
+Build is more faithful than before — net change in resolution rate: `{eq}` 88.8% → 99.4%, `{ref}` ~99% → 88.2% (the regression here is a single class of bug with a clear fix). All gaps tracked upstream.
 
 ---
 
@@ -220,15 +229,31 @@ Verified against `mystmd/ch11_climate.md:911–944`. Result: **substantial match
 
 ## 5. Outstanding issues — routing recommendations
 
-| Item | Layer | Tracker | Priority |
-|---|---|---|---|
-| 18 multi-row `\begin{align}` per-row `\label{}` lost (§3.2) | upstream `claude-latex-to-myst` | [#30](https://github.com/QuantEcon/claude-latex-to-myst/issues/30) | medium |
-| `lstlisting` `label=lst:X` not propagated (§3.2) | upstream | [#31](https://github.com/QuantEcon/claude-latex-to-myst/issues/31) | low (1 occurrence) |
-| 5 citation keys with `:` lose suffix (§3.3) | upstream | [#32](https://github.com/QuantEcon/claude-latex-to-myst/issues/32) | low (5 sites) |
-| Multi-column tables (>2 col) not converted to `{list-table}` (§3.4) | upstream | [#33](https://github.com/QuantEcon/claude-latex-to-myst/issues/33) (feature request) | medium |
-| `\ref{}` inside `\caption{}` produces wrong number (§3.6) | upstream | [#34](https://github.com/QuantEcon/claude-latex-to-myst/issues/34) | low (10 caption sites in source) |
-| 13 `\paragraph` heads missing (§3.5) | not yet investigated | drill in during step-(5) visual review | low |
-| Unlabeled `\begin{align}` loses PDF numbering (§3.8) | source convention | author choice — not a bug | informational |
+### Round 1 status (closed)
+
+| Item | Tracker | Status |
+|---|---|---|
+| 18 multi-row `\begin{align}` per-row `\label{}` lost | [#30](https://github.com/QuantEcon/claude-latex-to-myst/issues/30) | ✅ closed — 17/18 fixed (multline gap → #35) |
+| `lstlisting` `label=lst:X` not propagated | [#31](https://github.com/QuantEcon/claude-latex-to-myst/issues/31) | ✅ closed — new postprocess pass added (caption-`}` gap → #36) |
+| 5 citation keys with `:` lose suffix | [#32](https://github.com/QuantEcon/claude-latex-to-myst/issues/32) | ✅ closed — all 5 fixed (trailing-colon regression → #37) |
+| `\ref{}` inside `\caption{}` produces wrong number | [#33](https://github.com/QuantEcon/claude-latex-to-myst/issues/33) | ✅ closed — section/chapter refs work; typed-prefix gap → #38 |
+| Multi-column tables (>2 col) not converted to `{list-table}` (feature) | [#34](https://github.com/QuantEcon/claude-latex-to-myst/issues/34) | ⏳ open (feature request) |
+
+### Round 2 follow-ups (filed against landed fixes)
+
+| Item | Tracker | Priority |
+|---|---|---|
+| `convert_equations`: #30 fix doesn't cover `multline`/`gather` (1 broken `{eq}`) | [#35](https://github.com/QuantEcon/claude-latex-to-myst/issues/35) | low |
+| `convert_pandoc_attr_code_blocks`: attrs regex chokes on `}` inside caption values (1 broken `{ref}`) | [#36](https://github.com/QuantEcon/claude-latex-to-myst/issues/36) | low |
+| `convert_citations`: #32 regression — trailing `:` in prose captured into key (9 sites) | [#37](https://github.com/QuantEcon/claude-latex-to-myst/issues/37) | medium |
+| #33 follow-up: caption-ref converter emits generic `{ref}` for `eq:`/`alg:`/`fig:` targets (12 sites) | [#38](https://github.com/QuantEcon/claude-latex-to-myst/issues/38) | medium |
+
+### Not (yet) upstream-tracked
+
+| Item | Layer | Notes |
+|---|---|---|
+| 13 `\paragraph` heads missing (§3.5) | not investigated | drill in during step-(5) visual review |
+| Unlabeled `\begin{align}` loses PDF numbering (§3.8) | source convention | author choice — not a bug |
 
 ## 6. What this report does NOT cover
 

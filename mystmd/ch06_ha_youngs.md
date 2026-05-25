@@ -16,7 +16,7 @@ The continuum-agent framework that this chapter operationalises has three founda
 ```{figure} figures/fig-bewley_lineage.svg
 :name: fig-bewley_lineage
 
-Genealogy of the heterogeneous-agent models treated in this script. This chapter targets the Krusell–Smith branch (right) by combining a DEQN policy with Young’s histogram update; the continuous-time branch (Achdou–Han–Lasry–Lions–Moll) is taken up in Chapter [ch:ct_theory].
+Genealogy of the heterogeneous-agent models treated in this script. This chapter targets the Krusell–Smith branch (right) by combining a DEQN policy with Young’s histogram update; the continuous-time branch (Achdou–Han–Lasry–Lions–Moll) is taken up in Chapter {ref}`ch-ct_theory`.
 ```
 
 (sec-young_motivation)=
@@ -281,7 +281,7 @@ Figure {numref}`fig-young_forward` visualizes the five stages of a single forwa
 ```{figure} figures/fig-young_forward.svg
 :name: fig-young_forward
 
-Flow diagram for one forward step of Young’s histogram update (Algorithm [alg:young]). Starting from Gt, the policy function is evaluated at every active bin, the resulting off-grid savings are interpolated back onto the grid, and idiosyncratic shock transitions redistribute mass across ε-states to produce Gt + 1.
+Flow diagram for one forward step of Young’s histogram update (Algorithm {ref}`alg-young`). Starting from Gt, the policy function is evaluated at every active bin, the resulting off-grid savings are interpolated back onto the grid, and idiosyncratic shock transitions redistribute mass across ε-states to produce Gt + 1.
 ```
 
 **Comparison with Monte Carlo.** Young's method produces *zero sampling noise* (deterministic), preserves the mean *exactly*, requires only $\sim$100--5,000 grid points (versus $>$50,000 agents for Monte Carlo), and is fully reproducible. The trade-off is that it approximates higher moments and requires a grid that is wide enough to contain all mass. The following table summarizes the comparison:
@@ -673,7 +673,7 @@ Three implementation choices in {prf:ref}`algo-ks_seqspace` are worth flagging. 
 
 ```{prf:remark}
 
-Four operational rules of thumb, distilled from {cite:t}`azinovicyangzemlicka2025sequencespace`:
+Four operational rules of thumb, distilled from {cite:t}`azinovicyangzemlicka2025sequencespace:`
 
 - **Choosing the truncation length $T$.** Three sensible heuristics, in increasing order of conservatism: (i) for OLG models, set $T$ to roughly two life-cycles, so that all shocks experienced by any household alive today are inside the window; (ii) start short and iteratively increase $T$, monitoring the equilibrium residual; (iii) "overkill", set $T$ such that $\varrho_{\text{shock}}^T \le \text{tol}$ with $\text{tol} \in [10^{-8}, 10^{-6}]$, since long histories are cheap to feed.
 

@@ -204,7 +204,7 @@ The consumption-sharing condition {eq}`eq-irbc_consumption` reads $c_t^j = (\la
    \;=\;
    (\tau^i)^{\gamma_i}\,(\tau^j)^{-\gamma_j}\,\lambda_t^{\,\gamma_j - \gamma_i}.$$
 
-\(i\) With homogeneous IES $\gamma_i = \gamma_j = \gamma$, the $\lambda_t$ exponent vanishes and the ratio collapses to a time-invariant constant: $$\frac{c_t^i}{c_t^j} \;=\; \!\left(\frac{\tau^i}{\tau^j}\right)^{\!\gamma}.$$ Since $\log(c_t^i/c_t^j)$ is constant, $\Delta\log c_t^i = \Delta\log c_t^j$, the perfect risk-sharing prediction of {cite:t}`backus1992international`: cross-country consumption growth is perfectly correlated (correlation $= 1$).
+\(i\) With homogeneous IES $\gamma_i = \gamma_j = \gamma$, the $\lambda_t$ exponent vanishes and the ratio collapses to a time-invariant constant: $$\frac{c_t^i}{c_t^j} \;=\; \!\left(\frac{\tau^i}{\tau^j}\right)^{\!\gamma}.$$ Since $\log(c_t^i/c_t^j)$ is constant, $\Delta\log c_t^i = \Delta\log c_t^j$, the perfect risk-sharing prediction of {cite:t}`backus1992international:` cross-country consumption growth is perfectly correlated (correlation $= 1$).
 
 \(ii\) With heterogeneous IES $\gamma_i \neq \gamma_j$, the exponent $\gamma_j - \gamma_i$ is non-zero and $\lambda_t$ enters the ratio. As shocks move the planner's shadow price, the consumption ratio fluctuates: low-IES countries' consumption is less sensitive to $\lambda_t$ than high-IES countries'. But the log growth rate is still $$\Delta \log c_t^j = -\gamma_j\,\Delta\log\lambda_t .$$ Thus, for positive $\gamma_i,\gamma_j$, any pair of country consumption-growth rates is a positive scalar multiple of the same aggregate shock $\Delta\log\lambda_t$. The correlation remains one; heterogeneous IES changes relative consumption-growth volatility, not the correlation, in this complete-markets planner allocation.
 
@@ -220,7 +220,7 @@ These are notebook exercises (`lecture_05_05_IRBC_Exercise.ipynb`); reference so
 
 With two hyperparameters and only one "important" axis, a $3\times 3$ grid uses $9$ candidates but only $3$ distinct values along the important axis. If the near-optimal interval has length fraction $p$ and its location relative to the grid is unknown, the grid hit probability is approximately $\min\{3p,1\}$ when $p$ is small. Random search at $9$ evaluations samples $9$ independent values along the important axis, so its hit probability is $$1 - (1-p)^9 .$$ For $p=0.05$, the grid probability is approximately $0.15$, while random search gives $1-0.95^9\approx 0.37$.
 
-The general principle: with $n$ evaluations and only $r \ll d$ important axes, random search effectively gives $n$ independent draws on those $r$ axes (since the irrelevant axes don't matter), while grid search wastes most of its budget on the irrelevant axes' marginals. This is the projection argument of {cite:t}`bergstra2012random`: when the loss landscape is anisotropic, random search dominates grid search.
+The general principle: with $n$ evaluations and only $r \ll d$ important axes, random search effectively gives $n$ independent draws on those $r$ axes (since the irrelevant axes don't matter), while grid search wastes most of its budget on the irrelevant axes' marginals. This is the projection argument of {cite:t}`bergstra2012random:` when the loss landscape is anisotropic, random search dominates grid search.
 
 ##### {prf:ref}`ex-ch4-2` (statement: p. ): Bayesian optimization toy problem.
 
