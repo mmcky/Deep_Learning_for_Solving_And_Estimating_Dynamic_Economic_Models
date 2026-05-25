@@ -7,13 +7,12 @@ With the surrogate machinery of Chapter {ref}`ch-gp` in hand, we now turn to on
 
 Before the current deep-learning boom, neural networks were already studied as nonlinear *sieve* estimators in econometrics, with a rigorous asymptotic theory developed in parallel with the approximation-theory results of Chapter {ref}`ch-intro`. {cite:t}`chenwhite1999improved` establish convergence rates and asymptotic normality for single-hidden-layer network estimators, and {cite:t}`chen2007sieve` integrates that line into the broader sieve treatment of semi-nonparametric models defined by conditional moment restrictions, which is precisely the structural-estimation setting of this chapter. The modern continuation of this program uses deep architectures for efficient estimation in nonparametric instrumental-variable models {cite:p}`chenChristensenKankanala2021npiv`. The pipelines developed below should be read as the implementation-side companion to that theoretical tradition: the sieve literature tells us *when* neural-network estimators consistently identify deep structural parameters; the surrogate pipelines tell us *how* to make the resulting estimators cheap enough to deploy at research scale.
 
-```{prf:remark}
-
+% Unknown environment: keyinsightbox
+::: keyinsightbox
 1.  **The pseudo-state trick.** Concatenate the structural parameter $\theta$ into the network input, $(s, \theta) \mapsto \mathcal{N}_\rho(s, \theta)$, and train one network that encodes a *family* of policies indexed by $\theta$. Each new $\theta$ evaluation then requires a single forward pass through the trained network, not a re-solve of the dynamic program; this is what makes SMM with a deep structural model tractable.
 
 2.  **Two-layer surrogates.** Stack a Gaussian-process surrogate on top of the policy net ({ref}`sec-smm_gp_moments`): Layer 1 (the policy net) turns "one re-solve per $\theta$" into "one forward simulation per $\theta$", and Layer 2 (a GP per moment) turns "one forward simulation per $\theta$" into "one GP posterior per $\theta$". The result is a microseconds-per-call moment map, enabling bootstrap, Bayesian post-processing, and policy search at scale.
-```
-
+:::
 
 ## Brock--Mirman with Parameters as Pseudo-States
 
@@ -206,11 +205,10 @@ If the smallest singular values of $\hat{M}$ are close to zero, inference based 
 
 (sec-smm_gp_moments)=
 ## GP Surrogate over the Moment Map
-```{prf:remark}
-
+% Unknown environment: remarkbox
+::: remarkbox
 The simplified core notebooks `lecture_15_03_Structural_Estimation_BM.ipynb` and `lecture_15_03b_Structural_Estimation_BM_Joint.ipynb` stop after the direct surrogate-based SMM estimator and its identification diagnostics; they do *not* implement the second-layer Gaussian-process moment surrogate, leave-one-out validation, or Bayesian active learning described below. This section sketches the research-scale extension that a separate companion notebook would add on top of the policy surrogate, and that motivates the GP active-learning workflow used in Chapter {ref}`ch-climate`.
-```
-
+:::
 
 The pseudo-state DEQN of the previous sections turned "one re-solve per candidate $\theta$" into "one forward simulation per candidate $\theta$." For high-throughput SMM, that second cost is still nontrivial: a bootstrap with $B = 1{,}000$ resamples needs $1{,}000$ forward simulations on top of the inner optimisation, joint estimation in $p \ge 2$ dimensions multiplies the budget further, and downstream Bayesian or simulation-based-inference workflows want *very* cheap evaluations of $\theta \mapsto m(\theta)$. This section adds a second surrogate layer, a Gaussian process per moment, on top of the policy net, following exactly the supervised-learning logic of {ref}`sec-gp_dp_supervised_view`.
 
@@ -226,7 +224,7 @@ $$ (eq-moment_gp)
 
 one independent GP per moment, with its own kernel and length-scale hyperparameters learned by maximising marginal likelihood on a small design $\{(\theta^{(i)},\, m(\theta^{(i)}))\}_{i=1}^n$. Once trained, evaluating the SMM objective at any candidate $\theta$ is a single GP forward pass per moment, no simulation required. Bootstrapped CIs and any subsequent Bayesian post-processing then run on the GP, not on the simulator. Figure {numref}`fig-smm_two_layer_surrogate` reads the architecture top-to-bottom. A candidate $\theta$ is fed into the DEQN policy net of {ref}`sec-smm_method`, which is rolled forward for $T$ periods to produce a simulated path and its moment vector $m(\theta)\in\R^q$; a small design $\{(\theta^{(i)},\,m(\theta^{(i)}))\}_{i=1}^n$ of those simulator labels then trains the second layer of $q$ independent moment GPs, after which the SMM criterion $Q(\theta)$ is a closed-form quadratic in the GP posterior means. The right-hand column traces the per-$\theta$ cost cascade from seconds-to-hours down to microseconds.
 
-```{figure} figures/fig-smm_two_layer_surrogate.svg
+```{admonition} Figure (TikZ — needs manual conversion)
 :name: fig-smm_two_layer_surrogate
 
 The two-layer surrogate architecture for surrogate-based SMM, read top-to-bottom along the chain θ → 𝒩ρ→ simulated path  → m(θ)→ moment GPs  → Q(θ). Layer 1 is the pseudo-state DEQN policy net of {ref}`sec-smm_method`: trained once with θ as an additional input, it replaces the inner Bellman / fixed-point re-solve that direct SMM would require at every candidate parameter, leaving only a T-step forward simulation per θ. Layer 2 is the moment-map GP regression of this section: q independent Gaussian processes are fitted to the simulator’s (θ(i), m(θ(i))) pairs on a small design, after which evaluating the SMM criterion Q(θ) at any new θ requires only a closed-form GP posterior-mean call per moment. The right-hand annotation traces the per-θ cost cascade: the direct re-solve costs seconds-to-hours, Layer 1 brings the cost down to milliseconds (one DEQN-driven simulation), and Layer 2 down to microseconds (one differentiable regression call per moment). This is the same supervised-learning-on-an-expensive-oracle pattern as GP-VFI in {ref}`sec-gp_dp_supervised_view`, with the moment vector m(θ) playing the role the Bellman label $TV(\x)$ plays there; the saving compounds because the high-throughput downstream workflows of SMM, bootstrap, profile likelihood, and simulation-based inference, all live in the bottom box.
@@ -282,11 +280,10 @@ Direct SMM criterion for the joint Brock–Mirman estimation. The left panel use
 
 In the research-scale extension, the second-layer GP fitted to the joint moment map provides a closed-form, microseconds-per-call substitute for forward simulation: subsequent SMM evaluations, bootstrap replications, and Bayesian post-processing run on the GP rather than on the simulator. The TikZ architecture diagram in Figure {numref}`fig-smm_two_layer_surrogate` already encodes the cost cascade; the rendered GP-objective surface itself is not produced by the core notebooks and is therefore not displayed here.
 
-```{prf:remark}
-
+% Unknown environment: remarkbox
+::: remarkbox
 Notebook `lecture_15_03_Structural_Estimation_BM.ipynb` fits the scalar persistence exercise: a 3-input pseudo-state policy net, common-random-number simulation across a $\varrho$-grid, and an interior SMM estimate with a moment-Jacobian diagnostic. Notebook `lecture_15_03b_Structural_Estimation_BM_Joint.ipynb` performs joint $(\beta,\varrho)$ estimation and visualises the partial-identification ridge of Figure {numref}`fig-smm_2d_criterion` for the shallow-ridge two-moment specification and the over-identified specification. The second-layer GP-moment-map extension above is left as a research-scale companion.
-```
-
+:::
 
 (sec-beyond_smm)=
 ## Beyond SMM: Indirect Inference and Simulation-Based Inference
@@ -306,8 +303,8 @@ In settings where the simulator is differentiable or fast but the likelihood $p(
 
 Climate--economy integrated assessment models (Chapter {ref}`ch-climate`) are the prototypical setting where surrogate-based estimation pays off. Credible policy analysis requires evaluating the model over many climate-sensitivity, damage-elasticity, and discount-rate scenarios. Treating the parameter vector as a pseudo-state and training a single deep surrogate, exactly as in the SMM exercise above, turns repeated re-solves into repeated forward passes and is the technical bridge between this chapter and the next.
 
-```{prf:remark}
-
+% Unknown environment: keyinsightbox
+::: keyinsightbox
 - SMM matches simulated moments to data moments by minimizing a weighted quadratic objective; it is GMM with simulation {cite:p}`mcfadden1989method,pakes1989simulation`.
 
 - The pseudo-state surrogate trick (treat parameters $\theta$ as additional network inputs) replaces a re-solve at every candidate $\theta$ with a single forward pass; this is what makes SMM with a deep model tractable.
@@ -317,8 +314,7 @@ Climate--economy integrated assessment models (Chapter {ref}`ch-climate`) are t
 - Common random numbers across $\theta$-candidates are essential in the classroom exercises: they remove simulation noise from the objective and let optimizers see a smooth landscape {cite:p}`glasserman2004monte`.
 
 - Indirect inference and modern simulation-based inference {cite:p}`smith1993estimating,gourieroux1993indirect,cranmer2020frontier` are the natural neighbors of SMM and dominate in their respective regimes.
-```
-
+:::
 
 (further-reading)=
 ## Further Reading

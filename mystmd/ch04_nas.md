@@ -35,7 +35,7 @@ The simplest approach is to define a grid of values for each hyperparameter and 
 
 For example, with a budget of $N = 60$ evaluations in $d = 6$ dimensions, a grid provides only $60^{1/6} \approx 2$ values per hyperparameter, while random search provides 60 distinct values per hyperparameter (in the marginal sense). This makes random search much more likely to find good values for the hyperparameters that matter most. Figure {numref}`fig-grid_vs_random` shows the same projection argument in two dimensions.
 
-```{figure} figures/fig-grid_vs_random.svg
+```{admonition} Figure (TikZ — needs manual conversion)
 :name: fig-grid_vs_random
 
 Why random search beats grid search when only one hyperparameter matters. Both designs spend the same budget of nine evaluations on a two-dimensional space in which only the horizontal axis affects performance; the vertical axis is a “nuisance” hyperparameter. Project each design onto that important axis (the strip below each panel): the 3 × 3 grid stacks its nine points into only three columns, so it probes just three distinct values of the parameter that matters, whereas the random design lands on nine distinct values. Equivalently, with a budget of N points in d dimensions a grid resolves only N1/d values per axis no matter which axes matter, while a random design resolves N values per axis in the marginal sense. Since in practice only two or three of many hyperparameters typically drive performance [[CITEP:bergstra2012random]], the random design extracts far more information about the dimensions that count for the same compute.
@@ -60,7 +60,7 @@ $$
 
 where $\Phi$ and $\phi$ are the standard normal CDF and PDF, respectively. For the closed-form derivation under the GP posterior, see {cite:t}`garnett2023bayesian` [§5]. EI naturally balances exploitation ($\mu(\bm{h})$ is small, i.e., predicted to be good) and exploration ($\sigma(\bm{h})$ is large, i.e., uncertain). Bayesian optimization is particularly effective when the number of hyperparameters is moderate ($d \leq 20$) and each evaluation is expensive, which describes many economic applications well. Figure {numref}`fig-bayesopt` illustrates the GP posterior and EI acquisition rule in one dimension.
 
-```{figure} figures/fig-bayesopt.svg
+```{admonition} Figure (TikZ — needs manual conversion)
 :name: fig-bayesopt
 
 Bayesian optimization in one dimension. All curves come from a genuine Gaussian-process fit (RBF kernel, length scale ℓ = 1.2, signal variance σf2 = 0.25); the same setup is reproduced in the companion notebook. Top: the validation loss ℓ(h) is treated as an expensive black box. After five evaluations (black dots) the GP posterior is summarized by its mean μ(h) (solid blue), which interpolates every observation exactly, and by a ±2 s.d. credible band (shaded), which pinches to nearly zero at each observation and balloons in the wide gaps where no data constrain it. The dashed red curve is the (in practice unknown) true loss; it has a pronounced minimum near h ≈ 4 that these five points completely miss, and there it even slips below the ±2 s.d. band, an honest reminder that a Gaussian process with a long length scale can be over-confident between observations. The horizontal grey line marks ℓ⋆, the best loss observed so far (the point near h ≈ 2.3). Bottom: the Expected-Improvement acquisition function $\mathrm{EI}(h) = \E{\max\!\bigl(\ell^\star - \ell(h),\, 0\bigr)}$ scores each untried h by how much it is expected to beat ℓ⋆ under the posterior. It is essentially zero at the existing observations, where there is nothing to learn, rises in the unexplored gaps, and peaks at h ≈ 3.75, the place that combines a predicted mean already below ℓ⋆ with substantial residual uncertainty; that maximizer is selected as the next configuration to evaluate (red arrow). EI therefore balances exploitation (low predicted mean) against exploration (high predicted variance), and here it steers the search straight at the neighborhood of the hidden true minimum.
@@ -70,8 +70,8 @@ Bayesian optimization in one dimension. All curves come from a genuine Gaussian-
 ## Hyperband and Successive Halving
 {cite:t}`li2018hyperband` proposed an entirely different approach based on *adaptive resource allocation*, building on the Successive Halving Algorithm popularized by {cite:t}`jamieson2016nonstochastic`. The key observation is that poor configurations can often be identified early in training, without running them to completion. The Successive Halving Algorithm (SHA) formalizes this:
 
-```{prf:definition}
-
+% Unknown environment: definitionbox
+::: definitionbox
 - **Input:** Budget $B$, initial candidates $n$, reduction factor $\eta = 3$
 - Allocate each candidate a budget of $r = B/(n \lceil\log_\eta n\rceil)$
 - for round $s = 0, 1, \ldots, \lceil\log_\eta n\rceil - 1$:
@@ -79,12 +79,11 @@ Bayesian optimization in one dimension. All curves come from a genuine Gaussian-
   - Keep the top $1/\eta$ fraction; discard the rest
   - $r \leftarrow r \cdot \eta$
 - **Output:** Best surviving configuration
-```
-
+:::
 
 For example, with $n = 81$ initial candidates and $\eta = 3$: round 0 trains all 81 for $r$ epochs and keeps the top 27; round 1 trains these 27 for $3r$ epochs and keeps the top 9; round 2 trains 9 for $9r$ epochs and keeps 3; round 3 trains 3 for $27r$ and selects the winner. The total budget is $81r + 27\cdot 3r + 9\cdot 9r + 3\cdot 27r = 4 \cdot 81 r = 324\,r$, equivalent to about a dozen full $R = 27r$ trainings rather than the $81$ that naive parallel evaluation would require. Figure {numref}`fig-hyperband` visualizes this resource-allocation cascade.
 
-```{figure} figures/fig-hyperband.svg
+```{admonition} Figure (TikZ — needs manual conversion)
 :name: fig-hyperband
 
 Successive Halving with 81 initial candidates and reduction factor η = 3. Each round trains the surviving configurations for η times the previous budget, then discards the bottom (1 − 1/η) fraction. Total compute per bracket is only 𝒪(B) rather than 𝒪(nB) for training every candidate to completion. Hyperband runs several such brackets in parallel with different (n, r) trade-offs to hedge against unknown early-vs-late performance correlations [[CITEP:li2018hyperband]].
@@ -209,7 +208,7 @@ where $\alpha \in [0,1]$ is a smoothing parameter controlling how much to trust 
 
 An alternative approach proposed by {cite:t}`chen2018gradnorm` directly normalizes the gradient magnitudes rather than the loss values. GradNorm adjusts the weights so that $\|w_k \nabla \ell_k\|$ is approximately equal across all components, using the ratio of each component's training rate to the average training rate as a signal. While more computationally expensive than ReLoBRaLo (it requires computing per-component gradient norms), GradNorm can be effective when gradient magnitudes are a better proxy for training difficulty than loss magnitudes.
 
-```{figure} figures/fig-multi_component_loss.svg
+```{admonition} Figure (TikZ — needs manual conversion)
 :name: fig-multi_component_loss
 
 Stylized sketch of the multi-component loss-scale problem, drawn to mimic what one typically sees early in a two-country IRBC training run; this is not measured data. The three curves are hand-picked exponentials ak e−t/τk (with a1 = 50, τ1 = 150; a2 = 0.5, τ2 = 750; a3 = 5, τ3 = 200), chosen only to make the mechanism visible: at initialization the residuals differ by about two orders of magnitude, and under uniform weighting the optimizer drives the largest component ℓ1 (blue) down fastest because it dominates the summed gradient, while the smaller-scale but equally important country-2 Euler residual ℓ2 (red) decays roughly five times more slowly and is left all but flat next to the others. Adaptive loss balancing such as ReLoBRaLo re-weights the components so that all three decrease at comparable rates. For the actual recorded trajectories on this problem, see the companion notebook 04_Loss_Normalization.ipynb.
@@ -246,8 +245,8 @@ Table {numref}`tab-balancing_methods` compares the four balancing strategies on
 
 Quantitative speedup claims depend on the specific problem (PDE vs. Euler residual, number of components, imbalance ratio), the baseline (uniform vs. manually tuned), and the success criterion. The companion notebook `04_Loss_Normalization.ipynb` runs the four methods on a shared multi-scale regression task so that the reader can generate problem-specific numbers rather than rely on headline speedup factors from unrelated benchmarks.
 
-```{prf:remark}
-
+% Unknown environment: remarkbox
+::: remarkbox
 When implementing ReLoBRaLo:
 
 - Set $T \in [0.5, 2.0]$; higher values yield more uniform weighting. In the limit, $T \to 0$ approximates a winner-take-all scheme that concentrates all weight on the single most-lagging component, while $T \to \infty$ recovers uniform weighting regardless of loss dynamics.
@@ -259,11 +258,10 @@ When implementing ReLoBRaLo:
 - For PINN applications (Chapter {ref}`ch-pinn`), adaptive loss balancing in general (ReLoBRaLo, GradNorm, NTK-based schemes) is particularly effective at balancing PDE residual terms against boundary condition penalties.
 
 - In DSGE applications, multi-component losses arise naturally: a model with $N$ countries has $N$ Euler equations, an aggregate resource constraint, and $N$ complementarity conditions, often differing by several orders of magnitude. Without loss balancing, the optimizer focuses on the largest component and ignores smaller but economically important residuals (see Chapter {ref}`ch-irbc`).
-```
+:::
 
-
-```{prf:remark}
-
+% Unknown environment: keyinsightbox
+::: keyinsightbox
 - Architecture and hyperparameter choice are first-order: random search dominates grid search whenever only a few hyperparameters matter, and Bayesian optimization dominates random search whenever each evaluation is expensive.
 
 - Hyperband-style multi-fidelity scheduling is the modern compromise: cheap evaluations of many candidates, with budget concentrated on the survivors.
@@ -271,8 +269,7 @@ When implementing ReLoBRaLo:
 - Multi-component DEQN/PINN losses suffer from scale imbalance; ReLoBRaLo and related adaptive schemes restore balance by reweighting components on the fly.
 
 - All three families (NAS, Bayesian optimization, adaptive loss balancing) are implementation details, but they make the difference between a DEQN that converges on a coffee break and one that diverges overnight.
-```
-
+:::
 
 (further-reading)=
 ## Further Reading

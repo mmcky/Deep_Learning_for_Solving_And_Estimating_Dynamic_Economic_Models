@@ -4,7 +4,8 @@
 **Initial validation:** 2026-05-24 (commit `a26cddc`).
 **Round 2 update:** 2026-05-25 — re-tally after upstream landed fixes for issues #30–#33.
 **Round 3 update:** 2026-05-25 — re-tally after upstream landed fixes for follow-ups #35, #36, #37.
-**Round 4 update:** 2026-05-25 — drill into deferred items (paragraph heads, tables, footnotes, algorithms); added frontmatter/appendix and build-warning checks. 2 new bugs filed (#39 algorithm label, #40 HTML entity in math); 2 prior "gaps" resolved as counting artifacts.
+**Round 4 update:** 2026-05-25 — drill into deferred items; 2 new bugs filed (#39 algorithm label, #40 HTML entity in math); 2 prior "gaps" resolved as counting artifacts.
+**Round 5 update:** 2026-05-25 — re-tally after upstream landed fixes for #38, #39, #40 *and* a major refactor (P3a series, 11 commits) splitting `postprocess.py` into a `transforms/` package. #38 and #40 work; #39 only partially (filed [#43](https://github.com/QuantEcon/claude-latex-to-myst/issues/43)). The P3a refactor introduced a critical regression: module double-load drops `TIKZ_FIGURE_MAP` content silently, breaking **all 88 figures** ([#42](https://github.com/QuantEcon/claude-latex-to-myst/issues/42) filed). Round 4 also under-reported KaTeX warnings — re-grep surfaces 9 pre-existing instances of `\,^\circ` and `\tag*` patterns that KaTeX can't handle (not a refactor regression).
 **Branch:** `mystmd-conversion`
 **Sources:**
 - `lecture_script/Deep_Learning_for_Solving_And_Estimating_Dynamic_Economic_Models.tex` (24,557 source lines, 329-page PDF)
@@ -17,54 +18,35 @@
 
 ---
 
-## 1. Headline result (Round 4)
+## 1. Headline result (Round 5)
 
-| Dimension | Source | MyST | Match? | R3 | R2 | R1 |
-|---|---|---|---|---|---|---|
-| Chapters (incl. frontmatter + appendices) | 22 | 23 | ✅ | ✅ | ✅ | ✅ |
-| Sections (`\section` / `## `) | 144 | 144 | ✅ | ✅ | ✅ | ✅ |
-| Subsections / subsubsections | 81 / 5 | 81 / 5 | ✅ | ✅ | ✅ | ✅ |
-| Paragraph heads (`\paragraph` / `##### `) | 385 | **385** | ✅ | ⚠️ off by 13* | ⚠️ same | ⚠️ same |
-| Footnotes (`\footnote` / `[^N]:`) | 24 | **24** | ✅ | ⚠️ off by 6* | n/a | n/a |
-| Figure placeholders | 88 | 88 / 88 rendering | ✅ | ✅ | ✅ | ✅ |
-| Captioned tables — anchors preserved | 41 | 41 | ✅ | n/a | n/a | n/a |
-| Captioned tables — proper MyST `{list-table}` AST | 41 | 4 (10%) | ⚠️ #34 | ⚠️ same | ⚠️ same | ⚠️ same |
-| `\begin{algorithm}` floats | 2 | 2 (as `{prf:algorithm}`) | ✅ | n/a | n/a | n/a |
-| `\label{alg:X}` cross-ref round-trip | 2 labels | broken — auto-name used | ⚠️ #39 | n/a | n/a | n/a |
-| Unique cross-ref targets — `{numref}` (fig/tab) | — | 125 / 125 resolve | ✅ | ✅ | ✅ | ✅ |
-| Unique cross-ref targets — `{ref}` | — | 91 / 102 resolve | ⚠️ 11 broken | ⚠️ same | ⚠️ 12 | ⚠️ 1 |
-| Unique cross-ref targets — `{eq}` | — | 160 / 160 resolve | ✅ | ✅ | ⚠️ 1 | ⚠️ 18 |
-| Unique citation keys vs `references.bib` | 254 | all resolve | ✅ | ✅ | ⚠️ 9 | ⚠️ 5 |
-| Math macros declared in `myst.yml` | 16 used | 16 covered | ✅ | ✅ | ✅ | ✅ |
-| tcolorbox callouts → `prf:*` directives | 71 | 71 | ✅ | ✅ | ✅ | ✅ |
-| Caption section/chapter `\ref{}` | — | works via `{ref}` | ✅ | ✅ | ✅ | ❌ |
-| Caption equation/algorithm refs | — | emits `{ref}` instead of typed | ⚠️ #38 | ⚠️ same | ⚠️ same | n/a |
-| `lstlisting` `label=…` to MyST anchor | — | `{code-block}` with `:name:` | ✅ | ✅ | ⚠️ #36 | ❌ |
-| KaTeX build warnings (math parse errors) | — | 1 (HTML entity in caption math) | ⚠️ #40 | n/a | n/a | n/a |
+| Dimension | Source | MyST | Match? | R4 | R3 | R2 | R1 |
+|---|---|---|---|---|---|---|---|
+| Chapters / sections / subsections / subsubsections | 22/144/81/5 | 22/144/81/5 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Paragraph heads / footnotes | 385 / 24 | 385 / 24 | ✅ | ✅ | ⚠️ glob | ⚠️ same | ⚠️ same |
+| Figure placeholders | 88 | **0** | ❌ #42 | ✅ | ✅ | ✅ | ✅ |
+| Captioned tables — anchors / `{list-table}` AST | 41 / 41 | 41 / 4 | ⚠️ #34 | ⚠️ same | ⚠️ same | ⚠️ same | ⚠️ same |
+| `\label{alg:X}` cross-ref round-trip | 2 labels | broken (still auto-name) | ⚠️ #43 | ⚠️ #39 | n/a | n/a | n/a |
+| Unique `{numref}` cross-ref targets | — | 125 / 125 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Unique `{ref}` cross-ref targets | — | **0 broken** | ✅ | ⚠️ 11 | ⚠️ same | ⚠️ 12 | ⚠️ 1 |
+| Unique `{eq}` cross-ref targets | — | 160 / 160 | ✅ | ✅ | ✅ | ⚠️ 1 | ⚠️ 18 |
+| Citation keys vs `references.bib` | 254 | all resolve | ✅ | ✅ | ✅ | ⚠️ 9 | ⚠️ 5 |
+| Math macros / tcolorbox / paragraph heads | — | match | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Caption section/chapter `\ref{}` | — | works | ✅ | ✅ | ✅ | ✅ | ❌ |
+| Caption equation/algorithm typed refs | — | **typed dispatch works** | ✅ | ⚠️ #38 | ⚠️ same | ⚠️ same | n/a |
+| `lstlisting` `label=…` anchor | — | `{code-block}` with `:name:` | ✅ | ✅ | ✅ | ⚠️ #36 | ❌ |
+| HTML entity in caption math | — | unescaped | ✅ | ⚠️ #40 | n/a | n/a | n/a |
+| KaTeX build warnings (other) | — | 9 (pre-existing, see §3.x) | ⚠️ note | (missed) | n/a | n/a | n/a |
 
-\* The paragraph-heads and footnotes "gaps" in Rounds 1–3 were `grep -h` artifacts (excluded `mystmd/preface.md`/`mystmd/how_to_read.md` from the glob; `grep -c` counts lines not matches). Both fully resolved in Round 4 with per-chapter cross-tabulation.
+**Round 5 verdict — mixed:**
 
-**Round 4 verdict:** the build is fundamentally faithful. After 4 rounds of upstream fixes:
+✅ **Upstream fixes that landed and work**: #38 (typed caption refs — all 11 now resolve), #40 (HTML entity unescape — `&gt;` no longer leaks into math).
 
-- ✅ **All** equation cross-refs resolve (160/160).
-- ✅ **All** citations resolve (254 unique keys).
-- ✅ **All** `{numref}` figure/table refs resolve (125/125).
-- ✅ Paragraph heads, footnotes, figures, headings, math macros, callouts, lstlistings — all match source.
-- ⚠️ 3 outstanding bug classes, each with an open upstream issue + clear fix:
-  - **#38** — caption refs to `eq:`/`alg:` need typed dispatch (11 broken refs)
-  - **#39** — algorithm `\label{}` as sibling of `\caption{}` not preserved (3 body refs broken)
-  - **#40** — HTML entities (`&gt;`) inside `$math$` in captions break KaTeX (1 confirmed instance)
-- ⏳ 1 feature request: **#34** — 3+ col tables to `{list-table}` (4/41 captioned tables convert; the other 37 render as raw pandoc dash-rule text)
+⚠️ **#39 (algorithm sibling label) partial**: the fix added a sibling-label scan, but it only handles the case where `\label{}` comes AFTER the algorithm body (and at end). The dominant LaTeX convention places `\caption{}\label{}` BEFORE the body (which is layout in our book) — for that layout the scan still bails and an auto-name is generated. Filed [#43](https://github.com/QuantEcon/claude-latex-to-myst/issues/43) with proposed generic scan covering both pre- and post-caption regions.
 
-Net change from Round 1 → Round 4:
+❌ **CRITICAL REGRESSION from P3a refactor**: the refactor split `postprocess.py` into a `transforms/` package. `transforms/figures.py::resolve_tikz_figures` reads `TIKZ_FIGURE_MAP` via `import postprocess; postprocess.TIKZ_FIGURE_MAP`. But `postprocess.py` runs as `__main__`, so `import postprocess` creates a *second* import of the module — fresh, with `TIKZ_FIGURE_MAP={}`. `load_overrides` populates the `__main__` namespace's map (88 entries); the transform reads the empty second-import map. Result: **all 88 figure placeholders left unresolved** in the converted markdown. Confirmed locally by patching the transform to read from `__main__` — figures return immediately. Filed [#42](https://github.com/QuantEcon/claude-latex-to-myst/issues/42) with three fix options (`__main__` fallback, module aliasing, shared state module). The same pattern likely affects every `transforms/` module that late-imports `postprocess` for state — should be audited.
 
-- `{eq}` resolution: 88.8% → **100%**
-- Broken citations: 5 → 9 → 9 → **0**
-- `lstlisting` cross-ref: broken → working
-- Caption refs (sec/ch): broken → working
-- Caption refs (eq/alg/fig): still broken — typed-dispatch pending #38
-- Algorithm body cross-refs: discovered broken in Round 4, tracked at #39
-- KaTeX math warnings: 1 (Round 4), tracked at #40
+ℹ️ **9 pre-existing KaTeX warnings surfaced** (not refactor-induced — verified by rolling upstream back to the Round 3 baseline `8b2ceec` and re-running; warning count was 9 there too). Round 4's grep only matched `Expected 'EOF'` patterns, so these were missed. Patterns: `T_{\mathrm{AT}}=3\,^\circ\mathrm{C}` (8 instances; KaTeX bug or limitation with `\,^\circ`), `Multiple \tag` (1 instance in ch11 `:= ... \tag*{(capital Euler)} \\ := ... \tag*{(budget)}` — source uses `\tag*` per row of an `align`, which KaTeX rejects on multi-row aligned blocks). These are KaTeX-side limitations, not converter bugs.
 
 ---
 
@@ -275,8 +257,15 @@ Verified against `mystmd/ch11_climate.md:911–944`. Result: **substantial match
 
 | Item | Tracker | Status |
 |---|---|---|
-| `_apply_algorithm_markers`: `\label{alg:X}` as sibling of `\caption{}` not preserved (3 body cross-refs broken) | [#39](https://github.com/QuantEcon/claude-latex-to-myst/issues/39) | ⏳ open |
-| `convert_html_figures::extract_caption`: HTML entities (`&gt;`/`&lt;`) inside `$math$` regions break KaTeX (1 instance) | [#40](https://github.com/QuantEcon/claude-latex-to-myst/issues/40) | ⏳ open |
+| `_apply_algorithm_markers`: `\label{alg:X}` as sibling of `\caption{}` not preserved | [#39](https://github.com/QuantEcon/claude-latex-to-myst/issues/39) | ✅ closed (partial — see #43) |
+| `convert_html_figures::extract_caption`: HTML entities inside math break KaTeX | [#40](https://github.com/QuantEcon/claude-latex-to-myst/issues/40) | ✅ closed — works |
+
+### Round 5 follow-ups
+
+| Item | Tracker | Status | Severity |
+|---|---|---|---|
+| **P3a refactor: TIKZ_FIGURE_MAP empty at resolve_tikz_figures call time — every `tikz_overrides.py`-using book has all figures broken** | [#42](https://github.com/QuantEcon/claude-latex-to-myst/issues/42) | ⏳ open | **critical** |
+| #39 follow-up: `_extract_caption` doesn't handle `\caption{}\label{}` when both come BEFORE the algorithm body (the dominant LaTeX convention) | [#43](https://github.com/QuantEcon/claude-latex-to-myst/issues/43) | ⏳ open | medium |
 
 ### Not (yet) upstream-tracked
 
