@@ -266,6 +266,8 @@ Verified against `mystmd/ch11_climate.md:911–944`. Result: **substantial match
 |---|---|---|---|
 | **P3a refactor: TIKZ_FIGURE_MAP empty at resolve_tikz_figures call time — every `tikz_overrides.py`-using book has all figures broken** | [#42](https://github.com/QuantEcon/claude-latex-to-myst/issues/42) | ⏳ open | **critical** |
 | #39 follow-up: `_extract_caption` doesn't handle `\caption{}\label{}` when both come BEFORE the algorithm body (the dominant LaTeX convention) | [#43](https://github.com/QuantEcon/claude-latex-to-myst/issues/43) | ⏳ open | medium |
+| Multi-row `\begin{align}` with per-row `\tag*{...}` breaks KaTeX (Multiple \tag) — converter could drop, split, or convert | [#45](https://github.com/QuantEcon/claude-latex-to-myst/issues/45) | ⏳ open | low |
+| `\,^\circ\mathrm{C}` breaks KaTeX (`Got group of unknown type: 'internal'`) — investigation only; likely KaTeX upstream | [#46](https://github.com/QuantEcon/claude-latex-to-myst/issues/46) | ⏳ open | low (note) |
 
 ### Not (yet) upstream-tracked
 
