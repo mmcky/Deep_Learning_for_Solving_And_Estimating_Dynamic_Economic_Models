@@ -3,7 +3,8 @@
 **Scope:** structural counts + targeted spot-checks of the MyST/HTML build against the LaTeX source and rendered PDF.
 **Initial validation:** 2026-05-24 (commit `a26cddc`).
 **Round 2 update:** 2026-05-25 — re-tally after upstream landed fixes for issues #30–#33.
-**Round 3 update:** 2026-05-25 — re-tally after upstream landed fixes for follow-ups #35, #36, #37. Only #38 remains open from the Round 2 batch.
+**Round 3 update:** 2026-05-25 — re-tally after upstream landed fixes for follow-ups #35, #36, #37.
+**Round 4 update:** 2026-05-25 — drill into deferred items (paragraph heads, tables, footnotes, algorithms); added frontmatter/appendix and build-warning checks. 2 new bugs filed (#39 algorithm label, #40 HTML entity in math); 2 prior "gaps" resolved as counting artifacts.
 **Branch:** `mystmd-conversion`
 **Sources:**
 - `lecture_script/Deep_Learning_for_Solving_And_Estimating_Dynamic_Economic_Models.tex` (24,557 source lines, 329-page PDF)
@@ -16,35 +17,54 @@
 
 ---
 
-## 1. Headline result (Round 3)
+## 1. Headline result (Round 4)
 
-| Dimension | Source | MyST | Match? | R2 | R1 |
-|---|---|---|---|---|---|
-| Chapters (incl. frontmatter + appendices) | 22 | 23 (12 ch + 6 app + 5 frontmatter) | ✅ | ✅ | ✅ |
-| Sections (`\section` / `## `) | 144 | 144 | ✅ | ✅ | ✅ |
-| Subsections (`\subsection` / `### `) | 81 | 81 | ✅ | ✅ | ✅ |
-| Subsubsections (`\subsubsection` / `#### `) | 5 | 5 | ✅ | ✅ | ✅ |
-| Paragraph heads (`\paragraph` / `##### `) | 385 | 372 | ⚠️ off by 13 | ⚠️ same | ⚠️ same |
-| Figure placeholders | 88 | **88 / 88 rendering** | ✅ | ✅ | ✅ |
-| Unique cross-ref targets — `{numref}` (fig/tab) | — | 125 / 125 resolve | ✅ | ✅ | ✅ |
-| Unique cross-ref targets — `{ref}` | — | 91 / 102 resolve | ⚠️ 11 broken | ⚠️ 12 broken | ⚠️ 1 broken |
-| Unique cross-ref targets — `{eq}` | — | **160 / 160 resolve** | ✅ | ⚠️ 1 broken | ⚠️ 18 broken |
-| Unique citation keys vs `references.bib` | 254 in source | **all resolve** | ✅ | ⚠️ 9 regressions | ⚠️ 5 partial |
-| Math macros declared in `myst.yml` | 16 used | 16 covered | ✅ | ✅ | ✅ |
-| tcolorbox callouts → `{prf:remark}` / `{prf:definition}` | 71 | 71 | ✅ | ✅ | ✅ |
-| Caption section/chapter `\ref{}` resolution | — | works via `{ref}` directive | ✅ | ✅ | ❌ wrong number |
-| Caption equation/algorithm `\eqref{}` / `\ref{}` resolution | — | emits `{ref}` instead of typed directive | ⚠️ #38 | ⚠️ same | n/a (uncovered Round 1) |
-| `lstlisting` `label=…` to MyST anchor | — | `{code-block}` with `:name:` | ✅ | ⚠️ #36 | ❌ no anchor |
+| Dimension | Source | MyST | Match? | R3 | R2 | R1 |
+|---|---|---|---|---|---|---|
+| Chapters (incl. frontmatter + appendices) | 22 | 23 | ✅ | ✅ | ✅ | ✅ |
+| Sections (`\section` / `## `) | 144 | 144 | ✅ | ✅ | ✅ | ✅ |
+| Subsections / subsubsections | 81 / 5 | 81 / 5 | ✅ | ✅ | ✅ | ✅ |
+| Paragraph heads (`\paragraph` / `##### `) | 385 | **385** | ✅ | ⚠️ off by 13* | ⚠️ same | ⚠️ same |
+| Footnotes (`\footnote` / `[^N]:`) | 24 | **24** | ✅ | ⚠️ off by 6* | n/a | n/a |
+| Figure placeholders | 88 | 88 / 88 rendering | ✅ | ✅ | ✅ | ✅ |
+| Captioned tables — anchors preserved | 41 | 41 | ✅ | n/a | n/a | n/a |
+| Captioned tables — proper MyST `{list-table}` AST | 41 | 4 (10%) | ⚠️ #34 | ⚠️ same | ⚠️ same | ⚠️ same |
+| `\begin{algorithm}` floats | 2 | 2 (as `{prf:algorithm}`) | ✅ | n/a | n/a | n/a |
+| `\label{alg:X}` cross-ref round-trip | 2 labels | broken — auto-name used | ⚠️ #39 | n/a | n/a | n/a |
+| Unique cross-ref targets — `{numref}` (fig/tab) | — | 125 / 125 resolve | ✅ | ✅ | ✅ | ✅ |
+| Unique cross-ref targets — `{ref}` | — | 91 / 102 resolve | ⚠️ 11 broken | ⚠️ same | ⚠️ 12 | ⚠️ 1 |
+| Unique cross-ref targets — `{eq}` | — | 160 / 160 resolve | ✅ | ✅ | ⚠️ 1 | ⚠️ 18 |
+| Unique citation keys vs `references.bib` | 254 | all resolve | ✅ | ✅ | ⚠️ 9 | ⚠️ 5 |
+| Math macros declared in `myst.yml` | 16 used | 16 covered | ✅ | ✅ | ✅ | ✅ |
+| tcolorbox callouts → `prf:*` directives | 71 | 71 | ✅ | ✅ | ✅ | ✅ |
+| Caption section/chapter `\ref{}` | — | works via `{ref}` | ✅ | ✅ | ✅ | ❌ |
+| Caption equation/algorithm refs | — | emits `{ref}` instead of typed | ⚠️ #38 | ⚠️ same | ⚠️ same | n/a |
+| `lstlisting` `label=…` to MyST anchor | — | `{code-block}` with `:name:` | ✅ | ✅ | ⚠️ #36 | ❌ |
+| KaTeX build warnings (math parse errors) | — | 1 (HTML entity in caption math) | ⚠️ #40 | n/a | n/a | n/a |
 
-**Round 3 verdict:** with #35/#36/#37 landed, the build now resolves **every equation cross-reference and every citation in the book**. The 11 remaining broken `{ref}` are all the typed-prefix caption refs (tracked at [#38](https://github.com/QuantEcon/claude-latex-to-myst/issues/38)) — a single class of bug with a clear fix proposed.
+\* The paragraph-heads and footnotes "gaps" in Rounds 1–3 were `grep -h` artifacts (excluded `mystmd/preface.md`/`mystmd/how_to_read.md` from the glob; `grep -c` counts lines not matches). Both fully resolved in Round 4 with per-chapter cross-tabulation.
 
-Net change from Round 1 (initial validation) to Round 3:
+**Round 4 verdict:** the build is fundamentally faithful. After 4 rounds of upstream fixes:
 
-- `{eq}` resolution: 142/160 (88.8%) → **160/160 (100%)**
-- Broken citation keys: 5 → 9 → **0**
-- `lstlisting` cross-ref: broken → broken-different → **working**
-- Caption refs: section/chapter ✅ resolved; typed-prefix targets still routed via generic `{ref}` (= 11 broken)
-- Multi-column tables (≥ 3 col): still not converted to `{list-table}` — [#34](https://github.com/QuantEcon/claude-latex-to-myst/issues/34) is open as a feature request
+- ✅ **All** equation cross-refs resolve (160/160).
+- ✅ **All** citations resolve (254 unique keys).
+- ✅ **All** `{numref}` figure/table refs resolve (125/125).
+- ✅ Paragraph heads, footnotes, figures, headings, math macros, callouts, lstlistings — all match source.
+- ⚠️ 3 outstanding bug classes, each with an open upstream issue + clear fix:
+  - **#38** — caption refs to `eq:`/`alg:` need typed dispatch (11 broken refs)
+  - **#39** — algorithm `\label{}` as sibling of `\caption{}` not preserved (3 body refs broken)
+  - **#40** — HTML entities (`&gt;`) inside `$math$` in captions break KaTeX (1 confirmed instance)
+- ⏳ 1 feature request: **#34** — 3+ col tables to `{list-table}` (4/41 captioned tables convert; the other 37 render as raw pandoc dash-rule text)
+
+Net change from Round 1 → Round 4:
+
+- `{eq}` resolution: 88.8% → **100%**
+- Broken citations: 5 → 9 → 9 → **0**
+- `lstlisting` cross-ref: broken → working
+- Caption refs (sec/ch): broken → working
+- Caption refs (eq/alg/fig): still broken — typed-dispatch pending #38
+- Algorithm body cross-refs: discovered broken in Round 4, tracked at #39
+- KaTeX math warnings: 1 (Round 4), tracked at #40
 
 ---
 
@@ -250,6 +270,13 @@ Verified against `mystmd/ch11_climate.md:911–944`. Result: **substantial match
 | `convert_citations`: trailing `:` regression | [#36](https://github.com/QuantEcon/claude-latex-to-myst/issues/36) | ✅ closed — trailing-`:` no longer captured |
 | `convert_equations`: multline/gather coverage | [#37](https://github.com/QuantEcon/claude-latex-to-myst/issues/37) | ✅ closed — extended to all multi-row envs |
 | Caption-ref typed dispatch (`{eq}`/`{numref}`/`{prf:ref}`) | [#38](https://github.com/QuantEcon/claude-latex-to-myst/issues/38) | ⏳ open — 11 caption refs still routed as generic `{ref}` |
+
+### Round 4 follow-ups
+
+| Item | Tracker | Status |
+|---|---|---|
+| `_apply_algorithm_markers`: `\label{alg:X}` as sibling of `\caption{}` not preserved (3 body cross-refs broken) | [#39](https://github.com/QuantEcon/claude-latex-to-myst/issues/39) | ⏳ open |
+| `convert_html_figures::extract_caption`: HTML entities (`&gt;`/`&lt;`) inside `$math$` regions break KaTeX (1 instance) | [#40](https://github.com/QuantEcon/claude-latex-to-myst/issues/40) | ⏳ open |
 
 ### Not (yet) upstream-tracked
 
