@@ -404,7 +404,7 @@ The full development -- the stochastic-calculus background, the formal HJB and K
 ## Application: Black--Scholes PDE
 The Black--Scholes PDE has a closed-form solution, so a PINN run on it is not motivated by the absence of an analytical answer. The pedagogical purpose is exactly the opposite: it is a known-answer benchmark. We verify that the same PINN recipe (smooth activations, hard or soft BCs, autodiff for $V_S$ and $V_{SS}$, Adam-then-L-BFGS) reproduces a textbook formula on a clean domain before applying it to PDEs without closed forms (American options, jump diffusions, multi-asset pricing, HJBs with multiple state variables). If the network cannot recover Black--Scholes to plotting accuracy, no further trust should be placed in its output on harder problems.
 
-The Black--Scholes PDE for a European call option with strike $K$, maturity $T$, risk-free rate $r$, and volatility $\sigma$ is the canonical option-pricing benchmark of {cite:t}`black1973pricing:`
+The Black--Scholes PDE for a European call option with strike $K$, maturity $T$, risk-free rate $r$, and volatility $\sigma$ is the canonical option-pricing benchmark of {cite:t}`black1973pricing`:
 
 $$
 \frac{\partial V}{\partial t} + \frac{1}{2}\sigma^2 S^2 \frac{\partial^2 V}{\partial S^2} + rS\frac{\partial V}{\partial S} - rV = 0,

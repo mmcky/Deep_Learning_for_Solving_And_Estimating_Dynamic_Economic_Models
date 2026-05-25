@@ -205,8 +205,7 @@ $$
 \frac{\partial \mathcal{L}}{\partial k_{t+1}^j}
 = \beta^t \!\left[-\lambda_t\!\left(1 + \frac{\partial \Gamma_t^j}{\partial k_{t+1}^j}\right) + \mu_t^j\right] \\
 + \beta^{t+1}\,\mathbb{E}_t\!\left[\lambda_{t+1}\!\left(\frac{\partial Y_{t+1}^j}{\partial k_{t+1}^j} + (1-\delta) - \frac{\partial \Gamma_{t+1}^j}{\partial k_{t+1}^j}\right) - \mu_{t+1}^j(1-\delta)\right] = 0.
-\label{eq:irbc_foc_k_raw}
-$$
+$$ (eq-irbc_foc_k_raw)
 
 Now define the *marginal product of capital* (inclusive of depreciation and adjustment cost effects):
 

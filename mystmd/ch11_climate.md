@@ -473,7 +473,7 @@ $$
 \hat{\beta}_t \;:=\; \exp\!\left(-\rho + \left(1-\frac{1}{\psi}\right) g^A_t + g^L_t\right),
 $$ (eq-iam_eff_beta)
 
-where $g^A_t := \ln(A_{t+1}/A_t)$ and $g^L_t := \ln(L_{t+1}/L_t)$ are annual log changes. Equation {eq}`eq-iam_eff_beta` mirrors Equation (38) of Online Appendix D of {cite:t}`Folini_2021:` the population term enters linearly because $L_t$ enters the felicity weight $L_t (C_t/L_t)^{1-1/\psi}$ linearly, while the productivity term inherits the $1-1/\psi$ exponent from the per-effective-capita rescaling of consumption. All intertemporal equations below use $\hat{\beta}_t$ in place of $e^{-\rho}$. For a non-annual time step, replace $\rho$ by $\rho\Delta_t$ and $g^A_t, g^L_t$ by their per-period analogues.
+where $g^A_t := \ln(A_{t+1}/A_t)$ and $g^L_t := \ln(L_{t+1}/L_t)$ are annual log changes. Equation {eq}`eq-iam_eff_beta` mirrors Equation (38) of Online Appendix D of {cite:t}`Folini_2021`: the population term enters linearly because $L_t$ enters the felicity weight $L_t (C_t/L_t)^{1-1/\psi}$ linearly, while the productivity term inherits the $1-1/\psi$ exponent from the per-effective-capita rescaling of consumption. All intertemporal equations below use $\hat{\beta}_t$ in place of $e^{-\rho}$. For a non-annual time step, replace $\rho$ by $\rho\Delta_t$ and $g^A_t, g^L_t$ by their per-period analogues.
 
 ##### Sign convention for the climate multipliers.
 
@@ -934,7 +934,7 @@ Climate side of CDICE versus TCRE. The 5-state CDICE module on the left, in whic
 
 (sec-olg_iam)=
 ### The OLG-IAM Model
-The model features $A=12$ overlapping generations of selfish agents (ages 20--80 in 5-year periods), a competitive firm, and a simplified, cumulative-emissions climate module in the spirit of {cite:t}`dietz2019cumulative:`
+The model features $A=12$ overlapping generations of selfish agents (ages 20--80 in 5-year periods), a competitive firm, and a simplified, cumulative-emissions climate module in the spirit of {cite:t}`dietz2019cumulative`:
 
 - **Technology:** Output is $Y_t = \Omega_t(T_t)\,\Phi(\mu_t)\,K_t^\alpha L_t^{1-\alpha}$ with retained-output damage factor $\Omega_t$ and net-of-abatement-cost factor $\Phi(\mu_t) = 1 - \theta_1\mu_t^{\theta_2}$; emissions are $e_t = (1-\mu_t)\kappa_t Y_t$ with stochastic carbon intensity $\kappa_t$; the period resource constraint is $C_t + K_{t+1} = Y_t + (1-\delta)K_t$.
 
@@ -1038,7 +1038,7 @@ $$
 (\vartheta_0,\, \vartheta_E,\, \vartheta_\kappa,\, \vartheta_{TP}) = (-0.237,\, 0.203,\, 0.037,\, 0.012),
 $$ (eq-pareto_full_tax_coefficients)
 
-with the associated aggregate welfare gain rising only from about $0.42\%$ to about $0.45\%$. The cohort-by-cohort welfare profile (not plotted; see {cite:t}`kubler2025using` for the figure) again keeps every cohort weakly above its BAU baseline, and the marginal welfare improvement from the extra two policy-state coefficients is small. This is the substantive headline of {cite:t}`kubler2025using:` once intergenerational transfers are optimized, the simple cumulative-emissions tax captures most of the feasible Pareto-improving welfare gain. More policy-state variables improve the fit to climate risk, but the participation constraints bind tightly enough that the marginal welfare benefit of policy complexity is small. $D_t$ is a deterministic function of variables already in the SOLG state, so it can be evaluated inside each forward pass; the exact functional form is in the paper.
+with the associated aggregate welfare gain rising only from about $0.42\%$ to about $0.45\%$. The cohort-by-cohort welfare profile (not plotted; see {cite:t}`kubler2025using` for the figure) again keeps every cohort weakly above its BAU baseline, and the marginal welfare improvement from the extra two policy-state coefficients is small. This is the substantive headline of {cite:t}`kubler2025using`: once intergenerational transfers are optimized, the simple cumulative-emissions tax captures most of the feasible Pareto-improving welfare gain. More policy-state variables improve the fit to climate risk, but the participation constraints bind tightly enough that the marginal welfare benefit of policy complexity is small. $D_t$ is a deterministic function of variables already in the SOLG state, so it can be evaluated inside each forward pass; the exact functional form is in the paper.
 
 ##### Runtime in numbers.
 

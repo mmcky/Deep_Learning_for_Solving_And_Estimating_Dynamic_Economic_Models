@@ -673,7 +673,7 @@ Three implementation choices in {prf:ref}`algo-ks_seqspace` are worth flagging. 
 
 ```{prf:remark}
 
-Four operational rules of thumb, distilled from {cite:t}`azinovicyangzemlicka2025sequencespace:`
+Four operational rules of thumb, distilled from {cite:t}`azinovicyangzemlicka2025sequencespace`:
 
 - **Choosing the truncation length $T$.** Three sensible heuristics, in increasing order of conservatism: (i) for OLG models, set $T$ to roughly two life-cycles, so that all shocks experienced by any household alive today are inside the window; (ii) start short and iteratively increase $T$, monitoring the equilibrium residual; (iii) "overkill", set $T$ such that $\varrho_{\text{shock}}^T \le \text{tol}$ with $\text{tol} \in [10^{-8}, 10^{-6}]$, since long histories are cheap to feed.
 

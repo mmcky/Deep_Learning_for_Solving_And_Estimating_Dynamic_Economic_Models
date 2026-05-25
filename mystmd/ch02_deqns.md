@@ -242,7 +242,9 @@ The success of the DEQN approach rests on three pillars. First, neural networks 
 ```
 
 
-``` {caption="Representative DEQN loss for Brock--Mirman with path averaging.  The network outputs a savings share $s \\in (0,1)$ via a sigmoid, which jointly enforces $C > 0$ \\emph{and} $K' > 0$; softplus on $C$ alone would not, since $C > z K^\\alpha$ would yield $K' < 0$ and an undefined $K'^{\\,\\alpha-1}$."}
+```{code-block} text
+:caption: Representative DEQN loss for Brock--Mirman with path averaging. The network outputs a savings share $s \\in (0,1)$ via a sigmoid, which jointly enforces $C > 0$ \\emph{and} $K' > 0$; softplus on $C$ alone would not, since $C > z K^\\alpha$ would yield $K' < 0$ and an undefined $K'^{\\,\\alpha-1}$.
+
 def deqn_loss(model, K, z, beta, alpha, z_next):
     Y       = z * K**alpha                   # output today
     s       = model(K, z)                    # savings share in (0,1) via sigmoid
@@ -255,7 +257,6 @@ def deqn_loss(model, K, z, beta, alpha, z_next):
     G = 1.0 - beta * (C / C_next) * alpha * z_next * K_next**(alpha-1)
     return tf.reduce_mean(G**2)
 ```
-
 A Gauss--Hermite variant (developed formally in {ref}`sec-gh_tensor_product`) replaces the single shock draw `z_next` by a $Q$-node weighted sum $\mathrm{E}[\,\alpha z' K'^{\alpha-1}/C'\mid z\,] \approx \sum_{q=1}^{Q} w_q\,\alpha z_q' K'^{\alpha-1}/C'(K',z_q')$ with $z_q' = z^\varrho\exp(\sigma_z\varepsilon_q)$ at the rescaled Hermite nodes $\varepsilon_q$; in practice $Q=5$ already drives the quadrature error below the training error. The autodiff companion notebook `03_Brock_Mirman_Uncertainty_AutoDiff_DEQN.ipynb` implements this variant explicitly.
 
 (sec-deqn_hard_soft)=
@@ -546,7 +547,10 @@ $$ (eq-ad_euler)
 
 Here $K_{t+2}=g(K_{t+1},z_{t+1})$. Both terms in {eq}`eq-ad_euler` are derivatives with respect to the same physical variable $K_{t+1}$, but one treats $K_{t+1}$ as the *choice* of period $t$ (slot 2) and the other treats $K_{t+1}$ as the *state* of period $t+1$ (slot 1). Every term is therefore a *partial derivative of the same function $\Pi$*. Neither $u'$ nor the marginal product of capital, nor the envelope formula $V'(K) = u'(C)(\alpha K^{\alpha-1} + 1 - \delta)$ need to be written out by hand. `tf.GradientTape` records the forward evaluation of $\Pi$ and produces both partials on demand; the expectation is approximated by any of the quadrature rules of {ref}`sec-quadrature_rules`. The code is shorter than the pen-and-paper counterpart and, more importantly, entirely *model-agnostic*: swapping log for CRRA utility means editing the body of `Pi` and nothing else.
 
-``` {#lst:autodiff_euler caption="Autodiff Euler residual for Brock--Mirman.  The function \\texttt{Pi} is the only model-specific code; the rest is generic.  A full implementation lives in the autodiff chapter's code folder, notebook \\protect\\texttt{02_Brock_Mirman_AutoDiff_DEQN.ipynb}." label="lst:autodiff_euler"}
+```{code-block} text
+:name: lst-autodiff_euler
+:caption: Autodiff Euler residual for Brock--Mirman. The function \\texttt{Pi} is the only model-specific code; the rest is generic. A full implementation lives in the autodiff chapter's code folder, notebook \\protect\\texttt{02_Brock_Mirman_AutoDiff_DEQN.ipynb}.
+
 def Pi(K_in, K_out, z_in):
     Y = z_in * K_in ** alpha
     C = Y + (1.0 - delta) * K_in - K_out
@@ -565,7 +569,6 @@ def euler_residual(K_t, z_t, K_tp1, K_tp2, z_tp1):
     d1 = t2.gradient(pi_tp1, K_tp1)
     return d2 + beta * d1
 ```
-
 ##### Cross-checking the autodiff loss.
 
 An important pedagogical point is that the autodiff residual {eq}`eq-ad_euler` and the hand-derived residual of {ref}`sec-bm` are the same mathematical object. The companion autodiff notebooks implement both expressions on the same network and report the maximum absolute difference, which in our (seeded) runs is of order $10^{-6}$--$10^{-7}$ in the deterministic case and $10^{-6}$--$10^{-5}$ in the stochastic case with Gauss--Hermite quadrature (float32 arithmetic; float64 tightens this by roughly seven orders of magnitude). In every case the residual is consistent with finite-precision arithmetic, graph ordering, and quadrature accumulation rather than with any difference in the underlying mathematics. Under full depreciation ($\delta = 1$) the trained policy from the autodiff loss matches the analytical closed-form $K_{t+1} = \alpha\beta K_t^{\alpha}$ (respectively $\alpha\beta z_t K_t^{\alpha}$) to mean relative error $\sim 10^{-4}$ in the deterministic case and $\sim 10^{-3}$ on a coarse classroom grid in the stochastic case (the residual rises with the quadrature footprint), confirming that minimizing the autodiff residual recovers the true policy when one is available.
@@ -733,4 +736,4 @@ Worked solutions and guidance for these exercises appear in Appendix {ref}`app-
 
 8.   **[Computational\] Implementation.** Modify notebook `lecture_03_02_Brock_Mirman_Uncertainty_DEQN.ipynb` to use a tanh activation instead of Swish. Does training still converge? How does the time-to-converge change?
 
-[^1]: In the sense of {cite:t}`ECTA:ECTA1716:` an approximation of the equilibrium policy (or value) functions over the entire economically relevant region of the state space, in particular over the model's ergodic set, as opposed to a *local* (perturbation) solution that is accurate only in a neighborhood of the deterministic steady state.
+[^1]: In the sense of {cite:t}`ECTA:ECTA1716`: an approximation of the equilibrium policy (or value) functions over the entire economically relevant region of the state space, in particular over the model's ergodic set, as opposed to a *local* (perturbation) solution that is accurate only in a neighborhood of the deterministic steady state.
