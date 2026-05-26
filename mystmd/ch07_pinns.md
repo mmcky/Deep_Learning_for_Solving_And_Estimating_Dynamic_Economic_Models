@@ -216,13 +216,13 @@ The plain MLP used in the examples so far -- and, below, for the cake-eating HJB
 
 Qualitative MLP vs. DGM comparison across the problem classes of this chapter. "Comparable" means the two architectures train to similar final residual at similar wall time; "preferred" indicates which one a practitioner should reach for first. A quantitative benchmark on a fixed pair (residual, wall time, parameters) is the natural project extension and is not run here.
 
-| ****Problem class**** | **MLP** | **DGM** | **Where DGM helps** |
-|---|---|---|---|
-| **1D ODE ({ref}`sec-bc_soft_hard`)** | comparable | comparable | not in 1D smooth problems; MLP preferred for transparency |
-| **2D Poisson ({ref}`sec-bc_soft_hard`)** | comparable | comparable | marginally, on stiff sources |
-| **Cake-eating HJB ({ref}`sec-cake_eating_hjb`)** | preferred | comparable | MLP wins when hard BCs already kill the boundary loss; DGM wins if kinks at policy-switching points dominate |
-| **Black--Scholes ({ref}`sec-bs_pinn`)** | adequate | cleaner near kink | sharp payoff kink at $S=K$; DGM gates absorb local geometry better |
-| **High-dim HJB ($d\gtrsim 4$)** | curse of dim. visible | preferred | input-skip connections retain raw coordinates at every depth, mitigating expressivity loss across layers |
+| **Problem class** | **MLP** | **DGM** | **Where DGM helps** |
+|---|:---:|:---:|---|
+| 1D ODE ({ref}`sec-bc_soft_hard`) | comparable | comparable | not in 1D smooth problems; MLP preferred for transparency |
+| 2D Poisson ({ref}`sec-bc_soft_hard`) | comparable | comparable | marginally, on stiff sources |
+| Cake-eating HJB ({ref}`sec-cake_eating_hjb`) | preferred | comparable | MLP wins when hard BCs already kill the boundary loss; DGM wins if kinks at policy-switching points dominate |
+| Black--Scholes ({ref}`sec-bs_pinn`) | adequate | cleaner near kink | sharp payoff kink at $S=K$; DGM gates absorb local geometry better |
+| High-dim HJB ($d\gtrsim 4$) | curse of dim. visible | preferred | input-skip connections retain raw coordinates at every depth, mitigating expressivity loss across layers |
 ````
 
 For high-dimensional PDEs, {cite:t}`sirignano2018dgm` introduced the Deep Galerkin Method (DGM), an architecture with LSTM-style gating {cite:p}`hochreiter1997long` and skip connections from the input layer to every hidden layer reminiscent of Highway Networks {cite:p}`srivastava2015highway` (the immediate precursor of ResNets, in which a learned gate controls how much of the previous representation is carried forward unchanged versus transformed).[^2] A related deep BSDE-based formulation was introduced by {cite:t}`e2017deep` (E--Han--Jentzen) and developed in the companion paper of {cite:t}`han2018solving` (Han--Jentzen--E). An accessible exposition of DGM together with several PDE applications is given by {cite:t}`al2018solving`, which also introduces the gate naming convention adopted below. The original DGM architecture of {cite:t}`sirignano2018dgm` uses four gates at each layer $l$:
@@ -287,8 +287,11 @@ $$
 V(a) = \max_c \left\{\frac{c^{1-\gamma}}{1-\gamma}\,\Delta t + e^{-\rho\,\Delta t}\,V\!\bigl(a + (ra - c)\,\Delta t\bigr)\right\} + \mathcal{O}(\Delta t^2).
 $$ (eq-cake_bellman_dt)
 
-Now expand both the discount factor and the value function to first order in $\Delta t$: (eq-cake_expand_disc)=
+Now expand both the discount factor and the value function to first order in $\Delta t$: 
+
+(eq-cake_expand_disc)=
 (eq-cake_expand_V)=
+
 $$
 \begin{aligned}
 e^{-\rho\,\Delta t} &\approx 1 - \rho\,\Delta t,  \\

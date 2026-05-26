@@ -32,20 +32,20 @@ The shock decomposition of {ref}`sec-irbc_setup` below, $z^{j\prime} = \rho_z z^
 
 Symbol cheat-sheet for the IRBC model. Note the IES-vs-CRRA convention: here $\gamma_j$ is the intertemporal elasticity, and the implied risk aversion is $1/\gamma_j$; later chapters on continuous-time HA models and climate use $\gamma$ for CRRA and $\psi$ for IES.
 
-| $\textbf{Symbol}$ | **Role** | **Range / sign** | **Calibration** |
+| **Symbol** | **Role** | **Range / sign** | **Calibration** |
 |---|---|---|---|
-| $\gamma_j$ | IES of country $j$ (*not* CRRA) | $>0$ | $[0.25, 1.0]$ linearly spaced |
-| $\tau^j$ | Pareto weight on country $j$ | $>0$ | $(A_{\mathrm{tfp}}-\delta)^{1/\gamma_j}$ |
-| $\lambda_t$ | Aggregate resource-constraint multiplier | $>0$ | $\lambda_{\mathrm{ss}} = 1$ |
-| $\mu_t^j$ | Irreversibility KKT multiplier on $I^j \ge 0$ | $\ge 0$ | $0$ in slack regime |
-| $A_{\mathrm{tfp}}$ | TFP normalization constant | $>0$ | $\approx 0.0559$ |
-| $\zeta$ | Capital share in Cobb--Douglas | $\in (0,1)$ | $0.36$ |
-| $\Gamma^j$ | Quadratic adjustment-cost level | $\ge 0$ | $\kappa=0.50$ |
-| $\rho_z$ | TFP persistence | $\in [0,1)$ | $0.95$ |
-| $\sigma_e$ | Innovation s.d. per component | $>0$ | $0.01$ |
-| $\varepsilon^j$ | Idiosyncratic innovation | $\mathcal N(0,1)$ | i.i.d. across $j,t$ |
-| $\varepsilon^{\mathrm{agg}}$ | Aggregate innovation | $\mathcal N(0,1)$ | common factor |
-| $\kappa$ | Adjustment-cost intensity | $\ge 0$ | $0.50$ |
+| \_j | IES of country $j$ (*not* CRRA) | $>0$ | $[0.25, 1.0]$ linearly spaced |
+| \^j | Pareto weight on country $j$ | $>0$ | $(A_{\mathrm{tfp}}-\delta)^{1/\gamma_j}$ |
+| \_t | Aggregate resource-constraint multiplier | $>0$ | $\lambda_{\mathrm{ss}} = 1$ |
+| \_t\^j | Irreversibility KKT multiplier on $I^j \ge 0$ | $\ge 0$ | $0$ in slack regime |
+| A\_ | TFP normalization constant | $>0$ | $\approx 0.0559$ |
+|  | Capital share in Cobb--Douglas | $\in (0,1)$ | $0.36$ |
+| \^j | Quadratic adjustment-cost level | $\ge 0$ | $\kappa=0.50$ |
+| \_z | TFP persistence | $\in [0,1)$ | $0.95$ |
+| \_e | Innovation s.d. per component | $>0$ | $0.01$ |
+| \^j | Idiosyncratic innovation | $\mathcal N(0,1)$ | i.i.d. across $j,t$ |
+| \^ | Aggregate innovation | $\mathcal N(0,1)$ | common factor |
+|  | Adjustment-cost intensity | $\ge 0$ | $0.50$ |
 ````
 
 The international real business cycle (IRBC) model, introduced by {cite:t}`backus1992international`, extends the single-country growth model to $N$ heterogeneous countries, each endowed with country-specific capital $k^j$ and total factor productivity $z^j$. The model features complete markets, irreversible investment, and convex capital adjustment costs, and serves as the workhorse test case for high-dimensional solution methods {cite:p}`ECTA:ECTA1716`. Here, we apply the DEQN methodology of {cite:t}`azinovicDEEPEQUILIBRIUMNETS2022` to this setting.
@@ -97,7 +97,10 @@ $$
 \Gamma^j = \frac{\kappa}{2}\, k^j \left(\frac{k^{j\prime}}{k^j} - 1\right)^{\!2},
 $$ (eq-irbc_adjcost)
 
-with marginal derivatives that appear in the Euler equations: (eq-irbc_adjcost_derivs)=
+with marginal derivatives that appear in the Euler equations: 
+
+(eq-irbc_adjcost_derivs)=
+
 $$
 \begin{aligned}
 \frac{\partial \Gamma^j}{\partial k^{j\prime}} &= \kappa\left(\frac{k^{j\prime}}{k^j} - 1\right), &
@@ -127,7 +130,7 @@ Throughout the companion notebooks `lecture_04_01_IRBC_DEQN_smooth.ipynb` and `l
 Reference IRBC calibration used in the companion notebook. Countries' IES values $\gamma_j$ are linearly spaced in $[\gamma_{\min}, \gamma_{\max}]$. Pareto weights are computed from {eq}`eq-pareto_calibration`.
 
 | **Symbol** | **Name** | **Value** | **Description** |
-|---|---|---|---|
+|---|---|---:|---|
 | $\beta$ | Discount factor | 0.99 | Quarterly |
 | $\zeta$ | Capital share | 0.36 | Cobb--Douglas |
 | $\delta$ | Depreciation | 0.01 | Low quarterly rate |
@@ -295,12 +298,12 @@ The DEQN template is the same in both cases; only the input/output dimensions, t
 
 |  | **Brock--Mirman (Ch. {ref}`ch-deqn`)** | **IRBC (this chapter)** |
 |---|---|---|
-| Countries |  | $N$ |
+| Countries | 1 | $N$ |
 | States | $(K, z)$ | $(k^1,\ldots,k^N, z^1,\ldots,z^N)$ |
 | Policies | $C$ | $(k^{1\prime},\ldots,k^{N\prime}, \lambda, \mu^1,\ldots,\mu^N)$ |
-| Loss terms | Euler | $N$ Euler $+$ 1 ARC $+$ $N$ Fischer--Burmeister |
+| Loss terms | 1 Euler | $N$ Euler $+$ 1 ARC $+$ $N$ Fischer--Burmeister |
 | Constraints | none | irreversibility, convex adjustment costs |
-| Shocks per period |  | $N+1$ (one idiosyncratic per country + one aggregate) |
+| Shocks per period | 1 | $N+1$ (one idiosyncratic per country + one aggregate) |
 | Output activation | softplus or sigmoid | softplus |
 | Analytical solution | yes (log utility, $\delta=1$) | no |
 ````
@@ -313,7 +316,7 @@ The full system of equations comprises $N$ Euler equations, $N$ Fischer--Burmeis
 Scaling of the IRBC state, policy, equation, and quadrature dimensions with the number of countries $N$. The state, policy, and equation counts grow linearly. Tensor-product Gauss--Hermite quadrature grows as $Q^{N+1}$, while the Stroud-3 monomial rule uses only $2(N+1)$ nodes; this is why the notebook uses Gauss--Hermite only for the two-country classroom case and switches to monomial or QMC rules in larger IRBC applications.
 
 | $N$ | States | Policies | Equations | Shock dim. | GH nodes ($Q=3$) | Stroud-3 nodes |
-|---|---|---|---|---|---|---|
+|---:|---:|---:|---:|---:|---:|---:|
 | 2 | 4 | 5 | 5 | 3 | $27$ | $6$ |
 | 5 | 10 | 11 | 11 | 6 | $729$ | $12$ |
 | 10 | 20 | 21 | 21 | 11 | $1.8\times 10^5$ | $22$ |

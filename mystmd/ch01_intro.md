@@ -292,13 +292,13 @@ Adam did not appear out of thin air; it inherits from a family of refinements to
 
 Lineage from plain SGD to AdamW. Each row introduces exactly one new ingredient: momentum buffers gradient noise; RMSprop adds a per-parameter learning-rate scaling by the running second moment; Adam combines the two with bias correction; AdamW separates weight decay from the gradient step so that the implicit $L_2$ regularizer does not interact with the adaptive denominator. PINN training in continuous-time chapters (Chapters {ref}`ch-pinn`--{ref}`ch-ct_theory`) often uses Adam or AdamW; DEQNs in Chapters {ref}`ch-deqn`--{ref}`ch-young` use plain Adam with the default $(\beta_1,\beta_2)=(0.9, 0.999)$ as in {cite:t}`azinovicDEEPEQUILIBRIUMNETS2022`.
 
-| ****Optimizer**** | **Update rule (one parameter)** | **Reference** |
+| **Optimizer** | **Update rule (one parameter)** | **Reference** |
 |---|---|---|
-| **SGD** | $\theta \leftarrow \theta - \eta\,g_t$ | {cite:t}`robbins1951stochastic` |
-| **SGD + momentum** | $v_t = \mu v_{t-1} + g_t$;  $\theta \leftarrow \theta - \eta\,v_t$ | {cite:t}`sutskever2013importance` |
-| **RMSprop** | $s_t = \rho s_{t-1} + (1-\rho)g_t^2$;  $\theta \leftarrow \theta - \eta\,g_t/\sqrt{s_t+\varepsilon}$ | {cite:t}`tieleman2012rmsprop` |
-| **Adam** | momentum on $g_t$ and on $g_t^2$ with bias correction (Eqs. above) | {cite:t}`kingma2015adam` |
-| **AdamW** | Adam plus *decoupled* weight decay $\theta \leftarrow (1-\eta\lambda)\theta - \eta\,\hat m_t/(\sqrt{\hat v_t}+\varepsilon)$ | {cite:t}`loshchilov2019decoupled` |
+| SGD | $\theta \leftarrow \theta - \eta\,g_t$ | {cite:t}`robbins1951stochastic` |
+| SGD + momentum | $v_t = \mu v_{t-1} + g_t$;  $\theta \leftarrow \theta - \eta\,v_t$ | {cite:t}`sutskever2013importance` |
+| RMSprop | $s_t = \rho s_{t-1} + (1-\rho)g_t^2$;  $\theta \leftarrow \theta - \eta\,g_t/\sqrt{s_t+\varepsilon}$ | {cite:t}`tieleman2012rmsprop` |
+| Adam | momentum on $g_t$ and on $g_t^2$ with bias correction (Eqs. above) | {cite:t}`kingma2015adam` |
+| AdamW | Adam plus *decoupled* weight decay $\theta \leftarrow (1-\eta\lambda)\theta - \eta\,\hat m_t/(\sqrt{\hat v_t}+\varepsilon)$ | {cite:t}`loshchilov2019decoupled` |
 ````
 
 The Adam-vs-AdamW distinction is sharper than the one-line table entry suggests, so it is worth writing out both rules side by side. With $\hat m_t$, $\hat v_t$ the bias-corrected first and second moment of the gradient and $\lambda$ the weight-decay rate, Adam-with-$L_2$ (i.e. Adam applied to the loss $J + \tfrac{\lambda}{2}\|\bm\theta\|^2$) updates $$\bm\theta_{t+1} \;=\; \bm\theta_t \;-\; \eta\,\frac{\hat m_t + \lambda\,\bm\theta_t}{\sqrt{\hat v_t}+\varepsilon},$$ so the implicit regularizer is itself rescaled by the adaptive denominator $\sqrt{\hat v_t}+\varepsilon$. AdamW separates the two: $$\bm\theta_{t+1} \;=\; (1-\eta\lambda)\,\bm\theta_t \;-\; \eta\,\frac{\hat m_t}{\sqrt{\hat v_t}+\varepsilon},$$ so the weight-decay term shrinks every parameter by the same proportional factor regardless of gradient magnitude. This is why AdamW recovers the textbook intuition "weight decay shrinks weights uniformly" that Adam-with-$L_2$ loses.
@@ -399,17 +399,17 @@ Beyond the three classical choices (sigmoid, tanh, ReLU), several modern activat
 
 Activation functions used throughout the course. Origin papers: ReLU {cite:p}`nair2010rectified`, Leaky ReLU {cite:p}`maas2013rectifier`, ELU {cite:p}`clevert2016elu`, Swish {cite:p}`ramachandran2017swish`, GELU {cite:p}`hendrycks2016gelu`, Mish {cite:p}`misra2019mish`. *Range* is the set of output values for $z \in \R$. *Smoothness* matters when derivatives of the network output are needed: sigmoid, tanh, Swish, GELU, Mish, and softplus are $C^\infty$; ReLU is only $C^0$; Leaky ReLU is piecewise linear; ELU is piecewise $C^\infty$ and is $C^1$ at the origin only for $\alpha=1$. Smooth activations are required for PINN applications that involve second-order derivatives (Chapter {ref}`ch-pinn`).
 
-| ****Activation**** | **Formula** | **Range** | **Key property** |
+| **Activation** | **Formula** | **Range** | **Key property** |
 |---|---|---|---|
-| **Sigmoid** | $\sigma(z) = (1+e^{-z})^{-1}$ | $(0,1)$ | Smooth, saturates |
-| **Tanh** | $\tanh(z)$ | $(-1,1)$ | Zero-centered, saturates |
-| **ReLU** | $\max(0,z)$ | $[0,\infty)$ | Non-saturating for $z>0$ |
-| **Leaky ReLU** | $\max(\alpha z, z)$, $\alpha\!=\!0.1$ | $(-\infty,\infty)$ | No dead neurons |
-| **ELU** | $z\text{ if }z>0;\ \alpha(e^z-1)\text{ else}$ | $[-\alpha,\infty)$ | Negative saturation; $C^1$ if $\alpha=1$ |
-| **Swish** | $z \cdot \sigma(z)$ | $\approx [-0.28,\infty)$ | Smooth, non-monotone |
-| **GELU** | $z\cdot\Phi(z)$ | $\approx [-0.17,\infty)$ | Smooth, default in BERT / GPT |
-| **Mish** | $z\cdot\tanh(\ln(1+e^z))$ | $\approx [-0.31,\infty)$ | Smooth, used in YOLOv4 |
-| **Softplus** | $\ln(1+e^z)$ | $(0,\infty)$ | Smooth ReLU approximation |
+| Sigmoid | $\sigma(z) = (1+e^{-z})^{-1}$ | $(0,1)$ | Smooth, saturates |
+| Tanh | $\tanh(z)$ | $(-1,1)$ | Zero-centered, saturates |
+| ReLU | $\max(0,z)$ | $[0,\infty)$ | Non-saturating for $z>0$ |
+| Leaky ReLU | $\max(\alpha z, z)$, $\alpha\!=\!0.1$ | $(-\infty,\infty)$ | No dead neurons |
+| ELU | $z\text{ if }z>0;\ \alpha(e^z-1)\text{ else}$ | $[-\alpha,\infty)$ | Negative saturation; $C^1$ if $\alpha=1$ |
+| Swish | $z \cdot \sigma(z)$ | $\approx [-0.28,\infty)$ | Smooth, non-monotone |
+| GELU | $z\cdot\Phi(z)$ | $\approx [-0.17,\infty)$ | Smooth, default in BERT / GPT |
+| Mish | $z\cdot\tanh(\ln(1+e^z))$ | $\approx [-0.31,\infty)$ | Smooth, used in YOLOv4 |
+| Softplus | $\ln(1+e^z)$ | $(0,\infty)$ | Smooth ReLU approximation |
 ````
 
 Leaky ReLU and ELU address the dying-neuron issue by providing a small but nonzero gradient for negative inputs. The Swish activation $\mathrm{swish}(z) = z\sigma(z)$ {cite:p}`ramachandran2017swish`, which is used extensively in the DEQN and IRBC implementations of this course, combines the benefits of ReLU (non-saturating for large $z$) with smoothness at the origin. Its derivative $\mathrm{swish}'(z) = \sigma(z) + z\sigma(z)(1-\sigma(z))$ is smooth everywhere and bounded between approximately $-0.1$ and $1.1$, which can improve optimization stability.
@@ -518,7 +518,10 @@ Before discussing overfitting formally, it is essential to fix the experimental 
 
 The key discipline is that no decision about the model (not hyperparameter tuning, not architecture, not early-stopping patience) may be informed by the test set. Using the test set multiple times turns it into an implicit validation set and invalidates its role as a measure of out-of-sample error. For small datasets, $k$-fold cross-validation replaces the fixed train/validation split: the training data are partitioned into $k$ equal folds; for each fold, the model is trained on the other $k-1$ folds and evaluated on the held-out fold; the $k$ resulting validation scores are averaged. Common choices are $k = 5$ or $k = 10$; the test set is always held separately. In DEQNs and PINNs (Chapters {ref}`ch-deqn` and {ref}`ch-pinn`), training and validation points are drawn from the same state distribution, and "generalization" is measured against an *independently simulated test trajectory* rather than a held-out labeled set.
 
-A model that memorizes the training data but fails on unseen examples is said to *overfit*. To understand overfitting precisely, consider the following thought experiment. The decomposition below is the classical bias/variance analysis of {cite:t}`geman1992biasvariance`, which provided the canonical framework for thinking about generalization in neural networks long before modern overparameterized regimes were studied. Suppose we draw many independent training sets $\mathcal{D}$, each of size $n$, from the same data-generating process $y = f(\x) + \varepsilon$, where $\varepsilon$ is zero-mean noise with variance $\sigma^2$. On each training set we fit our model, obtaining a predictor $\hat{f}_{\mathcal{D}}$. Conditioning on a fixed test input $\x_0$ and averaging over both the training set and the new test noise $\varepsilon_0$, the squared prediction error decomposes into exactly three terms: (eq-bias-variance)=
+A model that memorizes the training data but fails on unseen examples is said to *overfit*. To understand overfitting precisely, consider the following thought experiment. The decomposition below is the classical bias/variance analysis of {cite:t}`geman1992biasvariance`, which provided the canonical framework for thinking about generalization in neural networks long before modern overparameterized regimes were studied. Suppose we draw many independent training sets $\mathcal{D}$, each of size $n$, from the same data-generating process $y = f(\x) + \varepsilon$, where $\varepsilon$ is zero-mean noise with variance $\sigma^2$. On each training set we fit our model, obtaining a predictor $\hat{f}_{\mathcal{D}}$. Conditioning on a fixed test input $\x_0$ and averaging over both the training set and the new test noise $\varepsilon_0$, the squared prediction error decomposes into exactly three terms: 
+
+(eq-bias-variance)=
+
 $$
 \begin{aligned}
 \mathbb{E}_{\mathcal{D},\varepsilon_0}
@@ -626,8 +629,11 @@ Three practical remedies partially alleviate the pathology without changing the 
 ### Long Short-Term Memory (LSTM) and GRUs
 Before writing equations, it helps to keep a plain-language picture in mind. A vanilla RNN asks one hidden state $\h_t$ to do three jobs at once: retain useful old information, absorb new information, and expose the relevant part to the next layer. This is a fragile design. The LSTM separates these tasks. It keeps a dedicated *memory lane* $\bm{C}_t$ flowing through time and at each date makes three soft decisions: what to keep, what to write, and what to reveal. That is the intuition behind the gate equations below.
 
-The LSTM cell {cite:p}`hochreiter1997long` replaces the single-state recurrence $\h_t = \sigma(\Wh\h_{t-1} + \Wx\x_t)$ by a pair of states: a *cell state* $\bm{C}_t$ that flows along the top of the cell with *additive* updates, and a *hidden state* $\h_t$ that is read off it. Three learned sigmoid gates, each depending on the concatenation $[\h_{t-1}, \x_t]$, control what information flows through: (eq-lstm_f)=
+The LSTM cell {cite:p}`hochreiter1997long` replaces the single-state recurrence $\h_t = \sigma(\Wh\h_{t-1} + \Wx\x_t)$ by a pair of states: a *cell state* $\bm{C}_t$ that flows along the top of the cell with *additive* updates, and a *hidden state* $\h_t$ that is read off it. Three learned sigmoid gates, each depending on the concatenation $[\h_{t-1}, \x_t]$, control what information flows through: 
+
+(eq-lstm_f)=
 (eq-lstm_C)=
+
 $$
 \begin{aligned}
 \bm{f}_t       &= \sigma\!\big(\W_f\,[\h_{t-1}, \x_t] + \bb_f\big) && \text{(forget gate)} \\
@@ -766,8 +772,11 @@ Three properties make this choice useful. First, each coordinate $2k$ is a sine 
 
 (sec-transformer_block)=
 #### The Transformer Block
-Single attention layers, even multi-headed, are not yet expressive enough: they are essentially linear in the values, with a nonlinear mixing pattern. A full *Transformer block* wraps one MHA layer and one pointwise MLP with residual connections and LayerNorm: (eq-tblock1)=
+Single attention layers, even multi-headed, are not yet expressive enough: they are essentially linear in the values, with a nonlinear mixing pattern. A full *Transformer block* wraps one MHA layer and one pointwise MLP with residual connections and LayerNorm: 
+
+(eq-tblock1)=
 (eq-tblock2)=
+
 $$
 \begin{aligned}
 \x^{+} &= \x + \mathrm{MHA}\!\big(\mathrm{LN}(\x)\big), \\

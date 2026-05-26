@@ -26,12 +26,12 @@ The four method families covered in this course occupy partly overlapping but di
 
 Decision guide: when to use which method.
 
-| ****Criterion**** | **DEQN** | **PINN** | **Deep surrogate** | **GP / BAL** |
+| **Criterion** | **DEQN** | **PINN** | **Deep surrogate** | **GP / BAL** |
 |---|---|---|---|---|
-| **Time domain** | Discrete | Continuous | Either | Either |
-| **Equation type** | Algebraic / expectations | PDEs (HJB, KFE, BS) | Black-box model | Black-box model |
-| **Key advantage** | Up to $d>100$ in selected models {cite:p}`azinovicDEEPEQUILIBRIUMNETS2022` | AD derivatives of the network approximation | Instant re-evaluation | Built-in UQ + active learning |
-| **Typical use** | DSGE, OLG, IRBC | HJB, option pricing | Estimation, UQ, policy | Small-$N$ surrogates, BAL design |
+| Time domain | Discrete | Continuous | Either | Either |
+| Equation type | Algebraic / expectations | PDEs (HJB, KFE, BS) | Black-box model | Black-box model |
+| Key advantage | Up to $d>100$ in selected models {cite:p}`azinovicDEEPEQUILIBRIUMNETS2022` | AD derivatives of the network approximation | Instant re-evaluation | Built-in UQ + active learning |
+| Typical use | DSGE, OLG, IRBC | HJB, option pricing | Estimation, UQ, policy | Small-$N$ surrogates, BAL design |
 ````
 
 A few practical takeaways from the table. **DEQNs** are the workhorse for *discrete-time* general-equilibrium models with high-dimensional state spaces, where Euler equations and market-clearing residuals admit a clean residual-loss formulation. **PINNs** are the natural analogue in *continuous time*, replacing finite-difference HJB or BSDE solvers when one needs exact derivatives of the trained network by automatic differentiation rather than finite-difference derivatives of an interpolant. **Deep surrogates** differ in kind: they do not solve the model; they learn a fast emulator of the already-solved mapping from parameters to economic quantities, which is what makes structural estimation, sensitivity analysis, and policy design tractable at scale. **Gaussian processes with Bayesian active learning** occupy the small-data, high-uncertainty corner: the right tool when each evaluation is expensive, the input dimension is moderate ($d \lesssim 10$ for naïve GPs, extending to higher dimensions via active subspaces and deep AS; cf. Chapter {ref}`ch-gp`), and posterior uncertainty is itself part of the answer. Within the PINN family, EMINNs (Chapter {ref}`ch-ct_theory`) are a specialization to continuous-time heterogeneous-agent master equations: they keep the PDE-residual training logic but encode the cross-sectional distribution itself as part of the network input, which is one of several routes to global solutions of Krusell--Smith-style models with aggregate shocks, complementary to the set-encoder and price-as-state approaches discussed in {ref}`sec-open_challenges`.
@@ -45,14 +45,12 @@ The course repeatedly returns to a small set of canonical benchmarks: Brock--Mir
 ````{table}
 :name: tab-bm_running_case
 
-Canonical benchmarks treated through each course method. The economic content differs by row, three rows are Brock--Mirman and the PINN row is cake-eating, but the table exposes the invariant computational pattern: choose an object to approximate, encode the model restrictions in the objective or training design, and validate with an economically interpretable diagnostic. Notebook filenames in the last column omit the standard `lecture_NN_` prefix; the four notebooks live, in row order, in the `code/` subdirectories of lectures 03, 11, 14, and 15.
-
-| ****Method**** | **What is approximated** | **Loss / objective** | **Diagnostic** | **Notebook** |
+| **Method** | **What is approximated** | **Loss / objective** | **Diagnostic** | **Notebook** |
 |---|---|---|---|---|
-| **DEQN** | Savings share $s(K,z)\in(0,1)$ via sigmoid head | Squared rel. Euler residual on simulated trajectory | $s \to \alpha\beta$ at $\delta\!=\!1$, log utility | `01_Brock_Mirman_1972_DEQN.ipynb` |
-| **PINN, cake-eating** | Value function $\hat V(a)$ on a 1D interval | HJB residual $\rho V-\max_c[u(c)+V'(a)(ra-c)]$ | $\hat V$ matches closed form $V^\star$ (CRRA) | `04_Cake_Eating_HJB_PINN.ipynb` |
-| **GP $+$ BAL** | $\hat V(K)$ on Brock--Mirman ergodic set | GP marginal likelihood; BAL picks next $K_*$ | \% pred. band covers true $V$ | `04_GP_Value_Function_Iteration.ipynb` |
-| **SMM $+$ surrogate** | Policy $s(K,z,\varrho)$ pseudo-state on $\varrho$ | SMM moment objective in $\varrho$ | $\hat\varrho$ within MCSE of truth | `lecture_15_03_Structural_Estimation_BM.ipynb` |
+| DEQN | Savings share $s(K,z)\in(0,1)$ via sigmoid head | Squared rel. Euler residual on simulated trajectory | $s \to \alpha\beta$ at $\delta\!=\!1$, log utility | `01_Brock_Mirman_1972_DEQN.ipynb` |
+| PINN, cake-eating | Value function $\hat V(a)$ on a 1D interval | HJB residual $\rho V-\max_c[u(c)+V'(a)(ra-c)]$ | $\hat V$ matches closed form $V^\star$ (CRRA) | `04_Cake_Eating_HJB_PINN.ipynb` |
+| GP $+$ BAL | $\hat V(K)$ on Brock--Mirman ergodic set | GP marginal likelihood; BAL picks next $K_*$ | 95% pred. band covers true $V$ | `04_GP_Value_Function_Iteration.ipynb` |
+| SMM $+$ surrogate | Policy $s(K,z,\varrho)$ pseudo-state on $\varrho$ | SMM moment objective in $\varrho$ | $\hat\varrho$ within MCSE of truth | `lecture_15_03_Structural_Estimation_BM.ipynb` |
 ````
 
 The takeaway is that no single methodology is the "right" one for these benchmarks. Rather, the four lenses answer different research questions: a DEQN gives the policy function on Brock--Mirman, a PINN gives a value function on cake-eating with AD derivatives of the network approximation, a GP gives uncertainty-quantified value-function estimates on Brock--Mirman with guidance for the next sample point, and the surrogate-SMM pipeline estimates the deep parameter $\varrho$ (productivity persistence) on a Brock--Mirman variant from data; the joint $(\beta,\varrho)$ extension lives in the companion `lecture_15_03b_Structural_Estimation_BM_Joint.ipynb`, where the imperfect identification of $\beta$ from macro moments shows up as a visible ridge in the criterion surface. Real research applications typically combine at least two of these, and the implementation guidance throughout the chapters is designed to make those combinations cheap.

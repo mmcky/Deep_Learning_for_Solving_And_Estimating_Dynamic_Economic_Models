@@ -285,7 +285,7 @@ When aggregate TFP $Z_t$ is allowed to vary (e.g., the OU process introduced in 
 Huggett and Aiyagari as two continuous-time incomplete-markets benchmarks. Huggett clears a zero-net-supply bond market by adjusting the bond return; Aiyagari clears a positive capital market with prices pinned down by firm first-order conditions.
 
 |  | **Huggett (1993)** | **Aiyagari (1994)** |
-|---|---|---|
+|---|:---:|:---:|
 | Economy | Endowment | Production ($Y = K^\alpha L^{1-\alpha}$) |
 | Asset | Bond $b$ | Capital claim $a$ |
 | Net supply | Zero ($\int b\,g = 0$) | Positive ($\int a\,g = K > 0$) |
@@ -408,7 +408,7 @@ The infinite-dimensional distribution $g$ must be replaced by a finite-dimension
 Finite-dimensional representations of the cross-sectional distribution in EMINNs. Here $\delta_{\bullet}$ denotes a Dirac measure centered at $\bullet$, not the depreciation rate of Chapters {ref}`ch-deqn`--{ref}`ch-young`.
 
 |  | **Finite population** | **Discrete state** | **Projection** |
-|---|---|---|---|
+|---|:---:|:---:|:---:|
 | $\hat{\varphi}_t$ | $\{(a_t^i, n_t^i)\}_{i=1}^N$ | Masses on grid $\{a_1,\ldots,a_I\}$ | Basis coefficients |
 | $\hat{g}_t$ | $\frac{1}{N}\sum_i \delta_{\hat{\varphi}_t^i}$ | $\sum_{i,j} \hat{\varphi}_{ij}\,\delta_{(a_i,n_j)}$ | $b_0 + \sum_i \hat{\varphi}_i b_i(a,n)$ |
 | Dimension | $\sim 40$ | $\sim 200$ | $\sim 5$ |
@@ -430,8 +430,8 @@ Project $g$ onto eigenfunctions of the steady-state KFE operator $\bar{\mathcal{
 
 A neural network $\hat{W}_\Theta(\omega)$ with $\omega = (a, n, z, \hat{\varphi})$ parameterizes the marginal value of wealth. The output uses a softplus activation to ensure $\hat{W} > 0$, and consumption follows directly from the envelope condition: $c^* = \hat{W}^{-1/\gamma}$. Algorithm {prf:ref}`alg-eminn` gives the resulting residual-minimization loop.
 
-```{prf:algorithm}
-:label: algo-ch08_ctime_ha-auto-1
+```{prf:algorithm} EMINN training for the master equation
+:label: alg-eminn
 
 - **Input:** Initial parameters $\Theta$, tolerance $\varepsilon$, loss weights $\kappa^e$, $\kappa^s$; initialize $\mathcal{E}=\infty$
 - while $\mathcal{E} > \varepsilon$:

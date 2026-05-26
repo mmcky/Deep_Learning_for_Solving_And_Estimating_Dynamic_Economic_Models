@@ -102,7 +102,7 @@ Table {numref}`tab-nas_methods` contrasts the four hyperparameter-search strate
 Comparison of hyperparameter-search methods. Grid search scales exponentially in the number of hyperparameters $d$; random search and Hyperband scale linearly in the chosen evaluation/resource budget and parallelise well; Bayesian optimization has the highest per-evaluation information gain but adds surrogate-fitting overhead and is partly sequential.
 
 | **Method** | **Cost** | **Parallelizable** | **Sample efficiency** | **Best for** |
-|---|---|---|---|---|
+|---|:---:|:---:|:---:|:---:|
 | Grid search | $\mathcal{O}(k^d)$ evals | fully | low | $d \leq 3$ |
 | Random search | $N$ evals | fully | moderate | general use |
 | Bayesian opt. | $N$ evals + GP fit | limited | high | expensive evals |
@@ -243,7 +243,7 @@ Table {numref}`tab-balancing_methods` compares the four balancing strategies on
 Summary of adaptive loss-balancing methods. Overhead is a per-step wall-clock cost (additional softmaxes for SoftAdapt/ReLoBRaLo; per-component gradient norms for GradNorm). Quantitative speedups depend strongly on the problem; see the companion notebook `04_Loss_Normalization.ipynb` for problem-specific measurements.
 
 | **Method** | **Overhead** | **Hyperparameters** |
-|---|---|---|
+|---|:---:|:---:|
 | Uniform weights | none | 0 |
 | Inverse-loss | negligible | 1 (smoothing) |
 | Uncertainty weighting {cite:p}`kendall2018multi` | negligible | $K$ (one log-variance per loss) |

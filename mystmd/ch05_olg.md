@@ -119,7 +119,7 @@ The optimal policy is then $k'^h = \beta_h \cdot \mathrm{inc}^h$: each agent sav
 Closed-form age-specific savings rates in the 6-agent analytic OLG with log utility and $\beta=0.7$.
 
 | Age $h$ | 1 | 2 | 3 | 4 | 5 |
-|---|---|---|---|---|---|
+|:---:|:---:|:---:|:---:|:---:|:---:|
 | $\beta_h$ | 0.660 | 0.639 | 0.605 | 0.543 | 0.412 |
 ````
 
@@ -241,38 +241,27 @@ The product form $(k'^h \lambda^h)^2$ is simpler, gradient-cheaper, and sufficie
 
 We have now built and solved the first of the two OLG instances that anchor the rest of the manuscript: the 6-agent analytic model used to validate the DEQN against a closed form (Sections {ref}`sec-olg_analytic`--{ref}`sec-olg_deqn`). The second is the 56-agent benchmark of {cite:t}`azinovicDEEPEQUILIBRIUMNETS2022`, developed in the next section. Table {numref}`tab-olg_6_vs_56` summarizes the structural and computational gap between them before we turn to it.
 
-(tab-olg_6_vs_56)=
-+-------------------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
-|                   | **6-agent analytic ({ref}`sec-olg_analytic`)** | **56-agent benchmark ({ref}`sec-olg_56`)**                                              |
-+:==================+:====================================================================================================+:=======================================================================================================================================+
-| Cohorts $A$       | (childhood-style)                                                                                   | (ages 25--80, one period = one year)                                                                                                   |
-+-------------------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
-| Utility           | Log ($\gamma=1$)                                                                                    | CRRA ($\gamma=2$)                                                                                                                      |
-+-------------------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
-| Shocks            | i.i.d. TFP & depreciation, 4 states                                                                 | Persistent Markov on $(\eta,\delta)$                                                                                                   |
-+-------------------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
-| Labor profile     | Only youngest cohort works                                                                          | Hump-shaped lifecycle endowment $\ell^h$                                                                                               |
-+-------------------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
-| Assets            | Capital only                                                                                        | Capital $+$ bonds                                                                                                                      |
-+-------------------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
-| Constraints       | None binding in calibration                                                                         | No-short-sale of capital $k'^h\!\ge\!0$ binds; collateral $k'^h\!+\!\kappa b'^h\!\ge\!0$ kept slack by the $\hat q^h$ parameterization |
-+-------------------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
-| Adjustment cost   | None                                                                                                | Quadratic $\tfrac{\zeta}{2}(k'^h\!-\!rk^h)^2$                                                                                          |
-+-------------------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
-| Network input dim | (extended; minimal 7)                                                                               | (extended; minimal 113)                                                                                                                |
-+-------------------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
-| Output dim        | (savings rates of cohorts 1--5)                                                                     | ($4(A-1)+1$: policies, multipliers, price)                                                                                             |
-+-------------------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
-| Loss terms        | Euler $+$ market clearing by construction                                                           | : $4(A-1)$ Euler/KKT $+$ 1 bond clearing                                                                                               |
-+-------------------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
-| Network           | Input(40) $\to$ 100 $\to$ 50 $\to$ 5                                                                | Input(240) $\to$ 128 $\to$ 128 $\to$ 221 (teaching) / Input(240) $\to$ 1000 $\to$ 1000 $\to$ 221 (production)                          |
-+-------------------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
-| Validation target | Closed-form $\beta_h$ of {cite:t}`Krueger20041411`                                                           | Mean Euler residual on simulated trajectory                                                                                            |
-+-------------------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
-| Notebook          | `lecture_08_08_OLG_Analytic_DEQN_persistent.ipynb`                                                  | `lecture_08_10_OLG_Benchmark_DEQN_persistent.ipynb`                                                                                    |
-+-------------------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
+````{table}
+:name: tab-olg_6_vs_56
 
-: The two OLG models solved in this chapter, side by side. The economic richness of the 56-agent benchmark adds two assets, an effectively binding no-short-sale-of-capital constraint (the collateral constraint is kept slack by the $\hat q^h$ parameterization), persistent shocks, lifecycle labor, and adjustment costs, raising the network input dimension from 40 to 240 and the output dimension from 5 to 221. The DEQN training loop is structurally identical in both cases. Each variant additionally ships with a feedback-free exogenous-sampling companion notebook (`lecture_08_07_OLG_Analytic_DEQN_exogenous.ipynb`, `lecture_08_09_OLG_Benchmark_DEQN_exogenous.ipynb`) that exercises the same model under a non-co-evolving training cloud.
+The two OLG models solved in this chapter, side by side. The economic richness of the 56-agent benchmark adds two assets, an effectively binding no-short-sale-of-capital constraint (the collateral constraint is kept slack by the $\hat q^h$ parameterization), persistent shocks, lifecycle labor, and adjustment costs, raising the network input dimension from 40 to 240 and the output dimension from 5 to 221. The DEQN training loop is structurally identical in both cases. Each variant additionally ships with a feedback-free exogenous-sampling companion notebook (`lecture_08_07_OLG_Analytic_DEQN_exogenous.ipynb`, `lecture_08_09_OLG_Benchmark_DEQN_exogenous.ipynb`) that exercises the same model under a non-co-evolving training cloud.
+
+|  | **6-agent analytic ({ref}`sec-olg_analytic`)** | **56-agent benchmark ({ref}`sec-olg_56`)** |
+|---|---|---|
+| Cohorts $A$ | 6 (childhood-style) | 56 (ages 25--80, one period = one year) |
+| Utility | Log ($\gamma=1$) | CRRA ($\gamma=2$) |
+| Shocks | i.i.d. TFP & depreciation, 4 states | Persistent Markov on $(\eta,\delta)$ |
+| Labor profile | Only youngest cohort works | Hump-shaped lifecycle endowment $\ell^h$ |
+| Assets | Capital only | Capital $+$ bonds |
+| Constraints | None binding in calibration | No-short-sale of capital $k'^h\!\ge\!0$ binds; collateral $k'^h\!+\!\kappa b'^h\!\ge\!0$ kept slack by the $\hat q^h$ parameterization |
+| Adjustment cost | None | Quadratic $\tfrac{\zeta}{2}(k'^h\!-\!rk^h)^2$ |
+| Network input dim | 40 (extended; minimal 7) | 240 (extended; minimal 113) |
+| Output dim | 5 (savings rates of cohorts 1--5) | 221 ($4(A-1)+1$: policies, multipliers, price) |
+| Loss terms | 5 Euler $+$ market clearing by construction | 221: $4(A-1)$ Euler/KKT $+$ 1 bond clearing |
+| Network | Input(40) $\to$ 100 $\to$ 50 $\to$ 5 | Input(240) $\to$ 128 $\to$ 128 $\to$ 221 (teaching) / Input(240) $\to$ 1000 $\to$ 1000 $\to$ 221 (production) |
+| Validation target | Closed-form $\beta_h$ of {cite:t}`Krueger20041411` | Mean Euler residual on simulated trajectory |
+| Notebook | `lecture_08_08_OLG_Analytic_DEQN_persistent.ipynb` | `lecture_08_10_OLG_Benchmark_DEQN_persistent.ipynb` |
+````
 
 (sec-olg_56)=
 ## The 56-Agent Benchmark
@@ -303,7 +292,7 @@ The labor endowment profile $e^h$ follows {cite:t}`BKS1`. In the implementation 
 Representative points on the lifecycle labor-endowment profile in the 56-agent benchmark.
 
 | Age | 25 | 30 | 40 | 48 | 53 | 65 | 80 |
-|---|---|---|---|---|---|---|---|
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | $e^h$ | 0.60 | 0.85 | 1.20 | 1.34 | 1.36 | 1.04 | 0.64 |
 ````
 
@@ -397,7 +386,7 @@ $$ (eq-olg56_loss)
 Residual blocks entering the 56-agent benchmark loss for one training state.
 
 | **Component** | **Symbol** | **Count** |
-|---|---|---|
+|---|---|:---:|
 | Euler (capital) | $e_{\mathrm{REE},k}^h$ | 55 |
 | Euler (bonds) | $e_{\mathrm{REE},b}^h$ | 55 |
 | KKT (borrowing) | $e_{\mathrm{KKT},b}^h = \hat\lambda_b^h\,\hat k'^h$ | 55 |

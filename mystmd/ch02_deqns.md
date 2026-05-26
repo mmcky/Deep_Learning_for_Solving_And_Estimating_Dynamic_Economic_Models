@@ -21,7 +21,7 @@ Table {numref}`tab-curse_of_dim` illustrates the curse concretely. Even with a 
 Size of an $n = 10$ Cartesian grid and the 64-bit memory required to store one floating-point value per grid point, as a function of state-space dimension $d$. Grid-based methods are comfortable only at low dimension; by $d = 10$ even storing one scalar per grid point is already borderline before policies, interpolation objects, residuals, and simulation output are added.
 
 | $d$ | Grid points ($10^d$) | Memory (64-bit) | Feasibility |
-|---|---|---|---|
+|---:|---:|---:|---|
 | 1 | 10 | 80 B | trivial |
 | 2 | 100 | 800 B | trivial |
 | 5 | $10^5$ | 800 KB | feasible |
@@ -397,7 +397,7 @@ At $Q=3$ nodes per dimension, the tensor-product rule of {ref}`sec-gh_tensor_pro
 Quadrature cost per residual evaluation, tensor-product Gauss--Hermite ($Q=3$) versus the Stroud-3 monomial rule of equation {eq}`eq-stroud3`, as a function of the shock dimension $d$. The tensor-product cost grows exponentially in $d$; the monomial cost grows linearly. Brock--Mirman ($d=1$) is the simplest case where the two rules agree to within a factor of $1.5$; the gap explodes once the shock vector is multi-dimensional.
 
 | shock dim. $d$ | where it appears | tensor-product $3^{d}$ | monomial $2d$ | speed-up |
-|---|---|---|---|---|
+|---:|---|---:|---:|---|
 | $1$ | Brock--Mirman (Ch. {ref}`ch-deqn`) | $3$ | $2$ | $\sim 1.5\times$ |
 | $3$ | 2-country IRBC (Ch. {ref}`ch-irbc`) | $27$ | $6$ | $\sim 5\times$ |
 | $6$ | 5-country IRBC | $729$ | $12$ | $\sim 60\times$ |

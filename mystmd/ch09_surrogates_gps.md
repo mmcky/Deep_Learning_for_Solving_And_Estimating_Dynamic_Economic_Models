@@ -71,24 +71,20 @@ The surrogate is trained once over the full augmented space and can then be quer
 
 The surrogate approach is one of several function approximation strategies used in computational economics. Table {numref}`tab-approximation_methods_comparison` situates it relative to alternatives.
 
-(tab-approximation_methods_comparison)=
-+-----------------------+------------------------+----------------------+----------------------+----------------------+
-| **Method**            | **Max dim.**           | **Smoothness**       | **Parametric**       | **Differentiable**   |
-+:======================+:======================:+:====================:+:====================:+:====================:+
-| Cartesian grids       | $d \leq 5$             | any                  | no                   | no                   |
-+-----------------------+------------------------+----------------------+----------------------+----------------------+
-| Sparse grids          | $d \leq 15$            | $C^k$ needed         | no                   | limited              |
-+-----------------------+------------------------+----------------------+----------------------+----------------------+
-| Chebyshev polynomials | $d \leq 10$            | smooth               | yes                  | yes                  |
-+-----------------------+------------------------+----------------------+----------------------+----------------------+
-| DNN surrogate         | $d \gg 10$             | any                  | yes                  | yes (autograd)       |
-+-----------------------+------------------------+----------------------+----------------------+----------------------+
-| GP surrogate          | $d \leq 10$^$\dagger$^ | kernel-dependent     | no                   | yes (closed-form)    |
-+-----------------------+------------------------+----------------------+----------------------+----------------------+
-| $\dagger$ Can be extended to $d \gg 10$ via active subspace methods {cite:p}`SCHEIDEGGER201968`.                |
-+---------------------------------------------------------------------------------------------------------------------+
+````{table}
+:name: tab-approximation_methods_comparison
 
-: Common approximation methods in computational economics. Grid and polynomial methods are transparent but become difficult in high dimension; DNN and GP surrogates trade direct grid structure for sample-based learning and repeated fast evaluation.
+Common approximation methods in computational economics. Grid and polynomial methods are transparent but become difficult in high dimension; DNN and GP surrogates trade direct grid structure for sample-based learning and repeated fast evaluation.
+
+| **Method** | **Max dim.** | **Smoothness** | **Parametric** | **Differentiable** |
+|---|:---:|:---:|:---:|:---:|
+| Cartesian grids | $d \leq 5$ | any | no | no |
+| Sparse grids | $d \leq 15$ | $C^k$ needed | no | limited |
+| Chebyshev polynomials | $d \leq 10$ | smooth | yes | yes |
+| DNN surrogate | $d \gg 10$ | any | yes | yes (autograd) |
+| GP surrogate | $d \leq 10$^$\dagger$^ | kernel-dependent | no | yes (closed-form) |
+|  |  |  |  |  |
+````
 
 ### Worked Example: Black--Scholes Surrogate
 
@@ -134,8 +130,11 @@ where $\ell$ is the length scale (controlling smoothness) and $\sigma_f^2$ is th
 Squared-exponential kernel as a function of distance for three length scales. Small ℓ makes correlations decay quickly and produces rougher, more local fits; large ℓ couples distant points and imposes smoother functions.
 ```
 
-Figure {numref}`fig-rbf_length_scale` shows how the RBF length scale controls the distance over which observations remain informative. Given training data $\mathcal{D} = \{(\x_i, y_i)\}_{i=1}^n$, let $\bm{\mu}_X = (\mu(\x_1),\ldots,\mu(\x_n))^\top$, $\mu_*=\mu(\x_*)$, and $K_y = K + \sigma_y^2 I$. The GP posterior at a test point $\x_*$ has a closed-form latent-function mean and variance: (eq-gp_mean)=
+Figure {numref}`fig-rbf_length_scale` shows how the RBF length scale controls the distance over which observations remain informative. Given training data $\mathcal{D} = \{(\x_i, y_i)\}_{i=1}^n$, let $\bm{\mu}_X = (\mu(\x_1),\ldots,\mu(\x_n))^\top$, $\mu_*=\mu(\x_*)$, and $K_y = K + \sigma_y^2 I$. The GP posterior at a test point $\x_*$ has a closed-form latent-function mean and variance: 
+
+(eq-gp_mean)=
 (eq-gp_var)=
+
 $$
 \begin{aligned}
 \bar{f}_* &= \mu_* + \bm{k}_*^\top K_y^{-1}(\bm{y}-\bm{\mu}_X), \\
@@ -270,6 +269,7 @@ Now that the GP machinery (posterior inference, kernel design, and BAL) has been
 :name: tab-gp_vs_dnn_surrogates
 
 GP and DNN surrogate trade-offs after the basic GP machinery has been introduced. GPs are sample-efficient and uncertainty-aware but expensive in the number of training points; DNNs scale to much larger datasets and dimensions but need more data and separate machinery for calibrated uncertainty.\
+$\dagger$ Sparse-GP via inducing points reduces $\mathcal{O}(N^3)$ to $\mathcal{O}(Nm^2 + m^3)$ for $m \ll N$ inducing inputs {cite:p}`titsias2009variational,hensman2013gaussian`; see the inducing-point remarkbox below.
 
 | **Criterion** | **Gaussian Processes** | **Deep Neural Networks** |
 |---|---|---|
@@ -279,7 +279,6 @@ GP and DNN surrogate trade-offs after the basic GP machinery has been introduced
 | Non-smooth features | Matérn-$3/2$ adapts well | excellent with enough data |
 | High-dim. extension | active subspaces ($d \gg 10$) | native |
 ````
-  $\dagger$ Sparse-GP via inducing points reduces $\mathcal{O}(N^3)$ to $\mathcal{O}(Nm^2 + m^3)$ for $m \ll N$ inducing inputs {cite:p}`titsias2009variational,hensman2013gaussian`; see the inducing-point remarkbox below.
 
 **Practical guidelines.**
 
@@ -676,7 +675,7 @@ GP/ASGP and DEQN solvers for dynamic models. The table distinguishes exact fixed
 | **Criterion** | **GP / ASGP** | **DEQNs** |
 |---|---|---|
 | Solution method | Value function iteration | Euler equation residuals |
-| Dimensionality | Up to $\sim$500 (with AS)                                           $>$1000 feasible |  |
+| Dimensionality | Up to $\sim$500 (with AS) | $>$1000 feasible |
 | UQ built-in | Yes (GP posterior variance) | No (needs extra work) |
 | Hardware | CPU clusters (MPI) | GPUs (TensorFlow/PyTorch) |
 | Irregular domains | Yes (grid-free) | Yes (mesh-free) |
@@ -767,12 +766,12 @@ Three uncertainty-quantification recipes compared on the dimensions that drive m
 
 |  | **Gaussian process** | **MC dropout** | **Deep ensembles** |
 |---|---|---|---|
-| **Calibration** | exact under model | approximate | strong empirically |
-| **Training cost** | $\mathcal{O}(n^3)$ | one network | $E\times$ one network |
-| **Inference cost** | $\mathcal{O}(n^2)$ | $T$ forward passes | $E$ forward passes |
-| **Sample efficiency** | best at small $n$ | needs much more data | needs much more data |
-| **Best when** | $n \lesssim 10^4$, low $d$ | cheap UQ on existing nets | willing to pay $E\times$ for top calibration |
-| **Reference** | {cite:t}`Rasmussen:2005:GPM:1162254` | {cite:t}`gal2016dropout` | {cite:t}`lakshminarayanan2017simple` |
+| Calibration | exact under model | approximate | strong empirically |
+| Training cost | $\mathcal{O}(n^3)$ | one network | $E\times$ one network |
+| Inference cost | $\mathcal{O}(n^2)$ | $T$ forward passes | $E$ forward passes |
+| Sample efficiency | best at small $n$ | needs much more data | needs much more data |
+| Best when | $n \lesssim 10^4$, low $d$ | cheap UQ on existing nets | willing to pay $E\times$ for top calibration |
+| Reference | {cite:t}`Rasmussen:2005:GPM:1162254` | {cite:t}`gal2016dropout` | {cite:t}`lakshminarayanan2017simple` |
 ````
 
 ##### A decision rule for practice.

@@ -208,8 +208,11 @@ Business-as-usual industrial emissions in CDICE (in GtCO2/yr) under the nine com
 
 (sec-dice_temperature)=
 ### Two-layer energy balance and radiative forcing
-A two-layer energy balance model links carbon concentrations to temperature: (eq-temp_at)=
+A two-layer energy balance model links carbon concentrations to temperature: 
+
+(eq-temp_at)=
 (eq-temp_oc)=
+
 $$
 \begin{aligned}
 T^{\mathrm{AT}}_{t+1} &= T^{\mathrm{AT}}_t + c_1 \bigl(F_t - \lambda\, T^{\mathrm{AT}}_t - c_3(T^{\mathrm{AT}}_t - T^{\mathrm{OC}}_t)\bigr),  \\
@@ -494,22 +497,25 @@ Before writing the FOCs and the loss, Table {numref}`tab-cdice_multipliers` col
 
 Normalized Lagrange multipliers in the CDICE--DEQN. All values are divided by $A_t^{1-1/\psi}\,L_t$ relative to the raw multipliers, so the hatted versions inherit the per-effective-capita scale that the network outputs see. The atmospheric carbon multiplier carries the SCC up to the marginal-utility denominator: $\mathrm{SCC}^M_t = -\hat\nu^{\mathrm{AT}}_t / \hat\lambda_t$.
 
-| $\textbf{Symbol}$ | **Multiplier on** | **Sign at optimum** | **Network output?** |
-|---|---|---|---|
-| $\hat\lambda_t$ | Budget constraint $C_t + I_t = Y^{\mathrm{net}}_t$ | $> 0$ | yes (softplus) |
-| $\hat\lambda^\mu_t$ | Abatement upper bound $\mu_t \le 1$ | $\ge 0$ | no (implied, Eq. {eq}`eq-iam_lambdamu_implied`) |
-| $\hat\nu^{\mathrm{AT}}_t$ | Atmospheric carbon transition $M^{\mathrm{AT}}_{t+1}=\ldots$ | $\le 0$ | yes (stored as $-\hat\nu^{\mathrm{AT}}_t > 0$ via softplus) |
-| $\hat\nu^{\mathrm{UO}}_t$ | Upper-ocean carbon transition | $\le 0$ | yes (linear) |
-| $\hat\nu^{\mathrm{LO}}_t$ | Lower-ocean carbon transition | $\le 0$ | yes (linear) |
-| $\hat\eta^{\mathrm{AT}}_t$ | Atmospheric temperature transition | $\le 0$ | yes (linear) |
-| $\hat\eta^{\mathrm{OC}}_t$ | Ocean temperature transition | $\le 0$ | yes (linear) |
+| **Symbol** | **Multiplier on** | **Sign at optimum** | **Network output?** |
+|---|---|:---:|---|
+| \_t | Budget constraint $C_t + I_t = Y^{\mathrm{net}}_t$ | $> 0$ | yes (softplus) |
+| \^\_t | Abatement upper bound $\mu_t \le 1$ | $\ge 0$ | no (implied, Eq. {eq}`eq-iam_lambdamu_implied`) |
+| \^\_t | Atmospheric carbon transition $M^{\mathrm{AT}}_{t+1}=\ldots$ | $\le 0$ | yes (stored as $-\hat\nu^{\mathrm{AT}}_t > 0$ via softplus) |
+| \^\_t | Upper-ocean carbon transition | $\le 0$ | yes (linear) |
+| \^\_t | Lower-ocean carbon transition | $\le 0$ | yes (linear) |
+| \^\_t | Atmospheric temperature transition | $\le 0$ | yes (linear) |
+| \^\_t | Ocean temperature transition | $\le 0$ | yes (linear) |
 ````
 
 ##### Key FOCs in normalized form.
 
-After normalization, the most important first-order conditions become (see Online Appendix D of {cite:t}`Folini_2021` for the complete set of 14 equations): (eq-iam_foc_c)=
+After normalization, the most important first-order conditions become (see Online Appendix D of {cite:t}`Folini_2021` for the complete set of 14 equations): 
+
+(eq-iam_foc_c)=
 (eq-iam_foc_k)=
 (eq-iam_foc_mu)=
+
 $$
 \begin{aligned}
 \frac{\partial \mathcal{L}}{\partial c_t} = 0 \;&\Leftrightarrow\;
@@ -599,7 +605,9 @@ The network architecture uses two hidden layers with 1024 units each, SELU activ
 
 ##### The 8 loss components.
 
-Each remaining equilibrium condition from {ref}`sec-dice_lagrangian` becomes a residual $l_m = 0$, and the network is asked to drive every $l_m$ to zero simultaneously along simulated paths. The mapping is one-for-one: $l_1$ is the capital-Euler FOC {eq}`eq-iam_foc_k`; $l_2$ is the budget constraint that closes {eq}`eq-capital_accumulation`; $l_3$, $l_4$, $l_5$ are the three carbon-reservoir envelope conditions, of which $l_3$ is {eq}`eq-iam_env_mat`; $l_6$ and $l_7$ are the two temperature-layer envelopes; and $l_8$ is the Fischer--Burmeister smoothing {eq}`eq-iam_fb` of the KKT slack on $\mu_t \le 1$, evaluated at the implied multiplier {eq}`eq-iam_lambdamu_implied`. The consumption FOC {eq}`eq-iam_foc_c` and the abatement FOC {eq}`eq-iam_foc_mu` are enforced *exactly* via the inversions in {eq}`eq-iam_c_recovery` and {eq}`eq-iam_lambdamu_implied`, which is why the loss list contains eight entries instead of nine. Written out, the eight components are: (eq-iam_l1)=
+Each remaining equilibrium condition from {ref}`sec-dice_lagrangian` becomes a residual $l_m = 0$, and the network is asked to drive every $l_m$ to zero simultaneously along simulated paths. The mapping is one-for-one: $l_1$ is the capital-Euler FOC {eq}`eq-iam_foc_k`; $l_2$ is the budget constraint that closes {eq}`eq-capital_accumulation`; $l_3$, $l_4$, $l_5$ are the three carbon-reservoir envelope conditions, of which $l_3$ is {eq}`eq-iam_env_mat`; $l_6$ and $l_7$ are the two temperature-layer envelopes; and $l_8$ is the Fischer--Burmeister smoothing {eq}`eq-iam_fb` of the KKT slack on $\mu_t \le 1$, evaluated at the implied multiplier {eq}`eq-iam_lambdamu_implied`. The consumption FOC {eq}`eq-iam_foc_c` and the abatement FOC {eq}`eq-iam_foc_mu` are enforced *exactly* via the inversions in {eq}`eq-iam_c_recovery` and {eq}`eq-iam_lambdamu_implied`, which is why the loss list contains eight entries instead of nine. Written out, the eight components are: 
+
+(eq-iam_l1)=
 (eq-iam_l2)=
 (eq-iam_l3)=
 (eq-iam_l4)=
@@ -607,6 +615,7 @@ Each remaining equilibrium condition from {ref}`sec-dice_lagrangian` becomes a r
 (eq-iam_l6)=
 (eq-iam_l7)=
 (eq-iam_l8)=
+
 $$
 \begin{aligned}
 l_1 &:= \exp\!\bigl(g^A_t + g^L_t\bigr)\,\hat{\lambda}_t - \hat{\beta}_t\Bigl\{\hat{\lambda}_{t+1}\bigl[\bigl(1-\Omega(T_{\mathrm{AT},t+1}) - \Theta(\mu_{t+1})\bigr)\alpha k_{t+1}^{\alpha-1} + (1-\delta)\bigr] \nonumber\\
@@ -772,8 +781,11 @@ $$
 y_{t+1} \;:=\; \varphi_{1C}\,T^{\mathrm{AT}}_t\,\tilde f_{t+1} \;+\; \tilde\epsilon_{T,t+1},\qquad \tilde\epsilon_{T,t+1} \sim \mathcal N(0, S_{\epsilon_T}),
 $$ (eq-bayes_signal)
 
-and conjugate Gaussian--Gaussian updating delivers the posterior (eq-bayes_mean)=
+and conjugate Gaussian--Gaussian updating delivers the posterior 
+
+(eq-bayes_mean)=
 (eq-bayes_var)=
+
 $$
 \begin{aligned}
 \mu_{f,t+1} &= \frac{S_{\epsilon_T}\,\mu_{f,t} + \varphi_{1C}\,T^{\mathrm{AT}}_t\,S_{f,t}\,y_{t+1}}{S_{\epsilon_T} + (\varphi_{1C}\,T^{\mathrm{AT}}_t)^2\,S_{f,t}}, \\

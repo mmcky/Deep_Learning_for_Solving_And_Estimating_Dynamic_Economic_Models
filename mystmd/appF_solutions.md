@@ -107,7 +107,7 @@ The Euler equation in Brock--Mirman with $\delta = 1$, log utility, and AR(1) pr
 Five-point Gauss--Hermite nodes and weights for the convention $\E[h(\varepsilon)] \approx \pi^{-1/2}\sum_q w_q h(\sqrt{2}\xi_q)$. The weights sum to $\sqrt{\pi}$ before the outside normalization.
 
 | $q$ | $\xi_q$ | $w_q$ |
-|---|---|---|
+|---:|---:|---:|
 | 1 | $-2.0202$ | $0.0200$ |
 | 2 | $-0.9586$ | $0.3936$ |
 | 3 | $0.0000$ | $0.9453$ |
@@ -239,7 +239,7 @@ Hyperband with $R = 81$, $\eta = 3$ runs a ladder of brackets indexed by $s = s_
 Hyperband schedule for maximum resource $R=81$ and reduction factor $\eta=3$. Each row reports the successive-halving rungs inside one bracket and the total resource consumed by that bracket.
 
 | $s$ | **SHA rungs $(n\times r)$** | **Total** |
-|---|---|---|
+|---:|---|---:|
 | $4$ | $81{\times}1 \to 27{\times}3 \to 9{\times}9 \to 3{\times}27 \to 1{\times}81$ | $405$ |
 | $3$ | $34{\times}3 \to 11{\times}9 \to 3{\times}27 \to 1{\times}81$ | $363$ |
 | $2$ | $15{\times}9 \to 5{\times}27 \to 1{\times}81$ | $351$ |
