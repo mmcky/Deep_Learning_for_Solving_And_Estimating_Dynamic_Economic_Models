@@ -3,10 +3,11 @@ title: "Notation and Symbols"
 label: notation-and-symbols
 ---
 
-  Symbol                      Meaning
 ```{list-table}
-:header-rows: 0
+:header-rows: 1
 
+* - Symbol
+  - Meaning
 * - $\x \in \R^d$
   - Input or state vector, depending on context
 * - $p(\x)$
@@ -43,10 +44,11 @@ Where necessary, chapter-specific notation (e.g., HJB/PDE operators, kernel func
 
 **Symbols with conflicting uses across chapters.** Several symbols below are reused with different meanings depending on the chapter, because each chapter inherits the convention of its primary source. This table collects the conflicts in one place; chapters that introduce a new local meaning also add a one-line warning at first use.
 
-  Symbol                 Meanings (by chapter)
 ```{list-table}
-:header-rows: 0
+:header-rows: 1
 
+* - Symbol
+  - Meanings (by chapter)
 * - $\gamma$
   - IES $=1/\text{CRRA}$ in Ch. {ref}`ch-irbc` (IRBC); CRRA in Ch. {ref}`ch-pinn` (cake-eating) and Ch. {ref}`ch-ct_theory` (continuous-time HA); reused as $\sigma_u$ in Ch. {ref}`ch-climate` (OLG-IAM) to free $\sigma_t$ for emissions intensity; RL discount factor $\gamma\in[0,1)$ and BatchNorm scale parameter in Ch. {ref}`ch-intro`; Hyperband / Successive-Halving reduction factor in Ch. {ref}`ch-nas`.
 * - $\eta$
@@ -75,38 +77,139 @@ Where necessary, chapter-specific notation (e.g., HJB/PDE operators, kernel func
 
 **Abbreviations and acronyms.** The following acronyms appear throughout the script. They are introduced in full at first use within each chapter; this list serves as a quick reference.
 
-  ------- -------------------------------------- ----------- -----------------------------------------
-  ABC     Approximate Bayesian Computation       KFE         Kolmogorov forward (Fokker--Planck) Eq.
-  ACE     Analytic Climate Economy (Traeger)     KKT         Karush--Kuhn--Tucker conditions
-  AD      Automatic Differentiation              KS          Krusell--Smith (1998) economy
-  AdamW   Adam with decoupled weight decay       LSTM        Long Short-Term Memory net
-  AS      Active Subspace                        MAGICC      Reduced-complexity climate emulator
-  BAL     Bayesian Active Learning               MC          Monte Carlo
-  BC      Boundary Condition                     MFG         Mean Field Game
-  BSDE    Backward Stochastic Differential Eq.   ML          Machine Learning
-  CDICE   Calibrated DICE (Folini 2024)          MLE         Maximum Likelihood Estimator
-  CRN     Common Random Numbers                  MLP         Multi-Layer Perceptron
-  CRRA    Constant Relative Risk Aversion        MMW         Maliar--Maliar--Winant (2021)
-  DEQN    Deep Equilibrium Net                   MPC         Marginal Propensity to Consume
-  DGM     Deep Galerkin Method                   NAS         Neural Architecture Search
-  DICE    Dyn. Integ. Climate-Econ. model        NTK         Neural Tangent Kernel
-  DKL     Deep Kernel Learning                   OLG         Overlapping Generations
-  DL      Deep Learning                          PDE         Partial Differential Equation
-  DNN     Deep Neural Network                    PINN        Physics-Informed Neural Net
-  ECS     Equilibrium Climate Sensitivity        QMC         Quasi-Monte Carlo
-  EGM     Endogenous Grid Method                 ReLoBRaLo   Relative Loss Balancing
-  ELU     Exponential Linear Unit                RL          Reinforcement Learning
-  EMINN   Economic Model Informed NN             RNN         Recurrent Neural Network
-  FaIR    Reduced-complexity climate emulator    SBI         Simulation-Based Inference
-  FB      Fischer--Burmeister loss               SCC         Social Cost of Carbon
-  FD      Finite Differences                     SDE         Stochastic Differential Equation
-  FNO     Fourier Neural Operator                SGD         Stochastic Gradient Descent
-  FOC     First-Order Condition                  SMM         Simulated Method of Moments
-  GE      General Equilibrium                    TF / TF2    TensorFlow / TensorFlow 2
-  GMM     Generalized Method of Moments          UQ          Uncertainty Quantification
-  GP      Gaussian Process                       VFI         Value Function Iteration
-  HA      Heterogeneous Agent                    ZLB         Zero Lower Bound
-  HJB     Hamilton--Jacobi--Bellman Eq.          XLA         Accelerated Linear Algebra (TF/JAX)
-  IRBC    Internat. Real Business Cycle          DeepONet    Deep Operator Network
-  JAX     JAX autodiff library (Google)          DeepHAM     Deep Heterogeneous-Agent Model
-  ------- -------------------------------------- ----------- -----------------------------------------
+```{list-table}
+:header-rows: 0
+
+* - ABC
+  - Approximate Bayesian Computation
+  - KFE
+  - Kolmogorov forward (Fokker--Planck) Eq.
+* - ACE
+  - Analytic Climate Economy (Traeger)
+  - KKT
+  - Karush--Kuhn--Tucker conditions
+* - AD
+  - Automatic Differentiation
+  - KS
+  - Krusell--Smith (1998) economy
+* - AdamW
+  - Adam with decoupled weight decay
+  - LSTM
+  - Long Short-Term Memory net
+* - AS
+  - Active Subspace
+  - MAGICC
+  - Reduced-complexity climate emulator
+* - BAL
+  - Bayesian Active Learning
+  - MC
+  - Monte Carlo
+* - BC
+  - Boundary Condition
+  - MFG
+  - Mean Field Game
+* - BSDE
+  - Backward Stochastic Differential Eq.
+  - ML
+  - Machine Learning
+* - CDICE
+  - Calibrated DICE (Folini 2024)
+  - MLE
+  - Maximum Likelihood Estimator
+* - CRN
+  - Common Random Numbers
+  - MLP
+  - Multi-Layer Perceptron
+* - CRRA
+  - Constant Relative Risk Aversion
+  - MMW
+  - Maliar--Maliar--Winant (2021)
+* - DEQN
+  - Deep Equilibrium Net
+  - MPC
+  - Marginal Propensity to Consume
+* - DGM
+  - Deep Galerkin Method
+  - NAS
+  - Neural Architecture Search
+* - DICE
+  - Dyn. Integ. Climate-Econ. model
+  - NTK
+  - Neural Tangent Kernel
+* - DKL
+  - Deep Kernel Learning
+  - OLG
+  - Overlapping Generations
+* - DL
+  - Deep Learning
+  - PDE
+  - Partial Differential Equation
+* - DNN
+  - Deep Neural Network
+  - PINN
+  - Physics-Informed Neural Net
+* - ECS
+  - Equilibrium Climate Sensitivity
+  - QMC
+  - Quasi-Monte Carlo
+* - EGM
+  - Endogenous Grid Method
+  - ReLoBRaLo
+  - Relative Loss Balancing
+* - ELU
+  - Exponential Linear Unit
+  - RL
+  - Reinforcement Learning
+* - EMINN
+  - Economic Model Informed NN
+  - RNN
+  - Recurrent Neural Network
+* - FaIR
+  - Reduced-complexity climate emulator
+  - SBI
+  - Simulation-Based Inference
+* - FB
+  - Fischer--Burmeister loss
+  - SCC
+  - Social Cost of Carbon
+* - FD
+  - Finite Differences
+  - SDE
+  - Stochastic Differential Equation
+* - FNO
+  - Fourier Neural Operator
+  - SGD
+  - Stochastic Gradient Descent
+* - FOC
+  - First-Order Condition
+  - SMM
+  - Simulated Method of Moments
+* - GE
+  - General Equilibrium
+  - TF / TF2
+  - TensorFlow / TensorFlow 2
+* - GMM
+  - Generalized Method of Moments
+  - UQ
+  - Uncertainty Quantification
+* - GP
+  - Gaussian Process
+  - VFI
+  - Value Function Iteration
+* - HA
+  - Heterogeneous Agent
+  - ZLB
+  - Zero Lower Bound
+* - HJB
+  - Hamilton--Jacobi--Bellman Eq.
+  - XLA
+  - Accelerated Linear Algebra (TF/JAX)
+* - IRBC
+  - Internat. Real Business Cycle
+  - DeepONet
+  - Deep Operator Network
+* - JAX
+  - JAX autodiff library (Google)
+  - DeepHAM
+  - Deep Heterogeneous-Agent Model
+```

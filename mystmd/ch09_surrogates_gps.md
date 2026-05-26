@@ -31,14 +31,17 @@ This course covers two complementary approaches:
 
 2.  **Gaussian process (GP) surrogates** are preferable for *intermediate-dimensional* settings ($d \lesssim 10$--$15$) where each training point is numerically expensive, for example solving a full DSGE model at one parameter configuration may take minutes or hours. GPs are *data-efficient*: the Bayesian posterior extracts maximum information from each observation. Crucially, the posterior variance provides a built-in uncertainty estimate that can guide *where* to evaluate next, enabling Bayesian Active Learning (BAL) strategies that allocate the computational budget optimally {cite:p}`SCHEIDEGGER201968`.
 
-(tab-surrogate_strategy_comparison)=
-                    **DNN surrogate**                         **GP surrogate**
-  ----------------- ----------------------------------------- ----------------------------------------------
-  Best for          high-dim. ($d \gg 10$), large $N$         moderate-dim. ($d \lesssim 15$), small $N$
-  Data efficiency   data-hungry; wants a large training set   data-efficient; informative from a small one
-  Key advantage     scales to very high $d$ via SGD           built-in UQ and active learning
+````{table}
+:name: tab-surrogate_strategy_comparison
 
-  : Two complementary surrogate strategies. DNN surrogates are attractive when the input dimension and available training set are large; GP surrogates are attractive when each simulator call is expensive and calibrated posterior uncertainty is useful for active learning.
+Two complementary surrogate strategies. DNN surrogates are attractive when the input dimension and available training set are large; GP surrogates are attractive when each simulator call is expensive and calibrated posterior uncertainty is useful for active learning.
+
+|  | **DNN surrogate** | **GP surrogate** |
+|---|---|---|
+| Best for | high-dim. ($d \gg 10$), large $N$ | moderate-dim. ($d \lesssim 15$), small $N$ |
+| Data efficiency | data-hungry; wants a large training set | data-efficient; informative from a small one |
+| Key advantage | scales to very high $d$ via SGD | built-in UQ and active learning |
+````
 
 Table {numref}`tab-surrogate_strategy_comparison` summarizes the main trade-off. The two approaches are not mutually exclusive: one can use a GP to build an initial low-data surrogate with uncertainty estimates, and later switch to a DNN when more training data becomes available. A detailed comparison covering computational cost, gradient access, and further trade-offs is given in Section {ref}`sec-gp_vs_dnn` after the GP methodology has been introduced.
 
@@ -263,16 +266,19 @@ Bayesian Active Learning in action. (a) Starting from three initial observation
 ## When to Use GPs vs. DNNs
 Now that the GP machinery (posterior inference, kernel design, and BAL) has been introduced, we can give a more detailed comparison than the overview in Table {numref}`tab-surrogate_strategy_comparison`. Active subspaces, introduced in Section {ref}`sec-active_subspaces`, are the main tool for pushing GP surrogates beyond the moderate-dimensional regime. Table {numref}`tab-gp_vs_dnn_surrogates` extends Table {numref}`tab-surrogate_strategy_comparison` with the GP-specific items (LOO diagnostics, marginal-likelihood Occam, BAL).
 
-(tab-gp_vs_dnn_surrogates)=
-  **Criterion**         **Gaussian Processes**                                                                   **Deep Neural Networks**
-  --------------------- ---------------------------------------------------------------------------------------- --------------------------------------------------------------------
-  Training cost         $\mathcal{O}(N^3)$; exact for $N$ in the low thousands^$\dagger$^                        $\mathcal{O}(N)$ per epoch; scales to $N \sim 10^6$
-  Prediction cost       $\mathcal{O}(N)$ posterior mean, $\mathcal{O}(N^2)$ posterior variance, per test point   $\mathcal{O}(\text{weights})$ per forward pass; independent of $N$
-  Gradient access       closed-form from posterior                                                               autodiff (exact, any order)
-  Non-smooth features   Matérn-$3/2$ adapts well                                                                 excellent with enough data
-  High-dim. extension   active subspaces ($d \gg 10$)                                                            native
+````{table}
+:name: tab-gp_vs_dnn_surrogates
 
-  : GP and DNN surrogate trade-offs after the basic GP machinery has been introduced. GPs are sample-efficient and uncertainty-aware but expensive in the number of training points; DNNs scale to much larger datasets and dimensions but need more data and separate machinery for calibrated uncertainty.\
+GP and DNN surrogate trade-offs after the basic GP machinery has been introduced. GPs are sample-efficient and uncertainty-aware but expensive in the number of training points; DNNs scale to much larger datasets and dimensions but need more data and separate machinery for calibrated uncertainty.\
+
+| **Criterion** | **Gaussian Processes** | **Deep Neural Networks** |
+|---|---|---|
+| Training cost | $\mathcal{O}(N^3)$; exact for $N$ in the low thousands^$\dagger$^ | $\mathcal{O}(N)$ per epoch; scales to $N \sim 10^6$ |
+| Prediction cost | $\mathcal{O}(N)$ posterior mean, $\mathcal{O}(N^2)$ posterior variance, per test point | $\mathcal{O}(\text{weights})$ per forward pass; independent of $N$ |
+| Gradient access | closed-form from posterior | autodiff (exact, any order) |
+| Non-smooth features | Matérn-$3/2$ adapts well | excellent with enough data |
+| High-dim. extension | active subspaces ($d \gg 10$) | native |
+````
   $\dagger$ Sparse-GP via inducing points reduces $\mathcal{O}(N^3)$ to $\mathcal{O}(Nm^2 + m^3)$ for $m \ll N$ inducing inputs {cite:p}`titsias2009variational,hensman2013gaussian`; see the inducing-point remarkbox below.
 
 **Practical guidelines.**
@@ -662,18 +668,21 @@ Many economic models have irregularly shaped ergodic sets (ellipsoids or manifol
 
 Both GPs (this chapter) and DEQNs (Chapters {ref}`ch-deqn`--{ref}`ch-olg`) solve dynamic stochastic models, but with different trade-offs (Table {numref}`tab-gp_vs_deqn_dynamic_models`):
 
-(tab-gp_vs_deqn_dynamic_models)=
-  **Criterion**             **GP / ASGP**                                                                        **DEQNs**
-  ------------------------- ------------------------------------------------------------------------------------ ---------------------------------------------------------------
-  Solution method           Value function iteration                                                             Euler equation residuals
-  Dimensionality            Up to $\sim$500 (with AS)                                           $>$1000 feasible
-  UQ built-in               Yes (GP posterior variance)                                                          No (needs extra work)
-  Hardware                  CPU clusters (MPI)                                                                   GPUs (TensorFlow/PyTorch)
-  Irregular domains         Yes (grid-free)                                                                      Yes (mesh-free)
-  Sensitivity analysis      Cheap after pseudo-state augmentation                                                Requires pseudo-states or re-training
-  Convergence diagnostics   Exact Bellman operator is a contraction; GP interpolation error must be controlled   Euler residuals and simulation tests; no generic global proof
+````{table}
+:name: tab-gp_vs_deqn_dynamic_models
 
-  : GP/ASGP and DEQN solvers for dynamic models. The table distinguishes exact fixed-point theory from the numerical approximation actually used: GP-VFI inherits the Bellman contraction only up to interpolation error, while DEQNs are judged by residual and simulation diagnostics.
+GP/ASGP and DEQN solvers for dynamic models. The table distinguishes exact fixed-point theory from the numerical approximation actually used: GP-VFI inherits the Bellman contraction only up to interpolation error, while DEQNs are judged by residual and simulation diagnostics.
+
+| **Criterion** | **GP / ASGP** | **DEQNs** |
+|---|---|---|
+| Solution method | Value function iteration | Euler equation residuals |
+| Dimensionality | Up to $\sim$500 (with AS)                                           $>$1000 feasible |  |
+| UQ built-in | Yes (GP posterior variance) | No (needs extra work) |
+| Hardware | CPU clusters (MPI) | GPUs (TensorFlow/PyTorch) |
+| Irregular domains | Yes (grid-free) | Yes (mesh-free) |
+| Sensitivity analysis | Cheap after pseudo-state augmentation | Requires pseudo-states or re-training |
+| Convergence diagnostics | Exact Bellman operator is a contraction; GP interpolation error must be controlled | Euler residuals and simulation tests; no generic global proof |
+````
 
 **When to use which:** GPs when the effective dimension is moderate ($D \lesssim 15$, or a few hundred only when active-subspace structure is strong) and uncertainty quantification or sensitivity analysis is required; DEQNs when $D$ is very large, GPU hardware is available, or the model involves complicated market-clearing conditions that are more naturally expressed as Euler equation residuals than as Bellman maximization.
 
@@ -751,17 +760,20 @@ Gaussian processes are the most analytically transparent way to attach uncertain
 
 {cite:t}`lakshminarayanan2017simple` train $E$ independent neural networks with different random seeds and combine them into a Gaussian-mixture predictor. Empirically this is one of the most robust uncertainty-quantification recipes available, often beating MC dropout and approaching the calibration of GPs, at $E$ times the training cost.
 
-(tab-gp_vs_bnn)=
-                          **Gaussian process**          **MC dropout**              **Deep ensembles**
-  ----------------------- ----------------------------- --------------------------- ----------------------------------------------
-  **Calibration**         exact under model             approximate                 strong empirically
-  **Training cost**       $\mathcal{O}(n^3)$            one network                 $E\times$ one network
-  **Inference cost**      $\mathcal{O}(n^2)$            $T$ forward passes          $E$ forward passes
-  **Sample efficiency**   best at small $n$             needs much more data        needs much more data
-  **Best when**           $n \lesssim 10^4$, low $d$    cheap UQ on existing nets   willing to pay $E\times$ for top calibration
-  **Reference**           {cite:t}`Rasmussen:2005:GPM:1162254`   {cite:t}`gal2016dropout`             {cite:t}`lakshminarayanan2017simple`
+````{table}
+:name: tab-gp_vs_bnn
 
-  : Three uncertainty-quantification recipes compared on the dimensions that drive method choice in economic surrogate work. This script uses GPs in Chapter {ref}`ch-gp` and Chapter {ref}`ch-climate` because the typical regime ($n \lesssim 10^3$, expensive simulator) plays to their strengths; readers operating in larger-data regimes should consider MC dropout or deep ensembles before resorting to a sparse GP.
+Three uncertainty-quantification recipes compared on the dimensions that drive method choice in economic surrogate work. This script uses GPs in Chapter {ref}`ch-gp` and Chapter {ref}`ch-climate` because the typical regime ($n \lesssim 10^3$, expensive simulator) plays to their strengths; readers operating in larger-data regimes should consider MC dropout or deep ensembles before resorting to a sparse GP.
+
+|  | **Gaussian process** | **MC dropout** | **Deep ensembles** |
+|---|---|---|---|
+| **Calibration** | exact under model | approximate | strong empirically |
+| **Training cost** | $\mathcal{O}(n^3)$ | one network | $E\times$ one network |
+| **Inference cost** | $\mathcal{O}(n^2)$ | $T$ forward passes | $E$ forward passes |
+| **Sample efficiency** | best at small $n$ | needs much more data | needs much more data |
+| **Best when** | $n \lesssim 10^4$, low $d$ | cheap UQ on existing nets | willing to pay $E\times$ for top calibration |
+| **Reference** | {cite:t}`Rasmussen:2005:GPM:1162254` | {cite:t}`gal2016dropout` | {cite:t}`lakshminarayanan2017simple` |
+````
 
 ##### A decision rule for practice.
 

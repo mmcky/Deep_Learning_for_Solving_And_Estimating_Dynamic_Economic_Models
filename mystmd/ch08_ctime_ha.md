@@ -279,16 +279,19 @@ Both models share the same household problem (HJB) and the same cross-sectional 
 
 When aggregate TFP $Z_t$ is allowed to vary (e.g., the OU process introduced in {ref}`sec-master_eq` below for Krusell--Smith), the firm FOCs generalize to $r_t = \alpha\, e^{Z_t} K_t^{\alpha-1}L_t^{1-\alpha} - \delta$ and $w_t = (1-\alpha)\, e^{Z_t} K_t^\alpha L_t^{-\alpha}$. Aiyagari is recovered when $Z_t \equiv 0$; the same expression covers both calibrations, which is convenient for the master-equation analysis below.
 
-(tab-huggett_aiyagari_ct)=
-                                      **Huggett (1993)**                          **Aiyagari (1994)**
-  --------------------- ---------------------------------------------- ------------------------------------------
-  Economy                                 Endowment                     Production ($Y = K^\alpha L^{1-\alpha}$)
-  Asset                                    Bond $b$                                Capital claim $a$
-  Net supply                        Zero ($\int b\,g = 0$)                   Positive ($\int a\,g = K > 0$)
-  Price determined by                  Bond return $q$                        Interest rate $r$, wage $w$
-  Wealth distribution    Centered around $0$, mass at $\underline{b}$        Right-skewed, long right tail
+````{table}
+:name: tab-huggett_aiyagari_ct
 
-  : Huggett and Aiyagari as two continuous-time incomplete-markets benchmarks. Huggett clears a zero-net-supply bond market by adjusting the bond return; Aiyagari clears a positive capital market with prices pinned down by firm first-order conditions.
+Huggett and Aiyagari as two continuous-time incomplete-markets benchmarks. Huggett clears a zero-net-supply bond market by adjusting the bond return; Aiyagari clears a positive capital market with prices pinned down by firm first-order conditions.
+
+|  | **Huggett (1993)** | **Aiyagari (1994)** |
+|---|---|---|
+| Economy | Endowment | Production ($Y = K^\alpha L^{1-\alpha}$) |
+| Asset | Bond $b$ | Capital claim $a$ |
+| Net supply | Zero ($\int b\,g = 0$) | Positive ($\int a\,g = K > 0$) |
+| Price determined by | Bond return $q$ | Interest rate $r$, wage $w$ |
+| Wealth distribution | Centered around $0$, mass at $\underline{b}$ | Right-skewed, long right tail |
+````
 
 Figure {numref}`fig-huggett_aiyagari_densities` contrasts the two stationary densities visually. In Huggett (left), bonds are in zero net supply, so the cross-sectional density is centred near $b\!=\!0$, with a Dirac atom at the borrowing limit $\underline{b}$ carried entirely by constrained low-productivity households; high-productivity households are smoothly distributed and never bind. In Aiyagari (right), agents hold positive capital in equilibrium, so the same atom now sits at $\underline{a}\!=\!0$ but the bulk of the mass is shifted right with a long upper tail.
 
@@ -330,16 +333,19 @@ A natural-looking alternative to pointwise (collocation) residuals is to project
 
 This continuous-time PINN approach and the discrete-time DEQN with Young's method (Chapter {ref}`ch-young`) address the *same* economic question -- how heterogeneous agents interact through prices when markets are incomplete -- but differ in the mathematical formulation summarized in Table {numref}`tab-discrete_continuous_ha`.
 
-(tab-discrete_continuous_ha)=
-                    **Discrete time (Ch. {ref}`ch-young`)**   **Continuous time (this chapter)**
-  ----------------- ---------------------------------------------------------------------------------------------- ------------------------------------
-  Distribution      Histogram $G_t(k_i, \varepsilon_j)$                                                            Density $g(a,z)$
-  Evolution         Young's redistribution                                                                         KFE PDE
-  Individual opt.   Euler equation                                                                                 HJB PDE
-  Solver            DEQN (TensorFlow)                                                                              PINN (PyTorch)
-  Key reference     {cite:t}`krusell1998income`                                                                             {cite:t}`achdou2022income`
+````{table}
+:name: tab-discrete_continuous_ha
 
-  : Discrete- and continuous-time formulations of incomplete-markets heterogeneous-agent models. The economic object is the same in both columns, but the numerical residual changes from a discrete-time law of motion plus Euler equation to a coupled HJB--KFE PDE system.
+Discrete- and continuous-time formulations of incomplete-markets heterogeneous-agent models. The economic object is the same in both columns, but the numerical residual changes from a discrete-time law of motion plus Euler equation to a coupled HJB--KFE PDE system.
+
+|  | **Discrete time (Ch. {ref}`ch-young`)** | **Continuous time (this chapter)** |
+|---|---|---|
+| Distribution | Histogram $G_t(k_i, \varepsilon_j)$ | Density $g(a,z)$ |
+| Evolution | Young's redistribution | KFE PDE |
+| Individual opt. | Euler equation | HJB PDE |
+| Solver | DEQN (TensorFlow) | PINN (PyTorch) |
+| Key reference | {cite:t}`krusell1998income` | {cite:t}`achdou2022income` |
+````
 
 Both approaches can incorporate aggregate shocks, multiple assets, and general equilibrium; the choice between them depends primarily on whether the underlying economic model is formulated in discrete or continuous time. For the aggregate-shock case the natural continuous-time object is the *master equation* ({ref}`sec-master_eq`), solved with EMINNs ({ref}`sec-eminn`).
 
@@ -396,14 +402,17 @@ Economic Model Informed Neural Networks (EMINNs), introduced by {cite:t}`gu2024m
 ### Three Approximation Approaches for the Distribution
 The infinite-dimensional distribution $g$ must be replaced by a finite-dimensional approximation $\hat{\varphi} \in \R^d$ so that $V(a,n,z,g) \approx \hat{V}(a,n,z,\hat{\varphi})$. Table {numref}`tab-eminn_distribution_approximations` summarizes the three approaches used in {cite:t}`gu2024masterequations`.
 
-(tab-eminn_distribution_approximations)=
-                                   **Finite population**                                **Discrete state**                                **Projection**
-  ------------------- ------------------------------------------------ ----------------------------------------------------- -----------------------------------------
-  $\hat{\varphi}_t$             $\{(a_t^i, n_t^i)\}_{i=1}^N$                    Masses on grid $\{a_1,\ldots,a_I\}$                     Basis coefficients
-  $\hat{g}_t$          $\frac{1}{N}\sum_i \delta_{\hat{\varphi}_t^i}$   $\sum_{i,j} \hat{\varphi}_{ij}\,\delta_{(a_i,n_j)}$   $b_0 + \sum_i \hat{\varphi}_i b_i(a,n)$
-  Dimension                              $\sim 40$                                          $\sim 200$                                       $\sim 5$
+````{table}
+:name: tab-eminn_distribution_approximations
 
-  : Finite-dimensional representations of the cross-sectional distribution in EMINNs. Here $\delta_{\bullet}$ denotes a Dirac measure centered at $\bullet$, not the depreciation rate of Chapters {ref}`ch-deqn`--{ref}`ch-young`.
+Finite-dimensional representations of the cross-sectional distribution in EMINNs. Here $\delta_{\bullet}$ denotes a Dirac measure centered at $\bullet$, not the depreciation rate of Chapters {ref}`ch-deqn`--{ref}`ch-young`.
+
+|  | **Finite population** | **Discrete state** | **Projection** |
+|---|---|---|---|
+| $\hat{\varphi}_t$ | $\{(a_t^i, n_t^i)\}_{i=1}^N$ | Masses on grid $\{a_1,\ldots,a_I\}$ | Basis coefficients |
+| $\hat{g}_t$ | $\frac{1}{N}\sum_i \delta_{\hat{\varphi}_t^i}$ | $\sum_{i,j} \hat{\varphi}_{ij}\,\delta_{(a_i,n_j)}$ | $b_0 + \sum_i \hat{\varphi}_i b_i(a,n)$ |
+| Dimension | $\sim 40$ | $\sim 200$ | $\sim 5$ |
+````
 
 ##### Finite population ($N \approx 40$).
 
@@ -478,18 +487,21 @@ For the Krusell--Smith model (with aggregate shocks), their reported results sho
 
 Table {numref}`tab-ct_method_comparison` gives the practical method comparison for this chapter.
 
-(tab-ct_method_comparison)=
-                             **Finite differences**                        **PINN**                                   **EMINN**
-  -------------------------- --------------------------------------------- ------------------------------------------ -------------------------------------------------
-  Stationary equilibrium     Benchmark method                              Works, validate carefully                  Works, but overkill
-  Aggregate shocks           Local/low-dimensional only                    Coupled system, not full master equation   Designed for global master equation
-  Grid required              Yes                                           No state grid                              No state grid
-  High-dimensional scaling   Limited by grids                              Better, optimization-limited               Better, distribution-state approximation needed
-  Handles $g$ as state       Not in standard stationary FD                 No                                         Yes, through $\hat{\varphi}$
-  Convergence theory         Strong for low-dimensional monotone schemes   Limited                                    Limited
-  Low-dimensional accuracy   Often $\sim 10^{-6}$                          Problem-dependent; validate                Reported $\sim 10^{-5}$
+````{table}
+:name: tab-ct_method_comparison
 
-  : Finite differences, PINNs, and EMINNs for the continuous-time heterogeneous-agent problems covered in this chapter. The entries are practical guidance, not universal impossibility results: finite differences remain the benchmark in low dimension, while EMINNs target the global master-equation setting with the distribution as a state.
+Finite differences, PINNs, and EMINNs for the continuous-time heterogeneous-agent problems covered in this chapter. The entries are practical guidance, not universal impossibility results: finite differences remain the benchmark in low dimension, while EMINNs target the global master-equation setting with the distribution as a state.
+
+|  | **Finite differences** | **PINN** | **EMINN** |
+|---|---|---|---|
+| Stationary equilibrium | Benchmark method | Works, validate carefully | Works, but overkill |
+| Aggregate shocks | Local/low-dimensional only | Coupled system, not full master equation | Designed for global master equation |
+| Grid required | Yes | No state grid | No state grid |
+| High-dimensional scaling | Limited by grids | Better, optimization-limited | Better, distribution-state approximation needed |
+| Handles $g$ as state | Not in standard stationary FD | No | Yes, through $\hat{\varphi}$ |
+| Convergence theory | Strong for low-dimensional monotone schemes | Limited | Limited |
+| Low-dimensional accuracy | Often $\sim 10^{-6}$ | Problem-dependent; validate | Reported $\sim 10^{-5}$ |
+````
 
 For stationary, low-dimensional problems, finite differences remain fast and reliable and should be used as the benchmark. For models with aggregate shocks and high-dimensional state spaces, EMINNs are, among the methods surveyed here, one of the few approaches demonstrated on global master-equation solutions for this class of benchmarks. PINNs serve as a useful intermediate step: they share the same code philosophy as EMINNs (automatic differentiation of PDE residuals) but apply to the coupled HJB--KFE system rather than the master equation.
 

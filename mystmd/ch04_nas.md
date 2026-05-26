@@ -96,15 +96,18 @@ Hyperband extends SHA by running multiple SHA brackets with different trade-offs
 
 Table {numref}`tab-nas_methods` contrasts the four hyperparameter-search strategies covered above on three dimensions that matter in practice: the cost of $N$ objective evaluations, the degree to which the evaluations can be parallelised, and the sample efficiency (how much of the budget actually improves the best-so-far value).
 
-(tab-nas_methods)=
-  **Method**               **Cost**           **Parallelizable**   **Sample efficiency**    **Best for**
-  --------------- -------------------------- -------------------- ----------------------- -----------------
-  Grid search      $\mathcal{O}(k^d)$ evals         fully                   low              $d \leq 3$
-  Random search           $N$ evals                 fully                moderate            general use
-  Bayesian opt.       $N$ evals + GP fit           limited                 high            expensive evals
-  Hyperband           $N$ resource units       within brackets           moderate            cheap evals
+````{table}
+:name: tab-nas_methods
 
-  : Comparison of hyperparameter-search methods. Grid search scales exponentially in the number of hyperparameters $d$; random search and Hyperband scale linearly in the chosen evaluation/resource budget and parallelise well; Bayesian optimization has the highest per-evaluation information gain but adds surrogate-fitting overhead and is partly sequential.
+Comparison of hyperparameter-search methods. Grid search scales exponentially in the number of hyperparameters $d$; random search and Hyperband scale linearly in the chosen evaluation/resource budget and parallelise well; Bayesian optimization has the highest per-evaluation information gain but adds surrogate-fitting overhead and is partly sequential.
+
+| **Method** | **Cost** | **Parallelizable** | **Sample efficiency** | **Best for** |
+|---|---|---|---|---|
+| Grid search | $\mathcal{O}(k^d)$ evals | fully | low | $d \leq 3$ |
+| Random search | $N$ evals | fully | moderate | general use |
+| Bayesian opt. | $N$ evals + GP fit | limited | high | expensive evals |
+| Hyperband | $N$ resource units | within brackets | moderate | cheap evals |
+````
 
 For the DEQN and PINN applications in this course, random search or Bayesian optimization are typically the most practical choices. Hyperband is attractive when training is relatively cheap and many configurations need to be screened quickly.
 
@@ -196,14 +199,17 @@ $$ (eq-relobralo_full)
 
 where $\alpha \in [0,1]$ is a smoothing parameter controlling how much to trust historical weights versus the current step-wise signal, and $\rho \in [0,1]$ is a baseline-mix coefficient controlling the relative importance of the previous weights versus the initial-loss comparison. Equivalently, $w_k^{(t)}$ is a convex combination of $\{w_k^{(t-1)}, \hat{w}_{k,\mathrm{base}}^{(t)}, \hat{w}_{k,\mathrm{step}}^{(t)}\}$ with mixture weights $(\alpha\rho,\, \alpha(1-\rho),\, 1-\alpha)$, which sum to 1. (In the original ReLoBRaLo formulation, $\rho$ governs a stochastic Bernoulli lookback mechanism; here and in the notebooks we use a deterministic convex blend, which is simpler and easier to reproduce.) Typical values are collected in Table {numref}`tab-relobralo_hp`.
 
-(tab-relobralo_hp)=
-  **Hyperparameter**            **Role**                                            **Typical value**
-  ----------------------------- --------------------------------------------------- -------------------
-  $T$ (temperature)             Controls weight concentration (softmax sharpness)   $0.5$--$2.0$
-  $\alpha$ (smoothing)          History vs. new information                         $0.99$--$0.999$
-  $\rho$ (mixing coefficient)   Initial-loss baseline vs. historical weight         $0.99$--$0.999$
+````{table}
+:name: tab-relobralo_hp
 
-  : ReLoBRaLo hyperparameters used in the companion notebook. Default ranges follow {cite:t}`bischof2025relobralo`. $T$ is the only one that usually needs tuning; $\alpha$ and $\rho$ at their defaults give slow, stable adaptation that works across a wide range of multi-component problems.
+ReLoBRaLo hyperparameters used in the companion notebook. Default ranges follow {cite:t}`bischof2025relobralo`. $T$ is the only one that usually needs tuning; $\alpha$ and $\rho$ at their defaults give slow, stable adaptation that works across a wide range of multi-component problems.
+
+| **Hyperparameter** | **Role** | **Typical value** |
+|---|---|---|
+| $T$ (temperature) | Controls weight concentration (softmax sharpness) | $0.5$--$2.0$ |
+| $\alpha$ (smoothing) | History vs. new information | $0.99$--$0.999$ |
+| $\rho$ (mixing coefficient) | Initial-loss baseline vs. historical weight | $0.99$--$0.999$ |
+````
 
 ### GradNorm
 
@@ -231,18 +237,21 @@ The pathology is immediate: $\ell_1$ drops four orders of magnitude while $\ell_
 
 Table {numref}`tab-balancing_methods` compares the four balancing strategies on the two dimensions that reliably matter in practice: runtime overhead per step and the number of hyperparameters the user must set.
 
-(tab-balancing_methods)=
-  **Method**                                               **Overhead**          **Hyperparameters**
-  ------------------------------------------------------ ---------------- ---------------------------------
-  Uniform weights                                              none                       0
-  Inverse-loss                                              negligible              1 (smoothing)
-  Uncertainty weighting {cite:p}`kendall2018multi`      negligible     $K$ (one log-variance per loss)
-  SoftAdapt {cite:p}`heydari2019softadapt`              negligible           2 ($\tau$, window)
-  ReLoBRaLo {cite:p}`bischof2025relobralo`              negligible        3 ($T$, $\alpha$, $\rho$)
-  GradNorm {cite:p}`chen2018gradnorm`                    moderate               1 ($\alpha$)
-  NTK-based {cite:p}`wang2022when`                    moderate--high           0 (data-driven)
+````{table}
+:name: tab-balancing_methods
 
-  : Summary of adaptive loss-balancing methods. Overhead is a per-step wall-clock cost (additional softmaxes for SoftAdapt/ReLoBRaLo; per-component gradient norms for GradNorm). Quantitative speedups depend strongly on the problem; see the companion notebook `04_Loss_Normalization.ipynb` for problem-specific measurements.
+Summary of adaptive loss-balancing methods. Overhead is a per-step wall-clock cost (additional softmaxes for SoftAdapt/ReLoBRaLo; per-component gradient norms for GradNorm). Quantitative speedups depend strongly on the problem; see the companion notebook `04_Loss_Normalization.ipynb` for problem-specific measurements.
+
+| **Method** | **Overhead** | **Hyperparameters** |
+|---|---|---|
+| Uniform weights | none | 0 |
+| Inverse-loss | negligible | 1 (smoothing) |
+| Uncertainty weighting {cite:p}`kendall2018multi` | negligible | $K$ (one log-variance per loss) |
+| SoftAdapt {cite:p}`heydari2019softadapt` | negligible | 2 ($\tau$, window) |
+| ReLoBRaLo {cite:p}`bischof2025relobralo` | negligible | 3 ($T$, $\alpha$, $\rho$) |
+| GradNorm {cite:p}`chen2018gradnorm` | moderate | 1 ($\alpha$) |
+| NTK-based {cite:p}`wang2022when` | moderate--high | 0 (data-driven) |
+````
 
 Quantitative speedup claims depend on the specific problem (PDE vs. Euler residual, number of components, imbalance ratio), the baseline (uniform vs. manually tuned), and the success criterion. The companion notebook `04_Loss_Normalization.ipynb` runs the four methods on a shared multi-scale regression task so that the reader can generate problem-specific numbers rather than rely on headline speedup factors from unrelated benchmarks.
 

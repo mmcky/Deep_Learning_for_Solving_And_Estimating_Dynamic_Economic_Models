@@ -188,17 +188,20 @@ with manufactured solution $u^\star(x,y) = x^2 + y + \sin(\pi x)\sin(\pi y)$, yi
 
 In practice, PINN training often fails for optimization reasons rather than approximation capacity. Table {numref}`tab-pinn_failure_modes` lists the most common pathologies and practical remedies.
 
-(tab-pinn_failure_modes)=
-  **Symptom**                                             **Typical cause**                                                                                          **Practical remedy**
-  ------------------------------------------------------- ---------------------------------------------------------------------------------------------------------- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  Large boundary violations                               Soft BC penalties underweighted or unstable                                                                Prefer hard BC trial solutions when possible; otherwise use adaptive loss balancing (e.g., ReLoBRaLo).
-  Good BC fit, poor interior PDE fit                      Boundary penalties overweighted                                                                            Decrease BC weights or rebalance losses dynamically.
-  Residual spikes in narrow regions                       Collocation undercoverage (boundary layers / kinks)                                                        Use residual-based adaptive resampling, Sobol/LHS points, and local point refinement.
-  Slow or stalled optimization                            Gradient imbalance across loss terms; or initialization in a basin disconnected from the true solution     Normalize loss components and monitor per-term gradients; use adaptive balancing schemes {cite:p}`wang2021understanding,bischof2025relobralo`; restart with different seeds or warm-start from a coarser solver if the loss plateaus far from any plausible solution.
-  Optimizer stuck on a symmetric / structureless ansatz   Initialization too symmetric to represent an asymmetric solution; gradient updates preserve the symmetry   Break the symmetry explicitly: asymmetric weight initialization, an auxiliary symmetry-breaking input feature, or a short pre-training pass that nudges the ansatz toward the correct shape.
-  Oscillatory solution near payoff kink                   Spectral bias and non-smooth target geometry                                                               Increase sampling density near kink and split domain if needed; use problem-specific transforms.
+````{table}
+:name: tab-pinn_failure_modes
 
-  : Common PINN failure modes and practical remedies. The main implementation lesson is to monitor loss components separately: a small total loss can hide boundary violations, interior residual spikes, or gradient imbalance across terms.
+Common PINN failure modes and practical remedies. The main implementation lesson is to monitor loss components separately: a small total loss can hide boundary violations, interior residual spikes, or gradient imbalance across terms.
+
+| **Symptom** | **Typical cause** | **Practical remedy** |
+|---|---|---|
+| Large boundary violations | Soft BC penalties underweighted or unstable | Prefer hard BC trial solutions when possible; otherwise use adaptive loss balancing (e.g., ReLoBRaLo). |
+| Good BC fit, poor interior PDE fit | Boundary penalties overweighted | Decrease BC weights or rebalance losses dynamically. |
+| Residual spikes in narrow regions | Collocation undercoverage (boundary layers / kinks) | Use residual-based adaptive resampling, Sobol/LHS points, and local point refinement. |
+| Slow or stalled optimization | Gradient imbalance across loss terms; or initialization in a basin disconnected from the true solution | Normalize loss components and monitor per-term gradients; use adaptive balancing schemes {cite:p}`wang2021understanding,bischof2025relobralo`; restart with different seeds or warm-start from a coarser solver if the loss plateaus far from any plausible solution. |
+| Optimizer stuck on a symmetric / structureless ansatz | Initialization too symmetric to represent an asymmetric solution; gradient updates preserve the symmetry | Break the symmetry explicitly: asymmetric weight initialization, an auxiliary symmetry-breaking input feature, or a short pre-training pass that nudges the ansatz toward the correct shape. |
+| Oscillatory solution near payoff kink | Spectral bias and non-smooth target geometry | Increase sampling density near kink and split domain if needed; use problem-specific transforms. |
+````
 
 The penultimate row above is folklore in computational quantum chemistry, where solvers routinely ship dedicated symmetry-breaking modules because a symmetric initial guess is preserved exactly under gradient training; the analogous trap shows up in PINNs whenever the true solution lacks a symmetry that the architecture happens to enforce.
 
@@ -208,16 +211,19 @@ For the course applications, a robust default stack is: smooth activation ($\tan
 
 The plain MLP used in the examples so far -- and, below, for the cake-eating HJB -- is sufficient for low-dimensional PDEs with smooth solutions, but its expressive bottleneck shows up in two regimes: (i) genuinely high-dimensional state spaces (where curse-of-dimensionality effects compound across layers), and (ii) PDEs with sharp internal features such as boundary layers, wave fronts, or kinks at policy switches. The Deep Galerkin Method addresses both by adding LSTM-style gates and skip connections from the input to every layer, so that the network can carry input information forward unchanged through depth and route it past intermediate transformations. In the 1D problems studied so far, an MLP and a DGM block train to comparable accuracy and the MLP is preferred for transparency; the architectural complexity pays off as dimension grows or sharp features appear. Table {numref}`tab-mlp_vs_dgm` gives a qualitative comparison across the problem classes treated in this chapter; the chapter's exercises invite a concrete benchmark of the two architectures on the same PDE.
 
-(tab-mlp_vs_dgm)=
-  ****Problem class****                                                                                              **MLP**               **DGM**       **Where DGM helps**
-  ---------------------------------------------------------------------------------------------------------- ----------------------- ------------------- --------------------------------------------------------------------------------------------------------------
-  **1D ODE ({ref}`sec-bc_soft_hard`)**                        comparable            comparable      not in 1D smooth problems; MLP preferred for transparency
-  **2D Poisson ({ref}`sec-bc_soft_hard`)**                    comparable            comparable      marginally, on stiff sources
-  **Cake-eating HJB ({ref}`sec-cake_eating_hjb`)**          preferred            comparable      MLP wins when hard BCs already kill the boundary loss; DGM wins if kinks at policy-switching points dominate
-  **Black--Scholes ({ref}`sec-bs_pinn`)**                           adequate          cleaner near kink  sharp payoff kink at $S=K$; DGM gates absorb local geometry better
-  **High-dim HJB ($d\gtrsim 4$)**                                                                             curse of dim. visible       preferred      input-skip connections retain raw coordinates at every depth, mitigating expressivity loss across layers
+````{table}
+:name: tab-mlp_vs_dgm
 
-  : Qualitative MLP vs. DGM comparison across the problem classes of this chapter. "Comparable" means the two architectures train to similar final residual at similar wall time; "preferred" indicates which one a practitioner should reach for first. A quantitative benchmark on a fixed pair (residual, wall time, parameters) is the natural project extension and is not run here.
+Qualitative MLP vs. DGM comparison across the problem classes of this chapter. "Comparable" means the two architectures train to similar final residual at similar wall time; "preferred" indicates which one a practitioner should reach for first. A quantitative benchmark on a fixed pair (residual, wall time, parameters) is the natural project extension and is not run here.
+
+| ****Problem class**** | **MLP** | **DGM** | **Where DGM helps** |
+|---|---|---|---|
+| **1D ODE ({ref}`sec-bc_soft_hard`)** | comparable | comparable | not in 1D smooth problems; MLP preferred for transparency |
+| **2D Poisson ({ref}`sec-bc_soft_hard`)** | comparable | comparable | marginally, on stiff sources |
+| **Cake-eating HJB ({ref}`sec-cake_eating_hjb`)** | preferred | comparable | MLP wins when hard BCs already kill the boundary loss; DGM wins if kinks at policy-switching points dominate |
+| **Black--Scholes ({ref}`sec-bs_pinn`)** | adequate | cleaner near kink | sharp payoff kink at $S=K$; DGM gates absorb local geometry better |
+| **High-dim HJB ($d\gtrsim 4$)** | curse of dim. visible | preferred | input-skip connections retain raw coordinates at every depth, mitigating expressivity loss across layers |
+````
 
 For high-dimensional PDEs, {cite:t}`sirignano2018dgm` introduced the Deep Galerkin Method (DGM), an architecture with LSTM-style gating {cite:p}`hochreiter1997long` and skip connections from the input layer to every hidden layer reminiscent of Highway Networks {cite:p}`srivastava2015highway` (the immediate precursor of ResNets, in which a learned gate controls how much of the previous representation is carried forward unchanged versus transformed).[^2] A related deep BSDE-based formulation was introduced by {cite:t}`e2017deep` (E--Han--Jentzen) and developed in the companion paper of {cite:t}`han2018solving` (Han--Jentzen--E). An accessible exposition of DGM together with several PDE applications is given by {cite:t}`al2018solving`, which also introduces the gate naming convention adopted below. The original DGM architecture of {cite:t}`sirignano2018dgm` uses four gates at each layer $l$:
 

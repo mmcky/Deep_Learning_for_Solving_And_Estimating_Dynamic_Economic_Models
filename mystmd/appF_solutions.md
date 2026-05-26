@@ -101,16 +101,19 @@ The Euler equation in Brock--Mirman with $\delta = 1$, log utility, and AR(1) pr
    \;=\;
    \beta\,\E\!\left[\frac{\alpha\,z'\,K_{t+1}^{\alpha - 1}}{C_{t+1}} \,\Big|\, K_t, z_t\right].$$ Replace the expectation by a Gauss--Hermite rule. After the change of variables $\varepsilon' = \sqrt{2}\,\xi$ that absorbs the normalization $1/\sqrt{\pi}$, the $Q$-point GH quadrature is $$\E[h(\varepsilon')] \;\approx\; \frac{1}{\sqrt{\pi}} \sum_{q=1}^{Q} w_q\,h\!\bigl(\sqrt{2}\,\xi_q\bigr),$$ with classical nodes $\xi_q$ and weights $w_q$ that satisfy $\sum_q w_q = \sqrt{\pi}$. Table {numref}`tab-gh5_nodes` lists the five-point rule used in this exercise.
 
-(tab-gh5_nodes)=
-    $q$     $\xi_q$      $w_q$
-  ----- ----------- ----------
-      1   $-2.0202$   $0.0200$
-      2   $-0.9586$   $0.3936$
-      3    $0.0000$   $0.9453$
-      4   $+0.9586$   $0.3936$
-      5   $+2.0202$   $0.0200$
+````{table}
+:name: tab-gh5_nodes
 
-  : Five-point Gauss--Hermite nodes and weights for the convention $\E[h(\varepsilon)] \approx \pi^{-1/2}\sum_q w_q h(\sqrt{2}\xi_q)$. The weights sum to $\sqrt{\pi}$ before the outside normalization.
+Five-point Gauss--Hermite nodes and weights for the convention $\E[h(\varepsilon)] \approx \pi^{-1/2}\sum_q w_q h(\sqrt{2}\xi_q)$. The weights sum to $\sqrt{\pi}$ before the outside normalization.
+
+| $q$ | $\xi_q$ | $w_q$ |
+|---|---|---|
+| 1 | $-2.0202$ | $0.0200$ |
+| 2 | $-0.9586$ | $0.3936$ |
+| 3 | $0.0000$ | $0.9453$ |
+| 4 | $+0.9586$ | $0.3936$ |
+| 5 | $+2.0202$ | $0.0200$ |
+````
 
 Substituting, the residual at a state $(K_t, z_t)$ becomes $$r(\theta; K_t, z_t)
    \;=\;
@@ -230,16 +233,19 @@ This is a coding exercise. A grid with step size $0.01$ over $[-1,2]$ has $301$ 
 
 Hyperband with $R = 81$, $\eta = 3$ runs a ladder of brackets indexed by $s = s_{\max}, s_{\max}-1, \dots, 0$, where $s_{\max} = \lfloor\log_\eta R\rfloor = 4$. Each bracket starts with $n_s = \lceil (s_{\max}+1)\,\eta^s / (s+1)\rceil$ candidates trained for $r_s = R / \eta^s$ resource each, then runs Successive Halving with reduction factor $\eta$. Table {numref}`tab-hyperband_r81_eta3` works out the resulting schedule.
 
-(tab-hyperband_r81_eta3)=
-    $s$ **SHA rungs $(n\times r)$**                                                      **Total**
-  ----- ------------------------------------------------------------------------------ -----------
-    $4$ $81{\times}1 \to 27{\times}3 \to 9{\times}9 \to 3{\times}27 \to 1{\times}81$         $405$
-    $3$ $34{\times}3 \to 11{\times}9 \to 3{\times}27 \to 1{\times}81$                        $363$
-    $2$ $15{\times}9 \to 5{\times}27 \to 1{\times}81$                                        $351$
-    $1$ $8{\times}27 \to 2{\times}81$                                                        $378$
-    $0$ $5{\times}81$                                                                        $405$
+````{table}
+:name: tab-hyperband_r81_eta3
 
-  : Hyperband schedule for maximum resource $R=81$ and reduction factor $\eta=3$. Each row reports the successive-halving rungs inside one bracket and the total resource consumed by that bracket.
+Hyperband schedule for maximum resource $R=81$ and reduction factor $\eta=3$. Each row reports the successive-halving rungs inside one bracket and the total resource consumed by that bracket.
+
+| $s$ | **SHA rungs $(n\times r)$** | **Total** |
+|---|---|---|
+| $4$ | $81{\times}1 \to 27{\times}3 \to 9{\times}9 \to 3{\times}27 \to 1{\times}81$ | $405$ |
+| $3$ | $34{\times}3 \to 11{\times}9 \to 3{\times}27 \to 1{\times}81$ | $363$ |
+| $2$ | $15{\times}9 \to 5{\times}27 \to 1{\times}81$ | $351$ |
+| $1$ | $8{\times}27 \to 2{\times}81$ | $378$ |
+| $0$ | $5{\times}81$ | $405$ |
+````
 
 Within each bracket, Successive Halving reduces candidates by $\eta$ at each rung and increases the resource per surviving candidate by $\eta$. Therefore the total cost must sum all rungs, not only the first rung. With the floor/ceil schedule above, total Hyperband budget is $$405 + 363 + 351 + 378 + 405 = 1902$$ resource units, just below the loose worst-case bound $(s_{\max}+1)^2 R = 25 \cdot 81 = 2025$.
 

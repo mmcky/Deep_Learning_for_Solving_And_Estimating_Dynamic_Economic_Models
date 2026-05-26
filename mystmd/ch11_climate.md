@@ -257,15 +257,18 @@ where $TP$ is a stochastic tipping-point threshold. We do not solve a Weitzman d
 ### CDICE: recalibration of the climate module
 A key contribution of {cite:t}`Folini_2021` is a systematic recalibration of the DICE climate module against benchmarks from climate science model archives (CMIP). Their CDICE framework retains the same functional forms as DICE but fits parameters to the four-test protocol summarized in Table {numref}`tab-cdice_tests`.
 
-(tab-cdice_tests)=
-  **Test**                    **Target**                     **Use**
-  --------------------------- ------------------------------ -----------------------------
-  1. Carbon pulse (100 GtC)   Atmospheric retention path     Calibrate carbon cycle
-  2. $4\times$CO$_2$ step     Temperature impulse response   Calibrate temperature block
-  3. 1% CO$_2$/year           Transient climate response     Out-of-sample validation
-  4. Historical + RCP         Realistic forcing paths        End-to-end validation
+````{table}
+:name: tab-cdice_tests
 
-  : CDICE climate-module calibration protocol. The first two tests discipline the carbon-cycle and temperature-response blocks directly; the last two check whether the calibrated reduced-form module remains accurate on out-of-sample and historically realistic forcing paths.
+CDICE climate-module calibration protocol. The first two tests discipline the carbon-cycle and temperature-response blocks directly; the last two check whether the calibrated reduced-form module remains accurate on out-of-sample and historically realistic forcing paths.
+
+| **Test** | **Target** | **Use** |
+|---|---|---|
+| 1. Carbon pulse (100 GtC) | Atmospheric retention path | Calibrate carbon cycle |
+| 2. $4\times$CO$_2$ step | Temperature impulse response | Calibrate temperature block |
+| 3. 1% CO$_2$/year | Transient climate response | Out-of-sample validation |
+| 4. Historical + RCP | Realistic forcing paths | End-to-end validation |
+````
 
 This calibration ensures that the reduced-form climate module is consistent with state-of-the-art earth system models. CDICE also introduces a transparent time-step formulation, $X_{t+\Delta t} = X_t + \Delta t \cdot f(X_t, u_t; \theta)$, that allows coherent implementation at annual, 5-year, or 10-year resolution within a single generic framework. Figure {numref}`fig-restud_bau_mat` illustrates how much the climate-cycle calibration matters even before the planner makes any decision: under business-as-usual, DICE-2016 and CDICE produce visibly different atmospheric carbon trajectories, and the gap propagates into temperature, damages, and ultimately the SCC.
 
@@ -279,42 +282,45 @@ Atmospheric carbon MtAT along the BAU path (in GtC, over 200 years from 2015) un
 ### Calibration and initial conditions, in one place
 The block-by-block model description above introduces a fairly large set of parameters. Table {numref}`tab-dice_calibration` consolidates the calibration we use throughout the rest of the chapter, lifted from the Online Appendix of {cite:t}`Folini_2021`. Two CMIP5 alternatives (HadGEM2-ES and GISS-E2-R) are shown alongside the multi-model mean (MMM) so that the deep-UQ analysis of {ref}`sec-deep_uq` has a concrete distribution to draw from. We follow the CDICE convention of expressing all carbon quantities in $10^3$ GtC working units: equilibrium and initial carbon stocks $M_{\mathrm{eq}}$ and $M_0$, the initial carbon intensity $\sigma_0$, and the initial land-use emissions $E_{\mathrm{Land},0}$ are all on the same scale, which keeps the numerical conditioning of the carbon-cycle and emissions states under control. The factor $10^3$ appears explicitly in the abatement-cost calibration {eq}`eq-theta1_calibration` to convert $\sigma_t$ back to GtC when it is multiplied by the backstop price; a reader comparing values against raw DICE-2016 numbers (e.g. $\sim 2.6$ GtC/yr land-use emissions, $\sim 851$ GtC atmospheric carbon in 2015) should multiply the table entries by $10^3$ first.
 
-(tab-dice_calibration)=
-  **Block**       **Parameter**                       **Value**                                                                       **Meaning**
-  --------------- ----------------------------------- ------------------------------------------------------------------------------- ---------------------------------------------
-  Economy         $\alpha$                            $0.30$                                                                          Capital share in Cobb--Douglas output
-                  $\delta$                            $0.10$/yr                                                                       Capital depreciation rate
-                  $\rho$                              $0.015$/yr                                                                      Pure rate of time preference
-                  $\psi$                              $0.69$                                                                          Intertemporal elasticity of substitution
-  Emissions &     $\sigma_0$                          $9.556\!\times\!10^{-5}$ ($10^3$ GtC)/USD                                       Initial carbon intensity
-  abatement       $g^{\sigma}_0$                      $-0.0152$/yr                                                                    Initial decay rate of $\sigma_t$
-                  $\delta^{\sigma}$                   $0.001$/yr                                                                      Curvature of $\sigma_t$ decay
-                  $p^{\mathrm{back}}_0$               $0.55$ thUSD/tCO$_2$                                                            Initial backstop price
-                  $g^{\mathrm{back}}$                 $0.005$/yr                                                                      Decay rate of backstop price
-                  $\theta_2$                          $2.6$                                                                           Curvature of $\Theta(\mu)$
-                  $\mathrm{c2co2}$                    $3.666$                                                                         Carbon-to-CO$_2$ mass conversion
-  Land use        $E_{\mathrm{Land},0}$               $7.09\!\times\!10^{-4}$ ($10^3$ GtC)/yr                                         Initial land-use emissions
-                  $\delta^{\mathrm{Land}}$            $0.023$/yr                                                                      Decay rate of $E_{\mathrm{Land},t}$
-  Carbon cycle    $b_{12}$                            $0.054$/yr                                                                      Atm.--upper-ocean transfer rate
-                  $b_{23}$                            $0.0082$/yr                                                                     Upper-ocean--lower-ocean transfer rate
-                  $M_{\mathrm{eq}}$                   $(0.607, 0.489, 1.281)$ ($10^3$ GtC)                                            Pre-industrial equilibrium masses
-  Temperature     $c_1$ (MMM)                         $0.137$/yr                                                                      Atmospheric heat-capacity inverse
-                  $c_3$ (MMM)                         $0.73$/yr                                                                       Atm.--ocean coupling
-                  $c_4$ (MMM)                         $0.00689$/yr                                                                    Ocean heat-capacity inverse
-                  $F_{\mathrm{2\times CO_2}}$ (MMM)   $3.45$ W/m$^2$                                                                  Forcing from CO$_2$ doubling
-                  $\lambda$ (MMM)                     $1.06$ W/m$^2$/K                                                                Climate feedback parameter
-                  ECS (MMM)                           $\approx 3.25\,^\circ$C                                                         Equilibrium climate sensitivity
-                  HadGEM2-ES                          $(c_1,c_3,c_4)=(0.154,0.55,0.00671)$/yr                                         High-end CMIP5 calibration
-                                                      $F_{\mathrm{2\times CO_2}}=2.95$, $\lambda=0.65$, ECS$\approx 4.55$ $^\circ$C   
-                  GISS-E2-R                           $(c_1,c_3,c_4)=(0.213,1.16,0.00921)$/yr                                         Low-end CMIP5 calibration
-                                                      $F_{\mathrm{2\times CO_2}}=3.65$, $\lambda=1.70$, ECS$\approx 2.15$ $^\circ$C   
-  Damages         $\pi_1$                             $0.0$                                                                           Linear damage coefficient
-                  $\pi_2$                             $0.00236$                                                                       Quadratic damage coefficient
-  Initial state   $K_0$                               $223$ T USD                                                                     Capital, year 2015
-                  $M_0$                               $(0.851, 0.628, 1.323)$ ($10^3$ GtC)                                            Atm./upper/lower carbon, 2015
-                  $T_0$                               $(1.10, 0.27)\,^\circ$C                                                         Atm./ocean temp. above pre-industrial, 2015
+````{table}
+:name: tab-dice_calibration
 
-  : CDICE baseline calibration used in the deterministic CDICE-DEQN solve. Parameter values follow the Online Appendix of {cite:t}`Folini_2021` and are stated on an annual time step ($\Delta_t = 1$ yr). All carbon quantities ($M_{\mathrm{eq}}, M_0, \sigma_0, E_{\mathrm{Land},0}$) are in CDICE's $10^3$ GtC working units; multiply by $10^3$ to recover GtC. Two alternative climate calibrations (CDICE-HadGEM2-ES, CDICE-GISS-E2-R) are listed in the temperature block, with their full free-parameter sets $\{c_1, c_3, c_4, F_{\mathrm{2\times CO_2}}, \lambda\}$ and corresponding ECS, since simply varying ECS while holding the rest of the temperature block fixed is *not* equivalent to using the full CMIP5 calibration {cite:p}`Folini_2021`. Initial state is for year 2015.
+CDICE baseline calibration used in the deterministic CDICE-DEQN solve. Parameter values follow the Online Appendix of {cite:t}`Folini_2021` and are stated on an annual time step ($\Delta_t = 1$ yr). All carbon quantities ($M_{\mathrm{eq}}, M_0, \sigma_0, E_{\mathrm{Land},0}$) are in CDICE's $10^3$ GtC working units; multiply by $10^3$ to recover GtC. Two alternative climate calibrations (CDICE-HadGEM2-ES, CDICE-GISS-E2-R) are listed in the temperature block, with their full free-parameter sets $\{c_1, c_3, c_4, F_{\mathrm{2\times CO_2}}, \lambda\}$ and corresponding ECS, since simply varying ECS while holding the rest of the temperature block fixed is *not* equivalent to using the full CMIP5 calibration {cite:p}`Folini_2021`. Initial state is for year 2015.
+
+| **Block** | **Parameter** | **Value** | **Meaning** |
+|---|---|---|---|
+| Economy | $\alpha$ | $0.30$ | Capital share in Cobb--Douglas output |
+|  | $\delta$ | $0.10$/yr | Capital depreciation rate |
+|  | $\rho$ | $0.015$/yr | Pure rate of time preference |
+|  | $\psi$ | $0.69$ | Intertemporal elasticity of substitution |
+| Emissions & | $\sigma_0$ | $9.556\!\times\!10^{-5}$ ($10^3$ GtC)/USD | Initial carbon intensity |
+| abatement | $g^{\sigma}_0$ | $-0.0152$/yr | Initial decay rate of $\sigma_t$ |
+|  | $\delta^{\sigma}$ | $0.001$/yr | Curvature of $\sigma_t$ decay |
+|  | $p^{\mathrm{back}}_0$ | $0.55$ thUSD/tCO$_2$ | Initial backstop price |
+|  | $g^{\mathrm{back}}$ | $0.005$/yr | Decay rate of backstop price |
+|  | $\theta_2$ | $2.6$ | Curvature of $\Theta(\mu)$ |
+|  | $\mathrm{c2co2}$ | $3.666$ | Carbon-to-CO$_2$ mass conversion |
+| Land use | $E_{\mathrm{Land},0}$ | $7.09\!\times\!10^{-4}$ ($10^3$ GtC)/yr | Initial land-use emissions |
+|  | $\delta^{\mathrm{Land}}$ | $0.023$/yr | Decay rate of $E_{\mathrm{Land},t}$ |
+| Carbon cycle | $b_{12}$ | $0.054$/yr | Atm.--upper-ocean transfer rate |
+|  | $b_{23}$ | $0.0082$/yr | Upper-ocean--lower-ocean transfer rate |
+|  | $M_{\mathrm{eq}}$ | $(0.607, 0.489, 1.281)$ ($10^3$ GtC) | Pre-industrial equilibrium masses |
+| Temperature | $c_1$ (MMM) | $0.137$/yr | Atmospheric heat-capacity inverse |
+|  | $c_3$ (MMM) | $0.73$/yr | Atm.--ocean coupling |
+|  | $c_4$ (MMM) | $0.00689$/yr | Ocean heat-capacity inverse |
+|  | $F_{\mathrm{2\times CO_2}}$ (MMM) | $3.45$ W/m$^2$ | Forcing from CO$_2$ doubling |
+|  | $\lambda$ (MMM) | $1.06$ W/m$^2$/K | Climate feedback parameter |
+|  | ECS (MMM) | $\approx 3.25\,^\circ$C | Equilibrium climate sensitivity |
+|  | HadGEM2-ES | $(c_1,c_3,c_4)=(0.154,0.55,0.00671)$/yr | High-end CMIP5 calibration |
+|  |  | $F_{\mathrm{2\times CO_2}}=2.95$, $\lambda=0.65$, ECS$\approx 4.55$ $^\circ$C |  |
+|  | GISS-E2-R | $(c_1,c_3,c_4)=(0.213,1.16,0.00921)$/yr | Low-end CMIP5 calibration |
+|  |  | $F_{\mathrm{2\times CO_2}}=3.65$, $\lambda=1.70$, ECS$\approx 2.15$ $^\circ$C |  |
+| Damages | $\pi_1$ | $0.0$ | Linear damage coefficient |
+|  | $\pi_2$ | $0.00236$ | Quadratic damage coefficient |
+| Initial state | $K_0$ | $223$ T USD | Capital, year 2015 |
+|  | $M_0$ | $(0.851, 0.628, 1.323)$ ($10^3$ GtC) | Atm./upper/lower carbon, 2015 |
+|  | $T_0$ | $(1.10, 0.27)\,^\circ$C | Atm./ocean temp. above pre-industrial, 2015 |
+````
 
 (sec-dice_summary)=
 ### The full IAM, summarized
@@ -483,18 +489,21 @@ We adopt the value-derivative convention throughout the script: each climate mul
 
 Before writing the FOCs and the loss, Table {numref}`tab-cdice_multipliers` collects the multipliers that the DEQN learns and their role; subsequent equations use the hat-normalized form throughout.
 
-(tab-cdice_multipliers)=
-  $\textbf{Symbol}$            **Multiplier on**                                               **Sign at optimum**  **Network output?**
-  ---------------------------- -------------------------------------------------------------- --------------------- -------------------------------------------------------------------------------------------------------------------------------------
-  $\hat\lambda_t$              Budget constraint $C_t + I_t = Y^{\mathrm{net}}_t$                     $> 0$         yes (softplus)
-  $\hat\lambda^\mu_t$          Abatement upper bound $\mu_t \le 1$                                   $\ge 0$        no (implied, Eq. {eq}`eq-iam_lambdamu_implied`)
-  $\hat\nu^{\mathrm{AT}}_t$    Atmospheric carbon transition $M^{\mathrm{AT}}_{t+1}=\ldots$          $\le 0$        yes (stored as $-\hat\nu^{\mathrm{AT}}_t > 0$ via softplus)
-  $\hat\nu^{\mathrm{UO}}_t$    Upper-ocean carbon transition                                         $\le 0$        yes (linear)
-  $\hat\nu^{\mathrm{LO}}_t$    Lower-ocean carbon transition                                         $\le 0$        yes (linear)
-  $\hat\eta^{\mathrm{AT}}_t$   Atmospheric temperature transition                                    $\le 0$        yes (linear)
-  $\hat\eta^{\mathrm{OC}}_t$   Ocean temperature transition                                          $\le 0$        yes (linear)
+````{table}
+:name: tab-cdice_multipliers
 
-  : Normalized Lagrange multipliers in the CDICE--DEQN. All values are divided by $A_t^{1-1/\psi}\,L_t$ relative to the raw multipliers, so the hatted versions inherit the per-effective-capita scale that the network outputs see. The atmospheric carbon multiplier carries the SCC up to the marginal-utility denominator: $\mathrm{SCC}^M_t = -\hat\nu^{\mathrm{AT}}_t / \hat\lambda_t$.
+Normalized Lagrange multipliers in the CDICE--DEQN. All values are divided by $A_t^{1-1/\psi}\,L_t$ relative to the raw multipliers, so the hatted versions inherit the per-effective-capita scale that the network outputs see. The atmospheric carbon multiplier carries the SCC up to the marginal-utility denominator: $\mathrm{SCC}^M_t = -\hat\nu^{\mathrm{AT}}_t / \hat\lambda_t$.
+
+| $\textbf{Symbol}$ | **Multiplier on** | **Sign at optimum** | **Network output?** |
+|---|---|---|---|
+| $\hat\lambda_t$ | Budget constraint $C_t + I_t = Y^{\mathrm{net}}_t$ | $> 0$ | yes (softplus) |
+| $\hat\lambda^\mu_t$ | Abatement upper bound $\mu_t \le 1$ | $\ge 0$ | no (implied, Eq. {eq}`eq-iam_lambdamu_implied`) |
+| $\hat\nu^{\mathrm{AT}}_t$ | Atmospheric carbon transition $M^{\mathrm{AT}}_{t+1}=\ldots$ | $\le 0$ | yes (stored as $-\hat\nu^{\mathrm{AT}}_t > 0$ via softplus) |
+| $\hat\nu^{\mathrm{UO}}_t$ | Upper-ocean carbon transition | $\le 0$ | yes (linear) |
+| $\hat\nu^{\mathrm{LO}}_t$ | Lower-ocean carbon transition | $\le 0$ | yes (linear) |
+| $\hat\eta^{\mathrm{AT}}_t$ | Atmospheric temperature transition | $\le 0$ | yes (linear) |
+| $\hat\eta^{\mathrm{OC}}_t$ | Ocean temperature transition | $\le 0$ | yes (linear) |
+````
 
 ##### Key FOCs in normalized form.
 
@@ -693,17 +702,20 @@ $$
 
 and the loss is still a sum of normalized equilibrium residuals. The only changes are the variables appended to $\tilde{\bm x}_t$ and the conditional expectations appearing in the residuals. Table {numref}`tab-climate_frontier_map` summarizes the sequence.
 
-(tab-climate_frontier_map)=
-  **Layer**                                                                                                           **Economic question**                                                              **Computational change**
-  ------------------------------------------------------------------------------------------------------------------- ---------------------------------------------------------------------------------- ------------------------------------------------------------------------------------------------------------------------------------------------------
-  Deterministic CDICE ({ref}`sec-iam_dequ_loss`)                What is the globally optimal abatement path and SCC at the baseline calibration?   Time-stamped DEQN; eight residuals; horizon $T_{\max}$ chosen so discounting absorbs transversality.
-  Stochastic DICE (AR(1) + GH quadrature, see the productivity-shock remarkbox below)                                 How do shocks alter the SCC distribution?                                          Add shock states; replace future terms by Gauss--Hermite expectations.
-  Bayesian learning on ECS ({ref}`sec-bayesian_learning`)   How does learning about climate sensitivity alter the SCC distribution?            Add belief mean and belief variance as states; one signal equation; conjugate Gaussian update.
-  Epstein--Zin DICE ({ref}`sec-ez_layer`)                           How do risk aversion and IES separately price climate tails?                       Add the value level as a network output; add one recursion residual and an EZ continuation-value weight.
-  Deep UQ ({ref}`sec-deep_uq`)                                       Which uncertain parameters drive SCC variation?                                    Treat parameters as pseudo-states; fit a GP surrogate for the QoI; compute Sobol, Shapley, and univariate effects.
-  Stochastic OLG-IAM ({ref}`sec-pareto_carbon_tax`)        Can carbon taxes be welfare improving and Pareto improving across cohorts?         Treat tax coefficients and transfer shares as pseudo-states; fit GP surrogates for cohort welfare; solve constrained policy design on the surrogate.
+````{table}
+:name: tab-climate_frontier_map
 
-  : The layers of the climate-economy pipeline used in the remainder of the chapter. Each layer is a small extension of the previous one; no new numerical paradigm is introduced after the deterministic CDICE-DEQN.
+The layers of the climate-economy pipeline used in the remainder of the chapter. Each layer is a small extension of the previous one; no new numerical paradigm is introduced after the deterministic CDICE-DEQN.
+
+| **Layer** | **Economic question** | **Computational change** |
+|---|---|---|
+| Deterministic CDICE ({ref}`sec-iam_dequ_loss`) | What is the globally optimal abatement path and SCC at the baseline calibration? | Time-stamped DEQN; eight residuals; horizon $T_{\max}$ chosen so discounting absorbs transversality. |
+| Stochastic DICE (AR(1) + GH quadrature, see the productivity-shock remarkbox below) | How do shocks alter the SCC distribution? | Add shock states; replace future terms by Gauss--Hermite expectations. |
+| Bayesian learning on ECS ({ref}`sec-bayesian_learning`) | How does learning about climate sensitivity alter the SCC distribution? | Add belief mean and belief variance as states; one signal equation; conjugate Gaussian update. |
+| Epstein--Zin DICE ({ref}`sec-ez_layer`) | How do risk aversion and IES separately price climate tails? | Add the value level as a network output; add one recursion residual and an EZ continuation-value weight. |
+| Deep UQ ({ref}`sec-deep_uq`) | Which uncertain parameters drive SCC variation? | Treat parameters as pseudo-states; fit a GP surrogate for the QoI; compute Sobol, Shapley, and univariate effects. |
+| Stochastic OLG-IAM ({ref}`sec-pareto_carbon_tax`) | Can carbon taxes be welfare improving and Pareto improving across cohorts? | Treat tax coefficients and transfer shares as pseudo-states; fit GP surrogates for cohort welfare; solve constrained policy design on the surrogate. |
+````
 
 ```{prf:remark}
 

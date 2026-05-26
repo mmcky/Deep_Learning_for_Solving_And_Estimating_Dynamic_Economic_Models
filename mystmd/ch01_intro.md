@@ -287,16 +287,19 @@ The bias-corrected first moment $\hat{\bm{m}}_t$ provides momentum (smoothing ou
 ### The Optimizer Family Tree: Momentum, RMSprop, Adam, AdamW
 Adam did not appear out of thin air; it inherits from a family of refinements to plain SGD whose interactions are worth being explicit about for readers who will tune optimizers in practice. Table {numref}`tab-optimizer_family` traces the lineage; each row is a one-line modification of the row above it.
 
-(tab-optimizer_family)=
-  ****Optimizer****    **Update rule (one parameter)**                                                                                               **Reference**
-  -------------------- ----------------------------------------------------------------------------------------------------------------------------- --------------------------
-  **SGD**              $\theta \leftarrow \theta - \eta\,g_t$                                                                                        {cite:t}`robbins1951stochastic`
-  **SGD + momentum**   $v_t = \mu v_{t-1} + g_t$;  $\theta \leftarrow \theta - \eta\,v_t$                                                            {cite:t}`sutskever2013importance`
-  **RMSprop**          $s_t = \rho s_{t-1} + (1-\rho)g_t^2$;  $\theta \leftarrow \theta - \eta\,g_t/\sqrt{s_t+\varepsilon}$                          {cite:t}`tieleman2012rmsprop`
-  **Adam**             momentum on $g_t$ and on $g_t^2$ with bias correction (Eqs. above)                                                            {cite:t}`kingma2015adam`
-  **AdamW**            Adam plus *decoupled* weight decay $\theta \leftarrow (1-\eta\lambda)\theta - \eta\,\hat m_t/(\sqrt{\hat v_t}+\varepsilon)$   {cite:t}`loshchilov2019decoupled`
+````{table}
+:name: tab-optimizer_family
 
-  : Lineage from plain SGD to AdamW. Each row introduces exactly one new ingredient: momentum buffers gradient noise; RMSprop adds a per-parameter learning-rate scaling by the running second moment; Adam combines the two with bias correction; AdamW separates weight decay from the gradient step so that the implicit $L_2$ regularizer does not interact with the adaptive denominator. PINN training in continuous-time chapters (Chapters {ref}`ch-pinn`--{ref}`ch-ct_theory`) often uses Adam or AdamW; DEQNs in Chapters {ref}`ch-deqn`--{ref}`ch-young` use plain Adam with the default $(\beta_1,\beta_2)=(0.9, 0.999)$ as in {cite:t}`azinovicDEEPEQUILIBRIUMNETS2022`.
+Lineage from plain SGD to AdamW. Each row introduces exactly one new ingredient: momentum buffers gradient noise; RMSprop adds a per-parameter learning-rate scaling by the running second moment; Adam combines the two with bias correction; AdamW separates weight decay from the gradient step so that the implicit $L_2$ regularizer does not interact with the adaptive denominator. PINN training in continuous-time chapters (Chapters {ref}`ch-pinn`--{ref}`ch-ct_theory`) often uses Adam or AdamW; DEQNs in Chapters {ref}`ch-deqn`--{ref}`ch-young` use plain Adam with the default $(\beta_1,\beta_2)=(0.9, 0.999)$ as in {cite:t}`azinovicDEEPEQUILIBRIUMNETS2022`.
+
+| ****Optimizer**** | **Update rule (one parameter)** | **Reference** |
+|---|---|---|
+| **SGD** | $\theta \leftarrow \theta - \eta\,g_t$ | {cite:t}`robbins1951stochastic` |
+| **SGD + momentum** | $v_t = \mu v_{t-1} + g_t$;  $\theta \leftarrow \theta - \eta\,v_t$ | {cite:t}`sutskever2013importance` |
+| **RMSprop** | $s_t = \rho s_{t-1} + (1-\rho)g_t^2$;  $\theta \leftarrow \theta - \eta\,g_t/\sqrt{s_t+\varepsilon}$ | {cite:t}`tieleman2012rmsprop` |
+| **Adam** | momentum on $g_t$ and on $g_t^2$ with bias correction (Eqs. above) | {cite:t}`kingma2015adam` |
+| **AdamW** | Adam plus *decoupled* weight decay $\theta \leftarrow (1-\eta\lambda)\theta - \eta\,\hat m_t/(\sqrt{\hat v_t}+\varepsilon)$ | {cite:t}`loshchilov2019decoupled` |
+````
 
 The Adam-vs-AdamW distinction is sharper than the one-line table entry suggests, so it is worth writing out both rules side by side. With $\hat m_t$, $\hat v_t$ the bias-corrected first and second moment of the gradient and $\lambda$ the weight-decay rate, Adam-with-$L_2$ (i.e. Adam applied to the loss $J + \tfrac{\lambda}{2}\|\bm\theta\|^2$) updates $$\bm\theta_{t+1} \;=\; \bm\theta_t \;-\; \eta\,\frac{\hat m_t + \lambda\,\bm\theta_t}{\sqrt{\hat v_t}+\varepsilon},$$ so the implicit regularizer is itself rescaled by the adaptive denominator $\sqrt{\hat v_t}+\varepsilon$. AdamW separates the two: $$\bm\theta_{t+1} \;=\; (1-\eta\lambda)\,\bm\theta_t \;-\; \eta\,\frac{\hat m_t}{\sqrt{\hat v_t}+\varepsilon},$$ so the weight-decay term shrinks every parameter by the same proportional factor regardless of gradient magnitude. This is why AdamW recovers the textbook intuition "weight decay shrinks weights uniformly" that Adam-with-$L_2$ loses.
 
@@ -391,20 +394,23 @@ The applications in this course use different activations depending on the task:
 ## Activation Functions in Depth
 Beyond the three classical choices (sigmoid, tanh, ReLU), several modern activation functions address specific shortcomings. Table {numref}`tab-activations` summarizes the options used in this course.
 
-(tab-activations)=
-  ****Activation****   **Formula**                                     **Range**                  **Key property**
-  -------------------- ----------------------------------------------- -------------------------- ------------------------------------------
-  **Sigmoid**          $\sigma(z) = (1+e^{-z})^{-1}$                   $(0,1)$                    Smooth, saturates
-  **Tanh**             $\tanh(z)$                                      $(-1,1)$                   Zero-centered, saturates
-  **ReLU**             $\max(0,z)$                                     $[0,\infty)$               Non-saturating for $z>0$
-  **Leaky ReLU**       $\max(\alpha z, z)$, $\alpha\!=\!0.1$           $(-\infty,\infty)$         No dead neurons
-  **ELU**              $z\text{ if }z>0;\ \alpha(e^z-1)\text{ else}$   $[-\alpha,\infty)$         Negative saturation; $C^1$ if $\alpha=1$
-  **Swish**            $z \cdot \sigma(z)$                             $\approx [-0.28,\infty)$   Smooth, non-monotone
-  **GELU**             $z\cdot\Phi(z)$                                 $\approx [-0.17,\infty)$   Smooth, default in BERT / GPT
-  **Mish**             $z\cdot\tanh(\ln(1+e^z))$                       $\approx [-0.31,\infty)$   Smooth, used in YOLOv4
-  **Softplus**         $\ln(1+e^z)$                                    $(0,\infty)$               Smooth ReLU approximation
+````{table}
+:name: tab-activations
 
-  : Activation functions used throughout the course. Origin papers: ReLU {cite:p}`nair2010rectified`, Leaky ReLU {cite:p}`maas2013rectifier`, ELU {cite:p}`clevert2016elu`, Swish {cite:p}`ramachandran2017swish`, GELU {cite:p}`hendrycks2016gelu`, Mish {cite:p}`misra2019mish`. *Range* is the set of output values for $z \in \R$. *Smoothness* matters when derivatives of the network output are needed: sigmoid, tanh, Swish, GELU, Mish, and softplus are $C^\infty$; ReLU is only $C^0$; Leaky ReLU is piecewise linear; ELU is piecewise $C^\infty$ and is $C^1$ at the origin only for $\alpha=1$. Smooth activations are required for PINN applications that involve second-order derivatives (Chapter {ref}`ch-pinn`).
+Activation functions used throughout the course. Origin papers: ReLU {cite:p}`nair2010rectified`, Leaky ReLU {cite:p}`maas2013rectifier`, ELU {cite:p}`clevert2016elu`, Swish {cite:p}`ramachandran2017swish`, GELU {cite:p}`hendrycks2016gelu`, Mish {cite:p}`misra2019mish`. *Range* is the set of output values for $z \in \R$. *Smoothness* matters when derivatives of the network output are needed: sigmoid, tanh, Swish, GELU, Mish, and softplus are $C^\infty$; ReLU is only $C^0$; Leaky ReLU is piecewise linear; ELU is piecewise $C^\infty$ and is $C^1$ at the origin only for $\alpha=1$. Smooth activations are required for PINN applications that involve second-order derivatives (Chapter {ref}`ch-pinn`).
+
+| ****Activation**** | **Formula** | **Range** | **Key property** |
+|---|---|---|---|
+| **Sigmoid** | $\sigma(z) = (1+e^{-z})^{-1}$ | $(0,1)$ | Smooth, saturates |
+| **Tanh** | $\tanh(z)$ | $(-1,1)$ | Zero-centered, saturates |
+| **ReLU** | $\max(0,z)$ | $[0,\infty)$ | Non-saturating for $z>0$ |
+| **Leaky ReLU** | $\max(\alpha z, z)$, $\alpha\!=\!0.1$ | $(-\infty,\infty)$ | No dead neurons |
+| **ELU** | $z\text{ if }z>0;\ \alpha(e^z-1)\text{ else}$ | $[-\alpha,\infty)$ | Negative saturation; $C^1$ if $\alpha=1$ |
+| **Swish** | $z \cdot \sigma(z)$ | $\approx [-0.28,\infty)$ | Smooth, non-monotone |
+| **GELU** | $z\cdot\Phi(z)$ | $\approx [-0.17,\infty)$ | Smooth, default in BERT / GPT |
+| **Mish** | $z\cdot\tanh(\ln(1+e^z))$ | $\approx [-0.31,\infty)$ | Smooth, used in YOLOv4 |
+| **Softplus** | $\ln(1+e^z)$ | $(0,\infty)$ | Smooth ReLU approximation |
+````
 
 Leaky ReLU and ELU address the dying-neuron issue by providing a small but nonzero gradient for negative inputs. The Swish activation $\mathrm{swish}(z) = z\sigma(z)$ {cite:p}`ramachandran2017swish`, which is used extensively in the DEQN and IRBC implementations of this course, combines the benefits of ReLU (non-saturating for large $z$) with smoothness at the origin. Its derivative $\mathrm{swish}'(z) = \sigma(z) + z\sigma(z)(1-\sigma(z))$ is smooth everywhere and bounded between approximately $-0.1$ and $1.1$, which can improve optimization stability.
 
@@ -789,18 +795,21 @@ For day 1 the key engineering fact is simpler than the modern LLM discussion: a
 
 Table {numref}`tab-seq_compare` summarizes the three architectures along the dimensions most relevant to a practitioner's choice.
 
-(tab-seq_compare)=
-                          **RNN**                  **LSTM / GRU**               **Transformer**
-  ----------------------- ------------------------ ---------------------------- -----------------------------------------------------------------------
-  Hidden state            single $\h_t$            $\h_t$ and $\bm{C}_t$        none per step; the residual stream across layers is an implicit state
-  Path length $1 \to T$   $\mathcal{O}(T)$         $\mathcal{O}(T)$             $\mathcal{O}(1)$
-  Parallelism over $t$    none                     none                         full (all positions at once)
-  Compute per layer       $\mathcal{O}(T\,d^2)$    $\mathcal{O}(T\,d^2)$        $\mathcal{O}(T^2 d + T\,d^2)$
-  Memory per layer        $\mathcal{O}(T\,d)$      $\mathcal{O}(T\,d)$          $\mathcal{O}(T^2 + T\,d)$
-  Training stability      gradient decay/blow-up   much better, gated           stable with LN + residuals
-  Sweet spot              short sequences          mid-length, niche patterns   long context, massive parallelism
+````{table}
+:name: tab-seq_compare
 
-  : Comparison of the three sequence architectures. Transformers trade a quadratic-in-$T$ attention cost for full parallelism and unit-length paths between any pair of positions, which is an excellent trade on modern accelerators and for the long sequences typical in language and high-frequency finance.
+Comparison of the three sequence architectures. Transformers trade a quadratic-in-$T$ attention cost for full parallelism and unit-length paths between any pair of positions, which is an excellent trade on modern accelerators and for the long sequences typical in language and high-frequency finance.
+
+|  | **RNN** | **LSTM / GRU** | **Transformer** |
+|---|---|---|---|
+| Hidden state | single $\h_t$ | $\h_t$ and $\bm{C}_t$ | none per step; the residual stream across layers is an implicit state |
+| Path length $1 \to T$ | $\mathcal{O}(T)$ | $\mathcal{O}(T)$ | $\mathcal{O}(1)$ |
+| Parallelism over $t$ | none | none | full (all positions at once) |
+| Compute per layer | $\mathcal{O}(T\,d^2)$ | $\mathcal{O}(T\,d^2)$ | $\mathcal{O}(T^2 d + T\,d^2)$ |
+| Memory per layer | $\mathcal{O}(T\,d)$ | $\mathcal{O}(T\,d)$ | $\mathcal{O}(T^2 + T\,d)$ |
+| Training stability | gradient decay/blow-up | much better, gated | stable with LN + residuals |
+| Sweet spot | short sequences | mid-length, niche patterns | long context, massive parallelism |
+````
 
 A practical rule of thumb follows immediately. If the task is a specialized time-series problem with moderate history length and limited data, an LSTM remains a strong baseline. If context is long and accelerator-friendly parallelism matters, one should usually start with a Transformer.
 

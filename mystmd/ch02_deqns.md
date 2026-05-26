@@ -15,18 +15,21 @@ A central challenge in computational economics is that many models of interest, 
 
 Table {numref}`tab-curse_of_dim` illustrates the curse concretely. Even with a modest $n=10$ grid points per dimension, the total number of grid points grows astronomically.
 
-(tab-curse_of_dim)=
-    $d$   Grid points ($10^d$)         Memory (64-bit) Feasibility
-  ----- ---------------------- ----------------------- -------------
-      1                     10                    80 B trivial
-      2                    100                   800 B trivial
-      5                 $10^5$                  800 KB feasible
-     10              $10^{10}$                   80 GB borderline
-     20              $10^{20}$   $8 \times 10^{11}$ GB impossible
-     50              $10^{50}$                     --- absurd
-    100             $10^{100}$                     --- a googol
+````{table}
+:name: tab-curse_of_dim
 
-  : Size of an $n = 10$ Cartesian grid and the 64-bit memory required to store one floating-point value per grid point, as a function of state-space dimension $d$. Grid-based methods are comfortable only at low dimension; by $d = 10$ even storing one scalar per grid point is already borderline before policies, interpolation objects, residuals, and simulation output are added.
+Size of an $n = 10$ Cartesian grid and the 64-bit memory required to store one floating-point value per grid point, as a function of state-space dimension $d$. Grid-based methods are comfortable only at low dimension; by $d = 10$ even storing one scalar per grid point is already borderline before policies, interpolation objects, residuals, and simulation output are added.
+
+| $d$ | Grid points ($10^d$) | Memory (64-bit) | Feasibility |
+|---|---|---|---|
+| 1 | 10 | 80 B | trivial |
+| 2 | 100 | 800 B | trivial |
+| 5 | $10^5$ | 800 KB | feasible |
+| 10 | $10^{10}$ | 80 GB | borderline |
+| 20 | $10^{20}$ | $8 \times 10^{11}$ GB | impossible |
+| 50 | $10^{50}$ | --- | absurd |
+| 100 | $10^{100}$ | --- | a googol |
+````
 
 ##### The volume paradox.
 
@@ -388,17 +391,20 @@ Rule {eq}`eq-stroud3` integrates every monomial in $\bm\varepsilon'$ of total d
 
 At $Q=3$ nodes per dimension, the tensor-product rule of {ref}`sec-gh_tensor_product` costs $3^{d}$ evaluations per state, while {eq}`eq-stroud3` costs $2d$. Table {numref}`tab-quadrature_costs` contrasts the two for the dimensionalities encountered later in the script. The monomial rule is the default integration scheme behind the production DEQN code for IRBC-type models in Chapter {ref}`ch-irbc` once the shock dimension exceeds about five, dropped in by replacing a single quadrature kernel.
 
-(tab-quadrature_costs)=
-    shock dim. $d$ where it appears                                                                           tensor-product $3^{d}$   monomial $2d$ speed-up
-  ---------------- ---------------------------------------------------------------------------------------- ------------------------ --------------- ----------------------------
-               $1$ Brock--Mirman (Ch. {ref}`ch-deqn`)                                   $3$             $2$ $\sim 1.5\times$
-               $3$ 2-country IRBC (Ch. {ref}`ch-irbc`)                       $27$             $6$ $\sim 5\times$
-               $6$ 5-country IRBC                                                                                              $729$            $12$ $\sim 60\times$
-              $11$ 10-country IRBC                                                                                       $177{,}147$            $22$ $\sim 8{,}000\times$
-              $21$ 20-country IRBC                                                                                    $\sim 10^{10}$            $42$ $\sim 2 \times 10^8\times$
-              $51$ 50-country IRBC                                                                                    $\sim 10^{24}$           $102$ $\sim 10^{22}\times$
+````{table}
+:name: tab-quadrature_costs
 
-  : Quadrature cost per residual evaluation, tensor-product Gauss--Hermite ($Q=3$) versus the Stroud-3 monomial rule of equation {eq}`eq-stroud3`, as a function of the shock dimension $d$. The tensor-product cost grows exponentially in $d$; the monomial cost grows linearly. Brock--Mirman ($d=1$) is the simplest case where the two rules agree to within a factor of $1.5$; the gap explodes once the shock vector is multi-dimensional.
+Quadrature cost per residual evaluation, tensor-product Gauss--Hermite ($Q=3$) versus the Stroud-3 monomial rule of equation {eq}`eq-stroud3`, as a function of the shock dimension $d$. The tensor-product cost grows exponentially in $d$; the monomial cost grows linearly. Brock--Mirman ($d=1$) is the simplest case where the two rules agree to within a factor of $1.5$; the gap explodes once the shock vector is multi-dimensional.
+
+| shock dim. $d$ | where it appears | tensor-product $3^{d}$ | monomial $2d$ | speed-up |
+|---|---|---|---|---|
+| $1$ | Brock--Mirman (Ch. {ref}`ch-deqn`) | $3$ | $2$ | $\sim 1.5\times$ |
+| $3$ | 2-country IRBC (Ch. {ref}`ch-irbc`) | $27$ | $6$ | $\sim 5\times$ |
+| $6$ | 5-country IRBC | $729$ | $12$ | $\sim 60\times$ |
+| $11$ | 10-country IRBC | $177{,}147$ | $22$ | $\sim 8{,}000\times$ |
+| $21$ | 20-country IRBC | $\sim 10^{10}$ | $42$ | $\sim 2 \times 10^8\times$ |
+| $51$ | 50-country IRBC | $\sim 10^{24}$ | $102$ | $\sim 10^{22}\times$ |
+````
 
 (sec-qmc_cdf)=
 ### Inverse-CDF Transform and Quasi--Monte Carlo
@@ -461,19 +467,22 @@ exploits the fact that every piece of Python (or any other imperative language) 
 
 It is worth pausing on a question that beginners reasonably ask: *"How does the computer know that the derivative of $\sin(x)$ is $\cos(x)$?"* The answer is deflating but honest: it does not compute this from first principles. Every autodiff framework ships with a short, hand-written table of derivatives for the elementary operations it supports, a few dozen entries such as those in Table {numref}`tab-ad_primitives`. When your program executes $y = \sin(x)$, the framework looks up the rule "gradient of $\sin$ is $\cos$" in that table and records $\cos(x)$ on the edge of the computational graph. The chain rule then composes those table entries. *Autodiff is not a theorem prover*; it is a library of primitive rules plus an automatic application of the chain rule. This explains both its power (every program expressible in terms of these primitives is differentiable) and its limits (genuinely new functions require extending the table).
 
-(tab-ad_primitives)=
-  **Primitive**            **Local derivative (built in)**                           **Where to find it**
-  ------------------------ --------------------------------------------------------- ----------------------
-  $y = x + z$              $\partial y/\partial x = 1,\ \partial y/\partial z = 1$   `tf.math.add`
-  $y = x \cdot z$          $\partial y/\partial x = z,\ \partial y/\partial z = x$   `tf.math.multiply`
-  $y = x^{\alpha}$         $\partial y/\partial x = \alpha\,x^{\alpha-1}$            `tf.math.pow`
-  $y = \exp(x)$            $\partial y/\partial x = \exp(x)$                         `tf.math.exp`
-  $y = \log(x)$            $\partial y/\partial x = 1/x$                             `tf.math.log`
-  $y = \sin(x)$            $\partial y/\partial x = \cos(x)$                         `tf.math.sin`
-  $y = \cos(x)$            $\partial y/\partial x = -\sin(x)$                        `tf.math.cos`
-  $y = \mathrm{ReLU}(x)$   $\partial y/\partial x = \mathbf{1}\{x > 0\}$             `tf.nn.relu`
+````{table}
+:name: tab-ad_primitives
 
-  : A representative slice of the primitive-derivative table that every autodiff framework ships with. TensorFlow, PyTorch, and JAX each include a few hundred such entries: one per elementary operation they support. User code composes these primitives; the chain rule composes their derivatives. When an economist writes the Brock--Mirman period payoff $\Pi(K_t, K_{t+1}) = \log(K_t^{\alpha} + (1-\delta)K_t - K_{t+1})$, only entries from this table are invoked; no calculus is performed at runtime.
+A representative slice of the primitive-derivative table that every autodiff framework ships with. TensorFlow, PyTorch, and JAX each include a few hundred such entries: one per elementary operation they support. User code composes these primitives; the chain rule composes their derivatives. When an economist writes the Brock--Mirman period payoff $\Pi(K_t, K_{t+1}) = \log(K_t^{\alpha} + (1-\delta)K_t - K_{t+1})$, only entries from this table are invoked; no calculus is performed at runtime.
+
+| **Primitive** | **Local derivative (built in)** | **Where to find it** |
+|---|---|---|
+| $y = x + z$ | $\partial y/\partial x = 1,\ \partial y/\partial z = 1$ | `tf.math.add` |
+| $y = x \cdot z$ | $\partial y/\partial x = z,\ \partial y/\partial z = x$ | `tf.math.multiply` |
+| $y = x^{\alpha}$ | $\partial y/\partial x = \alpha\,x^{\alpha-1}$ | `tf.math.pow` |
+| $y = \exp(x)$ | $\partial y/\partial x = \exp(x)$ | `tf.math.exp` |
+| $y = \log(x)$ | $\partial y/\partial x = 1/x$ | `tf.math.log` |
+| $y = \sin(x)$ | $\partial y/\partial x = \cos(x)$ | `tf.math.sin` |
+| $y = \cos(x)$ | $\partial y/\partial x = -\sin(x)$ | `tf.math.cos` |
+| $y = \mathrm{ReLU}(x)$ | $\partial y/\partial x = \mathbf{1}\{x > 0\}$ | `tf.nn.relu` |
+````
 
 This explanation also makes the *limits* of AD concrete. Operations absent from the table (a black-box solver call, a non-differentiable step like sorting or `argmax`) require either a custom rule (via `@tf.custom_gradient`) or a redesign of the code. The pitfalls in {ref}`sec-ad_pitfalls` are essentially cases where either the table's entry is degenerate at a point (kinks, $\partial|x|/\partial x$ at $x=0$) or the composed gradient is numerically unstable even though each local rule is correct.
 

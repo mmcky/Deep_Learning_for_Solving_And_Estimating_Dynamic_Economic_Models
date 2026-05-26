@@ -113,12 +113,15 @@ $$ (eq-olg_savings_rate)
 
 The optimal policy is then $k'^h = \beta_h \cdot \mathrm{inc}^h$: each agent saves a *fixed fraction* of total income, regardless of the shock. Two features of the calibration drive this clean form. First, under log utility the income and substitution effects of a return shock exactly cancel, so the savings *rate* is invariant to $(r_t, w_t)$. Second, because the shocks are i.i.d. there is nothing about the future to forecast, so the rate does not depend on the current shock either; only the horizon matters. The fraction $\beta_h$ therefore declines with age: cohort $h$ has only $A-h$ remaining periods over which to spread its future income, so the marginal incentive to carry resources forward weakens as $h$ grows. For $A=6$, $\beta=0.7$, Table {numref}`tab-olg6_savings_rates` reports the resulting savings rates.
 
-(tab-olg6_savings_rates)=
-    Age $h$      1       2       3       4       5
-  ----------- ------- ------- ------- ------- -------
-   $\beta_h$   0.660   0.639   0.605   0.543   0.412
+````{table}
+:name: tab-olg6_savings_rates
 
-  : Closed-form age-specific savings rates in the 6-agent analytic OLG with log utility and $\beta=0.7$.
+Closed-form age-specific savings rates in the 6-agent analytic OLG with log utility and $\beta=0.7$.
+
+| Age $h$ | 1 | 2 | 3 | 4 | 5 |
+|---|---|---|---|---|---|
+| $\beta_h$ | 0.660 | 0.639 | 0.605 | 0.543 | 0.412 |
+````
 
 Young agents save more (more periods ahead); old agents save less; Figure {numref}`fig-olg6_savings` plots the same numbers across $h$. This vector is the validation target: at convergence, the trained network's average sigmoid output should reproduce $\beta_h$ cohort by cohort.
 
@@ -294,12 +297,15 @@ Table {numref}`tab-olg_6_vs_56` above previewed the gap; we now develop the sec
 
 The labor endowment profile $e^h$ follows {cite:t}`BKS1`. In the implementation used here, $e^h$ is a quadratic in age that rises from $0.60$ at age $25$, peaks at $\approx 1.36$ around age $53$, then decays linearly between ages $\sim 62$ and $\sim 70$ to a flat post-retirement floor of $\approx 0.64$. Table {numref}`tab-olg56_labor_profile` lists the values produced by the notebook formula at a few representative ages.
 
-(tab-olg56_labor_profile)=
-  Age       25     30     40     48     53     65     80
-  ------- ------ ------ ------ ------ ------ ------ ------
-  $e^h$    0.60   0.85   1.20   1.34   1.36   1.04   0.64
+````{table}
+:name: tab-olg56_labor_profile
 
-  : Representative points on the lifecycle labor-endowment profile in the 56-agent benchmark.
+Representative points on the lifecycle labor-endowment profile in the 56-agent benchmark.
+
+| Age | 25 | 30 | 40 | 48 | 53 | 65 | 80 |
+|---|---|---|---|---|---|---|---|
+| $e^h$ | 0.60 | 0.85 | 1.20 | 1.34 | 1.36 | 1.04 | 0.64 |
+````
 
 This hump-shaped profile ensures realistic savings heterogeneity: young agents with low labor income and no initial wealth are borrowing-constrained, mid-career agents with high earnings accumulate both capital and bonds, and older agents gradually decumulate toward the end of life.
 
@@ -385,17 +391,20 @@ $$ (eq-olg56_loss)
 
 *(matching slide III.6).* With $A=56$ this is $4\times 55 + 1 = 221$ squared residuals per training state. Each residual enters with weight one: no adaptive loss balancing (cf. Chapter {ref}`ch-nas`) is applied because the relative-Euler convention {eq}`eq-olg_ree` already homogenizes the per-cohort Euler scales, and the product-form KKT residuals are unit-free under the softplus head; ReLoBRaLo or GradNorm would be the natural next step if a future calibration broke this homogeneity. Comparison with {eq}`eq-olg_loss`: the analytic case is the special instance of {eq}`eq-olg56_loss` in which the no-short-sale-of-capital constraint never binds (so $\lambda_b^h\equiv 0$), there are no bonds (so all $b$- and collateral-related blocks drop out), and $4(A-1)+1$ collapses to $A-1$. The two losses are the same template instantiated at different complexity. Table {numref}`tab-olg56_residual_count` unpacks the residual blocks.
 
-(tab-olg56_residual_count)=
-  **Component**             **Symbol**                                             **Count**
-  ------------------------- ----------------------------------------------------- -----------
-  Euler (capital)           $e_{\mathrm{REE},k}^h$                                    55
-  Euler (bonds)             $e_{\mathrm{REE},b}^h$                                    55
-  KKT (borrowing)           $e_{\mathrm{KKT},b}^h = \hat\lambda_b^h\,\hat k'^h$       55
-  KKT (collateral)          $e_{\mathrm{KKT},c}^h = \hat\mu^h\,\hat q^h$              55
-  Market clearing (bonds)   $e_{\mathrm{MC},b} = \sum_h \hat b'^h$                     1
-  **Total residuals**                                                               **221**
+````{table}
+:name: tab-olg56_residual_count
 
-  : Residual blocks entering the 56-agent benchmark loss for one training state.
+Residual blocks entering the 56-agent benchmark loss for one training state.
+
+| **Component** | **Symbol** | **Count** |
+|---|---|---|
+| Euler (capital) | $e_{\mathrm{REE},k}^h$ | 55 |
+| Euler (bonds) | $e_{\mathrm{REE},b}^h$ | 55 |
+| KKT (borrowing) | $e_{\mathrm{KKT},b}^h = \hat\lambda_b^h\,\hat k'^h$ | 55 |
+| KKT (collateral) | $e_{\mathrm{KKT},c}^h = \hat\mu^h\,\hat q^h$ | 55 |
+| Market clearing (bonds) | $e_{\mathrm{MC},b} = \sum_h \hat b'^h$ | 1 |
+| **Total residuals** |  | **221** |
+````
 
 ##### Training and results.
 

@@ -160,36 +160,107 @@ We illustrate the full histogram update with a small grid of $N_k=4$ capital lev
 
 **Step 1, Setup.** The initial histogram $G_0$ (masses summing to 1):
 
-                                 $k=1.0$   $k=2.0$   $k=3.0$   $k=4.0$   Row sum
-  ----------------------------- --------- --------- --------- --------- ---------
-  $\varepsilon = \text{low}$      0.10      0.20      0.10      0.05      0.45
-  $\varepsilon = \text{high}$     0.05      0.15      0.20      0.15      0.55
+```{list-table}
+:header-rows: 1
+
+* - 
+  - $k=1.0$
+  - $k=2.0$
+  - $k=3.0$
+  - $k=4.0$
+  - Row sum
+* - $\varepsilon = \text{low}$
+  - 0.10
+  - 0.20
+  - 0.10
+  - 0.05
+  - 0.45
+* - $\varepsilon = \text{high}$
+  - 0.05
+  - 0.15
+  - 0.20
+  - 0.15
+  - 0.55
+```
 
 The mean capital is $\bar{k}_0 = \sum_{i,j} G_0(k_i,\varepsilon_j)\cdot k_i = 0.10(1) + 0.20(2) + 0.10(3) + 0.05(4) + 0.05(1) + 0.15(2) + 0.20(3) + 0.15(4) = 2.55$.
 
 **Step 2, Policy evaluation.** Let $y(\varepsilon)$ denote the dollar productivity associated with shock state $\varepsilon$, with $y_{\text{low}}=1$ and $y_{\text{high}}=3$ (here $\varepsilon$ is the *state index*, $y$ is its numerical value). Using a simple linear savings rule $k' = 0.4 k + 0.5\,y(\varepsilon)$:
 
-                                       $k=1.0$   $k=2.0$   $k=3.0$   $k=4.0$
-  ----------------------------------- --------- --------- --------- ---------
-  $\varepsilon = \text{low}$: $k'$       0.9       1.3       1.7       2.1
-  $\varepsilon = \text{high}$: $k'$      1.9       2.3       2.7       3.1
+```{list-table}
+:header-rows: 1
+
+* - 
+  - $k=1.0$
+  - $k=2.0$
+  - $k=3.0$
+  - $k=4.0$
+* - $\varepsilon = \text{low}$: $k'$
+  - 0.9
+  - 1.3
+  - 1.7
+  - 2.1
+* - $\varepsilon = \text{high}$: $k'$
+  - 1.9
+  - 2.3
+  - 2.7
+  - 3.1
+```
 
 **Step 3, Interpolation weights.** Since the grid spacing is $\Delta k = 1.0$, each off-grid $k'$ is bracketed by $[k_n, k_{n+1}]$ with weight $\omega = 1 - (k' - k_n)/\Delta k$:
 
-                                                       $k=1.0$        $k=2.0$        $k=3.0$        $k=4.0$
-  ------------------------------------------------ --------------- -------------- -------------- --------------
-  $\varepsilon = \text{low}$: bracket, $\omega$     $[1,1]$, clip   $[1,2]$, 0.7   $[1,2]$, 0.3   $[2,3]$, 0.9
-  $\varepsilon = \text{high}$: bracket, $\omega$    $[1,2]$, 0.1    $[2,3]$, 0.7   $[2,3]$, 0.3   $[3,4]$, 0.9
+```{list-table}
+:header-rows: 1
+
+* - 
+  - $k=1.0$
+  - $k=2.0$
+  - $k=3.0$
+  - $k=4.0$
+* - $\varepsilon = \text{low}$: bracket, $\omega$
+  - $[1,1]$, clip
+  - $[1,2]$, 0.7
+  - $[1,2]$, 0.3
+  - $[2,3]$, 0.9
+* - $\varepsilon = \text{high}$: bracket, $\omega$
+  - $[1,2]$, 0.1
+  - $[2,3]$, 0.7
+  - $[2,3]$, 0.3
+  - $[3,4]$, 0.9
+```
 
 When $k' < k_1 = 1.0$ (here $k' = 0.9$ for the low-state, lowest-capital agents), all mass is assigned to $k_1$ (clipped to the boundary).
 
 **Step 4, Mass redistribution.** For simplicity, assume the shock transition is the identity ($\varepsilon' = \varepsilon$), so mass stays in its current $\varepsilon$-state. Building $G_1$ by accumulating the redistributed mass from each source bin (mass is conserved bin-by-bin: e.g. the $\varepsilon=\text{low}$, $k=2$ source of mass $0.20$ contributes $0.7\cdot0.20 = 0.14$ to $k=1$ and $0.3\cdot0.20 = 0.06$ to $k=2$):
 
-                                 $k=1.0$   $k=2.0$   $k=3.0$   $k=4.0$   Row sum
-  ----------------------------- --------- --------- --------- --------- ---------
-  $\varepsilon = \text{low}$      0.270     0.175     0.005     0.000     0.450
-  $\varepsilon = \text{high}$     0.005     0.210     0.320     0.015     0.550
-  total                           0.275     0.385     0.325     0.015     1.000
+```{list-table}
+:header-rows: 1
+
+* - 
+  - $k=1.0$
+  - $k=2.0$
+  - $k=3.0$
+  - $k=4.0$
+  - Row sum
+* - $\varepsilon = \text{low}$
+  - 0.270
+  - 0.175
+  - 0.005
+  - 0.000
+  - 0.450
+* - $\varepsilon = \text{high}$
+  - 0.005
+  - 0.210
+  - 0.320
+  - 0.015
+  - 0.550
+* - total
+  - 0.275
+  - 0.385
+  - 0.325
+  - 0.015
+  - 1.000
+```
 
 **Step 5, Mean verification.** The mean of $G_1$ is $\bar{k}_1 = 0.275(1)+0.385(2)+0.325(3)+0.015(4) = 2.08$. The unclipped, policy-implied mean is $\sum_{i,j} G_0(k_i,\varepsilon_j)\,k'(k_i,\varepsilon_j) = 2.07$, so boundary clipping at $k' = 0.9$ raises the mean by only $0.01$. Mean preservation is exact for source bins whose policy choice $k'$ lies strictly inside the grid; clipping at the boundary slightly biases the mean, here upward, because mass that would have landed at $k'=0.9$ is forced to $k=1$. In general, boundary clipping biases the mean in the *direction of the violated boundary*: clipping at $k_{\min}$ biases the mean upward (mass is pulled in from below the grid), clipping at $k_{\max}$ biases it downward. With a wider grid ($k_{\min} < 0.9$) the mean would be preserved exactly.
 
@@ -286,13 +357,28 @@ Flow diagram for one forward step of Young’s histogram update (Algorithm {prf
 
 **Comparison with Monte Carlo.** Young's method produces *zero sampling noise* (deterministic), preserves the mean *exactly*, requires only $\sim$100--5,000 grid points (versus $>$50,000 agents for Monte Carlo), and is fully reproducible. The trade-off is that it approximates higher moments and requires a grid that is wide enough to contain all mass. The following table summarizes the comparison:
 
-                         **Young's method**           **Panel simulation**
-  ------------------- ------------------------ -----------------------------------
-  Sampling noise                None                $\mathcal{O}(1/\sqrt{N})$
-  Mean preservation            Exact                       Approximate
-  Typical size         100--5,000 grid points   $>$50,000 agents
-  Reproducibility          Deterministic                 Seed-dependent
-  Higher moments            Approximated                  Approximated
+```{list-table}
+:header-rows: 1
+
+* - 
+  - **Young's method**
+  - **Panel simulation**
+* - Sampling noise
+  - None
+  - $\mathcal{O}(1/\sqrt{N})$
+* - Mean preservation
+  - Exact
+  - Approximate
+* - Typical size
+  - 100--5,000 grid points
+  - $>$50,000 agents
+* - Reproducibility
+  - Deterministic
+  - Seed-dependent
+* - Higher moments
+  - Approximated
+  - Approximated
+```
 
 Figure {numref}`fig-young_vs_mc` contrasts the two approaches visually: the histogram method yields a smooth, noise-free distribution, while a Monte Carlo panel of comparable size exhibits visible sampling noise.
 
@@ -406,33 +492,65 @@ The discrete-time histogram approach presented here has a natural continuous-tim
 ## Alternative Deep-Learning Approaches to Krusell--Smith
 Before turning to the deep-learning alternatives, it is useful to set the histogram-DEQN method in the broader landscape of solution techniques for heterogeneous-agent equilibria with aggregate shocks. Table {numref}`tab-ha_methods_landscape` compares classical and modern approaches along four dimensions that drive method choice in practice.
 
-(tab-ha_methods_landscape)=
-  ****Method****                                                     **Distribution rep.**                          **Aggregate state**                                 **Solution principle**                                                                           **Best when**
-  ------------------------------------------------------------------ ---------------------------------------------- --------------------------------------------------- ------------------------------------------------------------------------------------------------ --------------------------------------------------------------------------
-  **Classical KS {cite:p}`krusell1998income`**                   Panel of $N \sim 10^4$ agents                  First moment(s)                                     Bounded-rationality fixed point of forecasting rule                                              Standard incomplete-markets, low-dim aggregate state
-  **Reiter (back-loaded) {cite:p}`reiter2009`**                  Histogram on a fixed grid                      First-order perturbation around stationary          Linearize after solving the steady state                                                         Small aggregate shocks, smooth policies
-  **Continuous-time Achdou et al. {cite:p}`achdou2022income`**   Density solving a KFE PDE                      In the limit, the entire density                    Coupled HJB+KFE finite differences                                                               PDE-friendly model, smooth densities
-  **Histogram-DEQN {cite:p}`azinovicDEEPEQUILIBRIUMNETS2022`**   Young histogram on grid                        Histogram entries (or moments thereof)              SGD on equilibrium residuals                                                                     Strong nonlinearities, occasionally binding constraints
-  **All-in-one DL {cite:p}`maliar2021deep`**                     Panel of $N \gtrsim 10^3$ agents               Agent-level states, policy and aggregate together   SGD on stacked Euler+market-clearing residuals                                                   Many states per agent, GPU available
-  **DeepHAM {cite:p}`han2023deepham`**                           Permutation-invariant set encoder (DeepSets)   Learned $M\!\ll\!N$ generalized moments             Cumulative utility along simulated paths (policy-gradient with structural individual dynamics)   Want a low-dim aggregate state without committing to a moment *a priori*
+````{table}
+:name: tab-ha_methods_landscape
 
-  : Heterogeneous-agent solution methods at a glance. The first three rows are classical or finite-difference; the last three are the modern deep-learning families compared in detail in Table {numref}`tab-ks_dl_comparison` and the rest of this section.
+Heterogeneous-agent solution methods at a glance. The first three rows are classical or finite-difference; the last three are the modern deep-learning families compared in detail in Table {numref}`tab-ks_dl_comparison` and the rest of this section.
+
+| ****Method**** | **Distribution rep.** | **Aggregate state** | **Solution principle** | **Best when** |
+|---|---|---|---|---|
+| **Classical KS {cite:p}`krusell1998income`** | Panel of $N \sim 10^4$ agents | First moment(s) | Bounded-rationality fixed point of forecasting rule | Standard incomplete-markets, low-dim aggregate state |
+| **Reiter (back-loaded) {cite:p}`reiter2009`** | Histogram on a fixed grid | First-order perturbation around stationary | Linearize after solving the steady state | Small aggregate shocks, smooth policies |
+| **Continuous-time Achdou et al. {cite:p}`achdou2022income`** | Density solving a KFE PDE | In the limit, the entire density | Coupled HJB+KFE finite differences | PDE-friendly model, smooth densities |
+| **Histogram-DEQN {cite:p}`azinovicDEEPEQUILIBRIUMNETS2022`** | Young histogram on grid | Histogram entries (or moments thereof) | SGD on equilibrium residuals | Strong nonlinearities, occasionally binding constraints |
+| **All-in-one DL {cite:p}`maliar2021deep`** | Panel of $N \gtrsim 10^3$ agents | Agent-level states, policy and aggregate together | SGD on stacked Euler+market-clearing residuals | Many states per agent, GPU available |
+| **DeepHAM {cite:p}`han2023deepham`** | Permutation-invariant set encoder (DeepSets) | Learned $M\!\ll\!N$ generalized moments | Cumulative utility along simulated paths (policy-gradient with structural individual dynamics) | Want a low-dim aggregate state without committing to a moment *a priori* |
+````
 
 Whereas Table {numref}`tab-ha_methods_landscape` is panoramic (classical and DL methods on common axes), Table {numref}`tab-ks_dl_comparison` drills into the DL trio along the axes that matter when choosing among them. Histogram-DEQN is not the only deep-learning approach to heterogeneous-agent equilibria, and it is pedagogically useful to see how the space of deep-learning strategies decomposes. Three broad families have emerged in the literature. Two informative axes organize them: how the cross-sectional distribution is represented as input to the network, and what objective is optimized. Histogram-DEQN and All-in-One DL minimize residuals of the structural equilibrium equations; DeepHAM instead maximizes cumulative utility along simulated paths and uses Bellman residuals as a validation diagnostic.
 
-(tab-ks_dl_comparison)=
-  -------------------------------------------------- ------------------------------------------------------------ ------------------------------------------------------- ----------------------------------------------------------------------------------------------------------------------------------------
-                                                     **Histogram DEQN**                                           **All-in-one DL**                                       **DeepHAM**
-                                                     {cite:p}`azinovicDEEPEQUILIBRIUMNETS2022`                {cite:p}`maliar2021deep`                            {cite:p}`han2023deepham`
-  State distribution representation                  Explicit histogram vector on a fixed grid                    Explicit panel of $N$ agents' states                    Learned generalized moments via a permutation-invariant encoder
-  Dimension of aggregate state seen by the network   $\mathcal{O}(N_b)$ histogram entries                         $\mathcal{O}(N)$ agent states                           $M \ll N_b$ learned scalars
-  Interpretability of distributional state           High (histogram readable)                                    Low (permutation-dependent)                             High in the economic sense (the learned basis is interpretable, e.g. concave in assets, linking the moment to MPCs and redistribution)
-  Permutation invariance                             Automatic (histogram is invariant)                           Requires careful architecture / data augmentation       Baked into the encoder by DeepSets structure
-  Training objective                                 Euler + Bellman + market clearing + FB residuals (squared)   Euler + Bellman + market clearing residuals (squared)   Cumulative utility along simulated paths plus value-function error; Bellman residual is a validation diagnostic only
-  Reported accuracy (baseline KS)                    Euler errors $\sim 10^{-3}$--$10^{-4}$                       Approximation errors $< 1\%$ with $>10^3$ agents        Bellman residual (used as a validation diagnostic) reduced by $68.9\%$ vs. KS with one learned generalized moment
-  -------------------------------------------------- ------------------------------------------------------------ ------------------------------------------------------- ----------------------------------------------------------------------------------------------------------------------------------------
+````{table}
+:name: tab-ks_dl_comparison
 
-  : Three deep-learning approaches to heterogeneous-agent equilibria, all applied to the Krusell--Smith benchmark. They differ on two axes: how the cross-sectional distribution is encoded as input to the network, and what objective is optimized. Histogram-DEQN and All-in-One DL minimize squared structural residuals (Euler, Bellman, market clearing); DeepHAM instead maximizes cumulative utility along simulated paths, with the individual law of motion embedded in the computational graph and Bellman residuals tracked as a validation diagnostic.
+Three deep-learning approaches to heterogeneous-agent equilibria, all applied to the Krusell--Smith benchmark. They differ on two axes: how the cross-sectional distribution is encoded as input to the network, and what objective is optimized. Histogram-DEQN and All-in-One DL minimize squared structural residuals (Euler, Bellman, market clearing); DeepHAM instead maximizes cumulative utility along simulated paths, with the individual law of motion embedded in the computational graph and Bellman residuals tracked as a validation diagnostic.
+
+```{list-table}
+:header-rows: 0
+
+* - 
+  - **Histogram DEQN**
+  - **All-in-one DL**
+  - **DeepHAM**
+* - 
+  - {cite:p}`azinovicDEEPEQUILIBRIUMNETS2022`
+  - {cite:p}`maliar2021deep`
+  - {cite:p}`han2023deepham`
+* - State distribution representation
+  - Explicit histogram vector on a fixed grid
+  - Explicit panel of $N$ agents' states
+  - Learned generalized moments via a permutation-invariant encoder
+* - Dimension of aggregate state seen by the network
+  - $\mathcal{O}(N_b)$ histogram entries
+  - $\mathcal{O}(N)$ agent states
+  - $M \ll N_b$ learned scalars
+* - Interpretability of distributional state
+  - High (histogram readable)
+  - Low (permutation-dependent)
+  - High in the economic sense (the learned basis is interpretable, e.g. concave in assets, linking the moment to MPCs and redistribution)
+* - Permutation invariance
+  - Automatic (histogram is invariant)
+  - Requires careful architecture / data augmentation
+  - Baked into the encoder by DeepSets structure
+* - Training objective
+  - Euler + Bellman + market clearing + FB residuals (squared)
+  - Euler + Bellman + market clearing residuals (squared)
+  - Cumulative utility along simulated paths plus value-function error; Bellman residual is a validation diagnostic only
+* - Reported accuracy (baseline KS)
+  - Euler errors $\sim 10^{-3}$--$10^{-4}$
+  - Approximation errors $< 1\%$ with $>10^3$ agents
+  - Bellman residual (used as a validation diagnostic) reduced by $68.9\%$ vs. KS with one learned generalized moment
+```
+````
 
 (sec-mmw_ks)=
 ### All-in-One Deep Learning (Maliar, Maliar & Winant, 2021)
@@ -528,14 +646,17 @@ The three deep-learning approaches (Histogram DEQN, {ref}`sec-young_deqn`; All-i
 
 Table {numref}`tab-ks_dl_chooser` distils the same trade-offs into a quick decision aid: when the model fits the row's \"When it shines\" column, the matching method is the first one to try.
 
-(tab-ks_dl_chooser)=
-  ****Method****                                                     **Pros**                                                                 **When it shines**
-  ------------------------------------------------------------------ ------------------------------------------------------------------------ -----------------------------------------------------------------------
-  **Histogram DEQN {cite:p}`azinovicDEEPEQUILIBRIUMNETS2022`**   Interpretable state; exact market clearing; reuses the DEQN template     Teaching; $N_b$ moderate; smooth policies
-  **All-in-One DL {cite:p}`maliar2021deep`**                     No grid design; large-$N$ panels; single optimizer for all residuals     Large-$N$ research problems; OLG-many-cohort extensions
-  **DeepHAM {cite:p}`han2023deepham`**                           Learned moments; cumulative-utility objective; risky steady state; ZLB   Rich HA macro-finance; constrained-efficiency / optimal-policy design
+````{table}
+:name: tab-ks_dl_chooser
 
-  : Practical chooser for the three DL approaches to Krusell--Smith. When several rows look applicable, the recommended ordering is: start with Histogram DEQN if a clean teaching narrative is the goal; switch to All-in-One DL if grid design is awkward; switch to DeepHAM if the cumulative-utility objective or learned moments are first-order to the question. Adapted from the L09 deck's *Head-to-Head* slide.
+Practical chooser for the three DL approaches to Krusell--Smith. When several rows look applicable, the recommended ordering is: start with Histogram DEQN if a clean teaching narrative is the goal; switch to All-in-One DL if grid design is awkward; switch to DeepHAM if the cumulative-utility objective or learned moments are first-order to the question. Adapted from the L09 deck's *Head-to-Head* slide.
+
+| ****Method**** | **Pros** | **When it shines** |
+|---|---|---|
+| **Histogram DEQN {cite:p}`azinovicDEEPEQUILIBRIUMNETS2022`** | Interpretable state; exact market clearing; reuses the DEQN template | Teaching; $N_b$ moderate; smooth policies |
+| **All-in-One DL {cite:p}`maliar2021deep`** | No grid design; large-$N$ panels; single optimizer for all residuals | Large-$N$ research problems; OLG-many-cohort extensions |
+| **DeepHAM {cite:p}`han2023deepham`** | Learned moments; cumulative-utility objective; risky steady state; ZLB | Rich HA macro-finance; constrained-efficiency / optimal-policy design |
+````
 
 ##### Notebook: a classroom-scale all-in-one KS solver.
 
@@ -691,22 +812,55 @@ A third notebook, `KrusellSmith_Tutorial_CPU.ipynb`, is a JAX/optax port of the 
 
 ```{prf:definition}
 
-  **Symbol**                            **Meaning**                                                  **Notebook name(s)**
-  ------------------------------------- ------------------------------------------------------------ ------------------------------
-  $\rho$                                Policy-network parameters                                    `psi`
-  $z_t^T$ (or $z^H$)                    Truncated shock history of length $H$                        `z_history`, `z_hist`
-  encoded $z^H$                         One-hot $\Vert$ value vector, length $H(N_Z{+}1)$            output of `encode_Z_history`
-  $\mathcal{N}_\rho$                    MLP mapping history to MPC heads                             `actor_c_grid`
-  $B_{j,n}$                             Precomputed I-spline basis matrix                            `ispline_basis`
-  $\alpha(\varepsilon)$                 Boundary MPC head (sigmoid output)                           `alpha`
-  $\widetilde w_j(\varepsilon)$         Non-negative I-spline weights (phantom-zero softmax)         `w_tilde`
-  $\mathrm{MPC}_{\varepsilon,n}$, $c$   Decreasing MPC and cumulated grid consumption                `mpc`, `c_grid`
-  $\mu(\varepsilon, k)$                 Cross-sectional distribution on the $(\varepsilon,k)$ grid   `mu`
-  $K_t, L_t$                            Exact aggregates from $\mu$                                  `distribution_aggregates`
-  Young step                            Non-stochastic distribution update $\mu \mapsto \mu'$        `distribution_step`
-  $g$, $s$                              Relative Euler residual and savings slack                    `g`, `s`
-  $\mathrm{FB}(g,s)$                    Smooth complementarity envelope                              `fb` in `fb_loss_one_state`
-  $\mathcal{B}$                         Replay buffer of $(z^H, \mu)$ pairs                          `buffer_z`, `buffer_mu`
+```{list-table}
+:header-rows: 1
+
+* - **Symbol**
+  - **Meaning**
+  - **Notebook name(s)**
+* - $\rho$
+  - Policy-network parameters
+  - `psi`
+* - $z_t^T$ (or $z^H$)
+  - Truncated shock history of length $H$
+  - `z_history`, `z_hist`
+* - encoded $z^H$
+  - One-hot $\Vert$ value vector, length $H(N_Z{+}1)$
+  - output of `encode_Z_history`
+* - $\mathcal{N}_\rho$
+  - MLP mapping history to MPC heads
+  - `actor_c_grid`
+* - $B_{j,n}$
+  - Precomputed I-spline basis matrix
+  - `ispline_basis`
+* - $\alpha(\varepsilon)$
+  - Boundary MPC head (sigmoid output)
+  - `alpha`
+* - $\widetilde w_j(\varepsilon)$
+  - Non-negative I-spline weights (phantom-zero softmax)
+  - `w_tilde`
+* - $\mathrm{MPC}_{\varepsilon,n}$, $c$
+  - Decreasing MPC and cumulated grid consumption
+  - `mpc`, `c_grid`
+* - $\mu(\varepsilon, k)$
+  - Cross-sectional distribution on the $(\varepsilon,k)$ grid
+  - `mu`
+* - $K_t, L_t$
+  - Exact aggregates from $\mu$
+  - `distribution_aggregates`
+* - Young step
+  - Non-stochastic distribution update $\mu \mapsto \mu'$
+  - `distribution_step`
+* - $g$, $s$
+  - Relative Euler residual and savings slack
+  - `g`, `s`
+* - $\mathrm{FB}(g,s)$
+  - Smooth complementarity envelope
+  - `fb` in `fb_loss_one_state`
+* - $\mathcal{B}$
+  - Replay buffer of $(z^H, \mu)$ pairs
+  - `buffer_z`, `buffer_mu`
+```
 ```
 
 
