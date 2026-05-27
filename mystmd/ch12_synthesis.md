@@ -45,6 +45,8 @@ The course repeatedly returns to a small set of canonical benchmarks: Brock--Mir
 ````{table}
 :name: tab-bm_running_case
 
+Canonical benchmarks treated through each course method. The economic content differs by row, three rows are Brock--Mirman and the PINN row is cake-eating, but the table exposes the invariant computational pattern: choose an object to approximate, encode the model restrictions in the objective or training design, and validate with an economically interpretable diagnostic. Notebook filenames in the last column omit the standard `lecture_NN_` prefix; the four notebooks live, in row order, in the `code/` subdirectories of lectures 03, 11, 14, and 15.
+
 | **Method** | **What is approximated** | **Loss / objective** | **Diagnostic** | **Notebook** |
 |---|---|---|---|---|
 | DEQN | Savings share $s(K,z)\in(0,1)$ via sigmoid head | Squared rel. Euler residual on simulated trajectory | $s \to \alpha\beta$ at $\delta\!=\!1$, log utility | `01_Brock_Mirman_1972_DEQN.ipynb` |

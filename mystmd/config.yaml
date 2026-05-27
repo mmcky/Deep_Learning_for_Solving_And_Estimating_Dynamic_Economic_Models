@@ -139,6 +139,12 @@ preprocess:
     # the \tpath rewrite above; tracked under the same issue.
     - { from: '\\emphc\{((?:\\.|[^{}])*)\}',
         to:   '\\textbf{\1}' }
+    # \checkmark (from amssymb) is dropped by pandoc — flagged by upstream
+    # _warn_dropped_text_macros (claude-latex-to-myst #50). Rewrite to the
+    # unicode ✓ glyph; one occurrence in ch06_ha_youngs §6.x verification
+    # ("0.027 + 0.003 + 0.018 + 0.002 = 0.05 = m ✓").
+    - { from: '\\checkmark(?![A-Za-z@])',
+        to:   '✓' }
 
 # --- Post-pandoc Markdown rewrites ------------------------------------------
 
