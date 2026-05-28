@@ -196,7 +196,7 @@ where $\w = (w_1, \dots, w_d)^\top$ are the synaptic weights, $w_0$ is the bias,
 ```{figure} figures/fig-artificial_neuron.svg
 :name: fig-artificial_neuron
 
-An artificial neuron in the McCulloch–Pitts lineage. Inputs xi are multiplied by synaptic weights wi, summed into a pre-activation z, and passed through a nonlinear activation g(⋅) to yield the output ŷ. The original  unit used a binary threshold for g; the modern artificial neuron generalizes this to arbitrary smooth activations, and all deep networks are compositions of neurons of this form.
+An artificial neuron in the McCulloch–Pitts lineage. Inputs xi are multiplied by synaptic weights wi, summed into a pre-activation z, and passed through a nonlinear activation g(⋅) to yield the output ŷ. The original {cite:t}`mcculloch1943logical` unit used a binary threshold for g; the modern artificial neuron generalizes this to arbitrary smooth activations, and all deep networks are compositions of neurons of this form.
 ```
 
 Common choices for $g$ include the sigmoid $\sigma(z) = (1+e^{-z})^{-1}$, the hyperbolic tangent $\tanh(z)$, and the rectified linear unit $\mathrm{ReLU}(z) = \max(0,z)$ {cite:p}`nair2010rectified,glorot2011deep`. Without a nonlinear activation, any composition of linear layers collapses to a single affine map, a mathematical fact of fundamental importance: $\W_2(\W_1\x + \bb_1) + \bb_2 = \W_2\W_1\x + (\W_2\bb_1 + \bb_2)$.
@@ -745,7 +745,7 @@ Figure {numref}`fig-attention` renders the attention pattern of the worked "cat
 ```{figure} figures/fig-attention.svg
 :name: fig-attention
 
-A worked self-attention pattern. Both qit and oit sit above the “it” position: qit is the query projection of “it” (blue), and oit is the updated representation at that same position (green). The blue arrows show how the query is built from “it” and then compared with every key. The softmax weights above each token sum to one; here the largest weight lands on “cat”, so the green aggregation arrow starts above “cat” and curves up to oit, indicating that the update at “it” is driven mainly by the value at “cat”.
+How to read the arrows Blue down arrow: build the query qit from the current token “it”. Blue bent arrow: compare that query with all keys in the sequence. Numbers above tokens: 0.05 + 0.58 + 0.08 + 0.20 + 0.09 = 1.00, as softmax weights must. The weight 0.58 above “cat” is the largest one. Green arrows: the “cat” value enters oit. A worked self-attention pattern. Both qit and oit sit above the “it” position: qit is the query projection of “it” (blue), and oit is the updated representation at that same position (green). The blue arrows show how the query is built from “it” and then compared with every key. The softmax weights above each token sum to one; here the largest weight lands on “cat”, so the green aggregation arrow starts above “cat” and curves up to oit, indicating that the update at “it” is driven mainly by the value at “cat”.
 ```
 
 (sec-mha)=

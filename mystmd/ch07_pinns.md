@@ -247,7 +247,7 @@ Note that this formulation uses two separate gates: $Z^{(l)}$ controls how much 
 ```{figure} figures/fig-dgm_architecture.svg
 :name: fig-dgm_architecture
 
-The DGM (Deep Galerkin Method) architecture of . The input $\x$ feeds the first layer through a standard forward path (solid arrows) and is, in addition, routed to every subsequent DGM block via skip connections (dashed arrows), so each layer can see $\x$ directly as well as the running hidden state. Each DGM block combines $\x$ with the hidden state through update, forget, and relevance gates (see body text), in the spirit of LSTM/GRU recurrences applied across depth rather than time.
+The DGM (Deep Galerkin Method) architecture of {cite:t}`sirignano2018dgm`. The input $\x$ feeds the first layer through a standard forward path (solid arrows) and is, in addition, routed to every subsequent DGM block via skip connections (dashed arrows), so each layer can see $\x$ directly as well as the running hidden state. Each DGM block combines $\x$ with the hidden state through update, forget, and relevance gates (see body text), in the spirit of LSTM/GRU recurrences applied across depth rather than time.
 ```
 
 ##### Stationary vs. evolutionary PDEs.

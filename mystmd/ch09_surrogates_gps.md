@@ -305,7 +305,7 @@ The *inducing-point* idea (Figure {numref}`fig-inducing_points`) is simple: ins
 ```{figure} figures/fig-inducing_points.svg
 :name: fig-inducing_points
 
-Inducing-point intuition. Exact GP inference conditions on all n = 21 observations and uses the full n × n kernel matrix. Sparse variational GP methods introduce m ≪ n inducing inputs Z and approximate the posterior through the low-rank structure induced by KnmKmm−1Kmn. The top panel compares the exact posterior mean and uncertainty band with a sparse approximation using m = 4 pseudo-inputs; the bottom panel shows the absolute difference between the two means. In this smooth one-dimensional illustration the approximation is close, but its quality depends on m, the kernel hyperparameters, and the placement of Z. The dominant training cost falls from 𝒪(n3) to 𝒪(nm2 + m3); the variational formulation of  optimizes Z jointly with the kernel hyperparameters.
+Inducing-point intuition. Exact GP inference conditions on all n = 21 observations and uses the full n × n kernel matrix. Sparse variational GP methods introduce m ≪ n inducing inputs Z and approximate the posterior through the low-rank structure induced by KnmKmm−1Kmn. The top panel compares the exact posterior mean and uncertainty band with a sparse approximation using m = 4 pseudo-inputs; the bottom panel shows the absolute difference between the two means. In this smooth one-dimensional illustration the approximation is close, but its quality depends on m, the kernel hyperparameters, and the placement of Z. The dominant training cost falls from 𝒪(n3) to 𝒪(nm2 + m3); the variational formulation of {cite:t}`titsias2009variational` optimizes Z jointly with the kernel hyperparameters.
 ```
 
 (sec-active_subspaces)=
