@@ -145,13 +145,24 @@ preprocess:
     # ("0.027 + 0.003 + 0.018 + 0.002 = 0.05 = m ✓").
     - { from: '\\checkmark(?![A-Za-z@])',
         to:   '✓' }
-    # `\,^\circ` / `\,^{\circ}` (thin-space + degree symbol, e.g.
-    # `3\,^\circ\mathrm{C}`) breaks KaTeX: the `^` has no base after `\,`,
-    # so KaTeX raises "Got group of unknown type: 'internal'". Inserting an
-    # empty group `{}` gives the superscript a base — renders identically.
-    # Covers both the brace-less and braced forms (8 instances in
-    # ch11_climate, temperatures in °C). Local stopgap for upstream
-    # claude-latex-to-myst#45 (KaTeX-compat); remove when that lands.
+    # `\,^\circ` (thin-space + degree superscript) breaks KaTeX
+    # ("Got group of unknown type: 'internal'") because the superscript
+    # has no base. Inserting an empty group fixes it.
+    #
+    # Upstream claude-latex-to-myst#45 LANDED a generic `\,^X` → `\,{}^X`
+    # rewrite in `transforms/math.py::fix_spacing_superscript`, BUT it
+    # stashes all backtick-fenced regions (to protect code-block examples)
+    # before applying the rewrite. `{table}` directives are 4-backtick
+    # fences, so math inside table cells (e.g. `$3.25\,^\circ$C` in a
+    # parameter table) is stashed and never rewritten. 2 such instances
+    # remain unfixed in ch11_climate.md after the upstream fix.
+    #
+    # Running the rewrite at PREPROCESS (on the source .tex, before pandoc
+    # / before any markdown directive fences exist) catches every instance
+    # — including those destined for table cells. Upstream fix is then
+    # idempotent (no `\,^` left). Remove when upstream extends the
+    # transform to skip just the `\,^` inside literal code blocks rather
+    # than all backtick fences.
     - { from: '\\,\^(\{?\\circ\}?)',
         to:   '\\,{}^\1' }
 

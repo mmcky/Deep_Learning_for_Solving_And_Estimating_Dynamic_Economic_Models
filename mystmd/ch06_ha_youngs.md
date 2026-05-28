@@ -430,6 +430,7 @@ Three deep-learning approaches to heterogeneous-agent equilibria, all applied to
 
 ```{list-table}
 :header-rows: 2
+:enumerated: false
 
 * - 
   - **Histogram DEQN**
