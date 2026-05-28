@@ -558,7 +558,7 @@ Here $K_{t+2}=g(K_{t+1},z_{t+1})$. Both terms in {eq}`eq-ad_euler` are derivati
 
 ```{code-block} text
 :name: lst-autodiff_euler
-:caption: Autodiff Euler residual for Brock--Mirman. The function \texttt{Pi} is the only model-specific code; the rest is generic. A full implementation lives in the autodiff chapter's code folder, notebook \protect\texttt{02_Brock_Mirman_AutoDiff_DEQN.ipynb}.
+:caption: Autodiff Euler residual for Brock--Mirman. The function \texttt{Pi} is the only model-specific code; the rest is generic. A full implementation lives in the autodiff chapter's code folder, notebook `02_Brock_Mirman_AutoDiff_DEQN.ipynb`.
 
 def Pi(K_in, K_out, z_in):
     Y = z_in * K_in ** alpha

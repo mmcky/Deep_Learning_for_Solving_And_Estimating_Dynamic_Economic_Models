@@ -158,6 +158,59 @@ postprocess:
         from:  '^\\textbf\{([^}]*)\}$',
         to:    '**\1**' }
 
+    # === R12: Hidden-text-loss cleanup (post-fidelity walkthrough) ============
+    # The five rewrites below clear ~95 visible artifacts found by reading
+    # source/MD in parallel across all 22 chapters. Each artifact is a case
+    # where pandoc drops a LaTeX construct but leaves the surrounding prose
+    # intact, producing visibly broken sentences in the rendered HTML.
+
+    # Class A.1 — \pageref{ex:X:N} drops leave dangling "(statement: p.<NBSP>):"
+    # in appF solution headings (79 instances, one per solution).
+    #   Source : \paragraph{Exercise~\ref{ex:X:N} (statement: p.~\pageref{ex:X:N}): Title.}
+    #   Before : ##### {prf:ref}`ex-X-N` (statement: p.<NBSP>): Title.
+    #   After  : ##### {prf:ref}`ex-X-N`: Title.
+    # The {prf:ref} is already the back-link to the exercise statement, so the
+    # "(statement: p. X)" parenthetical is redundant in HTML (no page numbers
+    # in flowing layout).
+    - { from: ' \(statement: p\.\xa0\):',
+        to:   ':' }
+
+    # Class A.2 — \pageref{} drops leave "on page<NBSP>." in body prose. The
+    # NBSP comes from the source's `~` tie ("page~\pageref{X}") so it sits
+    # directly between "page" and the period — no whitespace inside.
+    #   Source : "...the Chapter Summary on page~\pageref{sec:ch1_summary}. ..."
+    #   Before : "...the Chapter Summary on page<NBSP>. ..."
+    #   After  : "...the Chapter Summary. ..."
+    # 2 instances in ch01 (both pointing at the same Chapter Summary label).
+    - { from: ' on page\xa0\.',
+        to:   '.' }
+
+    # Class D — \textcolor{COLOR}{TEXT} leaks: the macro is invisible in HTML
+    # but its syntax shows up as literal text. 5 instances in ch11_climate's
+    # alg-nsdeqn block use \textcolor{uzhgreydark!70}{...} as a "grayed-out"
+    # hint. Keep the TEXT; drop the color wrapper. Non-greedy with a lookahead
+    # for end-of-line OR trailing `\\` so balanced math braces inside the TEXT
+    # don't fool the regex.
+    - { from: '\\textcolor\{[^}]+\}\{(.*?)\}(?=\s*(?:\\\\|$))',
+        to:   '\1' }
+
+    # Class E.1 — \hspace{...} layout commands leak from the alg-nsdeqn body
+    # (1 instance in ch11_climate). Horizontal spacing has no meaning in HTML
+    # flow; drop. The 1 other \hspace in source is inside a tabular column
+    # spec, consumed by pandoc — never reaches postprocess.
+    - { from: '\\hspace\{[^}]*\}',
+        to:   '' }
+
+    # Class E.2 — \protect\texttt{X} compound leak (1 instance, ch02_deqns'
+    # lstlisting caption). \protect prevents fragile commands from breaking
+    # in moving args; meaningless in HTML. The inner \texttt{X} should be
+    # backtick-code. Narrow rewrite: only when \protect immediately precedes
+    # \texttt to avoid touching the bare \texttt{} cases that live inside
+    # math (e.g. ch04: $\{\texttt{relu}, \texttt{tanh}, ...\}$) which KaTeX
+    # renders correctly as-is.
+    - { from: '\\protect\\texttt\{([^}]+)\}',
+        to:   '`\1`' }
+
 # --- Validation -------------------------------------------------------------
 
 validate:

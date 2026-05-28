@@ -9,7 +9,7 @@ Exercises are referenced by their stable label `ex:ch`$N$`:`$M$, where $N$ is th
 
 (sol-ch1)=
 ## Chapter {ref}`ch-intro`: Introduction to Machine Learning and Deep Learning
-##### {prf:ref}`ex-ch1-1` (statement: p. ): Backprop on a 2-layer net.
+##### {prf:ref}`ex-ch1-1`: Backprop on a 2-layer net.
 
 Let $z = w_1 x + b_1$, $a = \mathrm{ReLU}(z)$, $\hat y = w_2 a$, $\ell = (\hat y - y)^2$. Reverse-mode chain rule:
 
@@ -25,21 +25,21 @@ $$
 
 Plugging in $x=2$, $y=1$, $w_1 = w_2 = b_1 = 0.5$: $z = 1.5$, $a = 1.5$, $\hat y = 0.75$, $\ell = 0.0625$. Hence $\partial\ell/\partial w_2 = 2(-0.25)(1.5) = -0.75$ and $\partial\ell/\partial w_1 = 2(-0.25)(0.5)(1)(2) = -0.5$. A two-line PyTorch script (`torch.autograd.grad`) returns the same numbers to machine precision; this is the simplest non-trivial sanity check that the chain-rule derivation matches what AD computes.
 
-##### {prf:ref}`ex-ch1-2` (statement: p. ): MSE vs. MLE.
+##### {prf:ref}`ex-ch1-2`: MSE vs. MLE.
 
 For Gaussian errors $\varepsilon_i \sim \mathcal{N}(0, \sigma^2)$, the log-likelihood is $$\log p(y_{1:n} \mid x_{1:n}; \beta) = -\frac{1}{2\sigma^2}\sum_i (y_i - \beta x_i)^2 - \tfrac{n}{2}\log(2\pi\sigma^2).$$ Maximizing over $\beta$ (the only $\beta$-dependent term) is identical to minimizing $\sum_i (y_i - \beta x_i)^2$, i.e. OLS. For Laplace errors with scale $b$, $p(\varepsilon) \propto \exp(-|\varepsilon|/b)$, so the log-likelihood is proportional to $-\sum_i |y_i - \beta x_i|$ and the MLE solves a least-absolute-deviations regression (median regression). Squaring penalizes outliers quadratically, which is suboptimal under Laplace tails because a single large residual dominates the loss; the median estimator is robust precisely because $|\cdot|$ grows linearly.
 
-##### {prf:ref}`ex-ch1-3` (statement: p. ): Activation choice for a PINN.
+##### {prf:ref}`ex-ch1-3`: Activation choice for a PINN.
 
 A ReLU network $\hat y(x) = \sum_k w_k\,\mathrm{ReLU}(a_k x + b_k) + c$ is piecewise-linear: between consecutive kink points $x = -b_k/a_k$ it is affine in $x$, so $\hat y''(x) = 0$ on every open subinterval. At a kink, the second distributional derivative is a Dirac measure, not a classical pointwise value. A strong-form PDE residual such as the Black--Scholes operator $$\partial_t V + \tfrac{1}{2}\sigma^2 S^2\,V_{SS} + r S\,V_S - r V \;=\; 0$$ must hold pointwise (a.e.) for almost every $S$; with a piecewise-linear $V$, the term $V_{SS}$ vanishes a.e. in the classical sense, and the residual reduces to $\partial_t V + r S V_S - rV$, which has no nontrivial solution that respects the actual boundary conditions of an option-pricing problem. Concrete example: $\hat y(x) = \mathrm{ReLU}(x) + \mathrm{ReLU}(-x) = |x|$ has $\hat y''(x) = 0$ for every $x \neq 0$ in the classical sense. Smooth activations (tanh, Swish, GELU, softplus) are $C^\infty$ and produce well-defined pointwise second derivatives, which is why the PINN literature recommends them whenever the PDE is of order $\ge 2$.
 
-##### {prf:ref}`ex-ch1-4` (statement: p. ): Adam vs. AdamW.
+##### {prf:ref}`ex-ch1-4`: Adam vs. AdamW.
 
 Write the gradient at step $t$ as $g_t = \nabla_\theta \ell(\theta_t)$. With $L_2$ regularization *added to the loss*, $\ell^{L_2}(\theta) = \ell(\theta) + \tfrac{\lambda}{2}\|\theta\|^2$, so the effective gradient becomes $\tilde g_t = g_t + \lambda \theta_t$. Adam's update applied to $\tilde g_t$ is $$m_t = \beta_1 m_{t-1} + (1-\beta_1)\tilde g_t,\quad v_t = \beta_2 v_{t-1} + (1-\beta_2)\tilde g_t^2,\quad
 \theta_{t+1} = \theta_t - \eta\,\frac{\hat m_t}{\sqrt{\hat v_t} + \varepsilon}.$$ The key observation is that the weight-decay contribution $\lambda \theta_t$ enters $m_t$ and $v_t$ *through the same EWMA averaging as the data gradient*, so the effective shrinkage applied to $\theta$ is $\eta\lambda \theta_t$ scaled by $1/(\sqrt{\hat v_t}+\varepsilon)$, which differs across coordinates. Parameters with large historical gradients receive small effective decay; parameters with small gradients receive large decay. AdamW decouples the two: $$m_t = \beta_1 m_{t-1} + (1-\beta_1) g_t,\quad v_t = \beta_2 v_{t-1} + (1-\beta_2) g_t^2,\quad
 \theta_{t+1} = (1 - \eta\lambda)\theta_t - \eta\,\frac{\hat m_t}{\sqrt{\hat v_t}+\varepsilon}.$$ Now the multiplicative shrinkage $(1 - \eta\lambda)$ acts uniformly on all parameters, independent of the adaptive denominator. Numerically the two updates differ by a factor of $1/(\sqrt{\hat v_t}+\varepsilon)$ on the decay term; AdamW preserves the textbook intuition "weight decay shrinks weights at the same rate everywhere."
 
-##### {prf:ref}`ex-ch1-5` (statement: p. ): RNN forward pass by hand.
+##### {prf:ref}`ex-ch1-5`: RNN forward pass by hand.
 
 With $W_h = 0.5\,I_2$, $W_x = (1,0)^\top$, $h_0 = (0,0)^\top$:
 
@@ -55,7 +55,7 @@ Outputs: $\hat y_t = W_y h_t$ gives $\hat y_1 \approx 0.7616$, $\hat y_2 \approx
 
 For the gradient, write $h_t = \tanh(z_t)$ with $z_t = W_h h_{t-1} + W_x x_t$. Then $$\frac{\partial \hat y_3}{\partial x_1} = W_y\,\frac{\partial h_3}{\partial z_3}\,W_h\,\frac{\partial h_2}{\partial z_2}\,W_h\,\frac{\partial h_1}{\partial z_1}\,W_x,$$ where $\partial h_t/\partial z_t = \mathrm{diag}(1-\tanh^2(z_t))$. Numerically, $\tanh'(1)\approx 0.4200$, $\tanh'(0.3808)\approx 0.8678$, $\tanh'(1.1818)\approx 0.3155$, so $$\frac{\partial \hat y_3}{\partial x_1} \approx 1 \cdot 0.3155 \cdot 0.5 \cdot 0.8678 \cdot 0.5 \cdot 0.4200 \cdot 1 \approx 0.0288.$$ The decay rate is the product of two distinct effects: (i) the spectral radius of $W_h$ (here $0.5$), which contributes one factor of $W_h$ per recurrent step ($T-1$ multiplicative copies in the chain above), and (ii) the saturation of $\tanh'(\cdot) \in (0,1]$, which contributes a second multiplicative factor per step. Setting (ii) aside, with $\|W_h\|_2 = 0.5 < 1$ the gradient magnitude already decays at least as fast as $0.5^{T-1}$, i.e. exponentially in the sequence length. This is the canonical vanishing-gradient pathology of vanilla RNNs ({ref}`sec-sequence_models`). LSTM and GRU gates address (i) by allowing the recurrent Jacobian's eigenvalues to stay close to one without making training unstable; effect (ii) is intrinsic to bounded activations and is mitigated by skip connections (and architectural choices that keep activations away from saturation regimes), not by gating.
 
-##### {prf:ref}`ex-ch1-6` (statement: p. ): Attention by hand.
+##### {prf:ref}`ex-ch1-6`: Attention by hand.
 
 With $q_i = k_i = v_i = x_i$ and $x = (0,1,0.5)$, the score matrix $S_{ij} = q_i k_j$ is $$S = \begin{pmatrix} 0 & 0 & 0 \\ 0 & 1 & 0.5 \\ 0 & 0.5 & 0.25\end{pmatrix}.$$ Softmaxing each row and using $e^0 = 1$, $e^{0.25} \approx 1.284$, $e^{0.5}\approx 1.649$, $e^1 \approx 2.718$:
 
@@ -69,17 +69,17 @@ $$
 
 Each attention vector $a_i$ is on the simplex (entries non-negative, summing to one), so $o_i = \sum_j a_{ij} v_j$ is a convex combination of the values, lying in $[0, 1]$. Token 2, the largest input, attends most strongly to itself ($a_{22}\approx 0.51$); token 3 also attends most to token 2 because the inner products $q_3 k_2 = 0.5$ exceed the self-score $q_3 k_3 = 0.25$. Token 1 has zero query magnitude, so its row is uniform: with no signal to discriminate on, attention defaults to a uniform average over the values.
 
-##### {prf:ref}`ex-ch1-7` (statement: p. ): TensorBoard optimizer comparison.
+##### {prf:ref}`ex-ch1-7`: TensorBoard optimizer comparison.
 
 Coding exercise. Expected qualitative behavior on a small classification task: SGD with momentum is often slower to reduce training loss but can generalize competitively when the learning-rate schedule is well tuned; Adam often reaches a low training loss fastest, but its validation curve can diverge from the training curve sooner than for SGD or AdamW; AdamW often sits between the two. The actual crossover point is a notebook output and should be reported from the run.
 
 (sol-ch2)=
 ## Chapter {ref}`ch-deqn`: Deep Equilibrium Nets
-##### {prf:ref}`ex-ch2-1` (statement: p. ): Closed-form Brock--Mirman.
+##### {prf:ref}`ex-ch2-1`: Closed-form Brock--Mirman.
 
 Conjecture $V(K, z) = A\log K + B\log z + C$. The Bellman equation $$V(K,z) = \max_{K'}\Bigl\{\log\bigl(zK^\alpha - K'\bigr) + \beta\,\mathbb{E}_{z'\mid z}\!\bigl[V(K', z')\bigr]\Bigr\}$$ yields the FOC $1/(zK^\alpha - K') = \beta A/K'$, which gives the constant savings rate $$s^\star = \frac{K'}{zK^\alpha} = \frac{\beta A}{1 + \beta A}.$$ Substituting the conjecture back and matching the $\log K$ coefficient produces $A = \alpha + \beta A\alpha$, hence $A = \alpha/(1-\alpha\beta)$. Plugging this $A$ into $s^\star$: $$s^\star \;=\; \frac{\beta\,\alpha/(1-\alpha\beta)}{1 + \beta\,\alpha/(1-\alpha\beta)} \;=\; \frac{\alpha\beta}{1-\alpha\beta+\alpha\beta} \;=\; \alpha\beta.$$ The DEQN parameterizes $s_t = \sigma\!\bigl(\mathcal{N}_\rho(K_t, z_t)\bigr)$. Once converged, the average sigmoid output across the ergodic set should equal $\alpha\beta$ (typical calibrations $\alpha=0.36$, $\beta=0.96$ give $s^\star \approx 0.346$). Any systematic deviation indicates either insufficient training or a quadrature / sampling bias.
 
-##### {prf:ref}`ex-ch2-2` (statement: p. ): Hard vs. soft constraints.
+##### {prf:ref}`ex-ch2-2`: Hard vs. soft constraints.
 
 With a softplus head on consumption alone, $C_t = \mathrm{softplus}(\mathcal{N}_\rho(K_t, z_t)) > 0$ is guaranteed, but next-period capital is then *defined* as the residual $K_{t+1} = z_t K_t^\alpha - C_t$, which is unconstrained in sign. At random initialization the network output is approximately $\mathcal{N}(0, 1)$, so $C_t$ is approximately $\mathrm{softplus}(0) \approx 0.69$ on average but can be much larger.
 
@@ -87,7 +87,7 @@ Concrete failure: take $K = 1$, $z = 1$, $\alpha = 0.36$, so $zK^\alpha = 1$. If
 
 The sigmoid-savings parameterization $s_t = \sigma(\mathcal{N}_\rho) \in (0,1)$ avoids this entirely: $K_{t+1} = s_t z_t K_t^\alpha > 0$ and $C_t = (1-s_t) z_t K_t^\alpha > 0$ both hold by construction, regardless of the network's raw output. This is the simplest example of the broader principle that *architectural* feasibility encodings dominate *loss-based* ones whenever the constraint can be written as a closed-form algebraic identity.
 
-##### {prf:ref}`ex-ch2-3` (statement: p. ): Path averaging vs. conditional expectation.
+##### {prf:ref}`ex-ch2-3`: Path averaging vs. conditional expectation.
 
 On the simulated path, the path-averaged residual is $\bar r_T(\theta) = T^{-1}\sum_{t=1}^T r(\theta, x_t)$ with $\{x_t\}$ generated by the model dynamics. Under ergodicity, Birkhoff's theorem gives $$\bar r_T(\theta) \;\xrightarrow{T \to \infty}\; \int r(\theta, x)\,\mu(dx) \;=\; \mathbb{E}_\mu[r(\theta, x)] \quad\text{a.s.},$$ where $\mu$ is the stationary distribution. The conditional-expectation residual at a fixed point $x_t$, $\E[r(\theta, x_{t+1}) \mid x_t]$, is a different object: it integrates only over the conditional shock distribution, holding the current state fixed.
 
@@ -95,7 +95,7 @@ Their connection: if one sweeps the conditional residual over $x_t \sim \mu$ and
 
 Bias--variance trade-off at finite $T_{\text{sim}}$: the path-averaged loss has variance $O(1/T_{\text{sim}})$ from finite-sample noise but no bias. An exact-quadrature residual has zero stochastic noise on the inner integral but its outer-state coverage depends on the sampling scheme; with mini-batch SGD over the ergodic set, the variance comes from the random batch, not the integration. In the chapter the deterministic quadrature is preferred whenever the shock dimension is low ($d \lesssim 5$), and pathwise residuals dominate once $d$ is high enough that explicit quadrature becomes expensive.
 
-##### {prf:ref}`ex-ch2-4` (statement: p. ): Brock--Mirman with Gauss--Hermite.
+##### {prf:ref}`ex-ch2-4`: Brock--Mirman with Gauss--Hermite.
 
 The Euler equation in Brock--Mirman with $\delta = 1$, log utility, and AR(1) productivity $\ln z' = \varrho\ln z + \sigma_z\varepsilon'$, $\varepsilon' \sim \mathcal{N}(0,1)$, is $$\frac{1}{C_t}
    \;=\;
@@ -119,7 +119,7 @@ Substituting, the residual at a state $(K_t, z_t)$ becomes $$r(\theta; K_t, z_t)
    \;=\;
    1 \;-\; \frac{\beta\,\alpha\,C_t}{\sqrt{\pi}}\sum_{q=1}^{5} w_q\,\frac{z_q'\,K_{t+1}^{\alpha-1}}{C_{t+1}^{q}},$$ where $z_q' = \exp(\varrho\ln z_t + \sigma_z\sqrt{2}\,\xi_q)$ and $C_{t+1}^q$ is the consumption obtained by feeding $(K_{t+1}, z_q')$ into the network. Numerically, comparing this $5$-point sum with a high-draw Monte Carlo estimate on the same residual is a useful diagnostic: agreement should be close for smooth integrands and small shock variance, but the realized discrepancy is an output of the check rather than a fixed benchmark.
 
-##### {prf:ref}`ex-ch2-5` (statement: p. ): Monomial rule by hand (Stroud-3 at $d=4$).
+##### {prf:ref}`ex-ch2-5`: Monomial rule by hand (Stroud-3 at $d=4$).
 
 Equation {eq}`eq-stroud3` places nodes at $\bm{x}_k^\pm = \pm\sqrt{d}\,\bm{e}_k$ for $k = 1, \dots, d$, with equal weights $1/(2d) = 1/8$. At $d=4$, the eight nodes are $\pm 2 \bm{e}_k$ for $k=1,2,3,4$.
 
@@ -137,7 +137,7 @@ Equation {eq}`eq-stroud3` places nodes at $\bm{x}_k^\pm = \pm\sqrt{d}\,\bm{e}_k
 
 *When does this matter?* The Euler residual is a smooth function of the next-period shock $\varepsilon'$. Taylor-expanding around the conditional mean, the leading bias term is the Hessian of the residual with respect to $\varepsilon'$, which probes the second moment, exact under Stroud-3. Fourth-moment bias enters only at the next order, scaled by the integrand's fourth derivative. For moderate CRRA curvature and thin-tailed shocks this term can be small relative to classroom residual tolerances, but it is a diagnostic to check rather than a universal bound. The bias becomes material when (i) the integrand has heavy fourth-order content (e.g., very risk-averse preferences or fat-tailed shocks), or (ii) the shock dimension is large enough that the relative error $(d-3)/3$ exceeds the residual tolerance one targets. This is the threshold at which the monomial rule should be replaced by Stroud-5 ($2d^2 + 1$ nodes) or QMC.
 
-##### {prf:ref}`ex-ch2-6` (statement: p. ): Loss-kernel selection.
+##### {prf:ref}`ex-ch2-6`: Loss-kernel selection.
 
 *Definitions for reference.* MSE: $\frac{1}{N}\sum_i r_i^2$. MAE: $\frac{1}{N}\sum_i |r_i|$. Huber($\delta$): quadratic for $|r| \le \delta$, linear above. Pinball loss at $\tau$: $L_\tau(r) = \max(\tau r,\, (\tau - 1)r)$, whose minimizer is the $\tau$-quantile of $r$. CVaR at $\alpha$: the expected value of $r$ conditional on $r$ exceeding its $\alpha$-quantile. Log-cosh: $\sum_i \log\cosh(r_i)$, smooth and quadratic near zero, linear in tails.
 
@@ -153,7 +153,7 @@ These are coding exercises (notebook `lecture_03_02_Brock_Mirman_Uncertainty_DEQ
 
 (sol-ch3)=
 ## Chapter {ref}`ch-irbc`: The International Real Business Cycle Model
-##### {prf:ref}`ex-ch3-1` (statement: p. ): Fischer--Burmeister.
+##### {prf:ref}`ex-ch3-1`: Fischer--Burmeister.
 
 For the forward direction, suppose $a \ge 0$, $b \ge 0$, $ab = 0$. Without loss of generality $b = 0$; then $\Phi(a, 0) = a + 0 - \sqrt{a^2 + 0} = a - |a| = 0$ since $a \ge 0$. By symmetry the same holds when $a = 0$.
 
@@ -165,7 +165,7 @@ The level set $\Phi(a, b) = 0$ is the union of the non-negative $a$-axis and the
 
 *(d) Sign convention.* Replacing $\Phi$ by $-\Phi$ leaves the squared loss untouched: $(-\Phi)^2 = \Phi^2$, so the gradient field of the loss and the SGD trajectory are unchanged. In particular, the sign convention $a + b - \sqrt{a^2+b^2}$ versus $\sqrt{a^2+b^2} - a - b$ is irrelevant once the residual is squared, and the operative quantity for SGD is $-\nabla(\Phi^2)$ rather than $-\nabla\Phi$. The L-shaped zero set is invariant under sign flip; only the value of $\Phi$ at off-zero points changes (it flips sign), and squaring removes that distinction.
 
-##### {prf:ref}`ex-ch3-2` (statement: p. ): State-space scaling.
+##### {prf:ref}`ex-ch3-2`: State-space scaling.
 
 For an IRBC with $N$ symmetric countries, the state vector contains $(K^j, z^j)_{j=1}^N$ for a total of $2N$ components. The network outputs the next-period capital vector $(k^{j\prime})_{j=1}^N$, the irreversibility multipliers $(\mu^j)_{j=1}^N$, and the resource-constraint shadow price $\lambda$, for $2N + 1$ outputs in total. Country-level consumption is recovered algebraically from $\lambda$ via the consumption-sharing FOC and is therefore not a separate output. The loss has $N$ Euler residuals, $N$ Fischer--Burmeister residuals from the irreversibility complementarity, and $1$ aggregate-resource-constraint residual, $2N + 1$ components total, matching the $2N + 1$ outputs. Each Euler residual is an expectation over a $(N+1)$-dimensional shock vector (one country-specific innovation plus one aggregate, as in equation {eq}`eq-irbc_tfp`).
 
@@ -173,13 +173,13 @@ Tensor-product Gauss--Hermite at $Q=3$ costs $3^{N+1}$ evaluations per residual.
 
 The Stroud-3 rule has $2(N+1)$ nodes per residual. Setting $2(N+1) < 100$ gives $N \le 48$, comfortable for any IRBC dimension actually used in practice. At $N = 50$ the monomial cost is $102$ nodes; the tensor cost is $3^{51} \approx 2.15 \times 10^{24}$ evaluations. This four-order-of-magnitude gap at $N = 10$ and twenty-order-of-magnitude gap at $N = 50$ is the operational reason DEQNs use Stroud-3 by default once $N \gtrsim 5$.
 
-##### {prf:ref}`ex-ch3-3` (statement: p. ): Two-phase training.
+##### {prf:ref}`ex-ch3-3`: Two-phase training.
 
 At a randomly initialized network, the policy outputs $k^{j\prime}$ are not coordinated with the resource constraint. Suppose the network produces $k^{j\prime}$ values that, summed and combined with country-$j$ consumption, exceed total output: $\sum_j (k^{j\prime} + c^j + \Gamma^j) > \sum_j Y^j$. The implied state on the next simulated step has $k^{j\prime} < (1-\delta) k^j$ for some country (irreversibility violated), or $c^j < 0$ (negative consumption), or both. Concretely, take $N = 2$, $A_\mathrm{tfp} = 1$, $\delta = 0.025$, $k^1 = k^2 = 1$, and a random network output $(k^{1\prime}, k^{2\prime}) = (0.5, 0.5)$ (instead of the symmetric $(1, 1)$ steady state). Capital has dropped by $50\%$ in one step, so $I^j = k^{j\prime} - (1-\delta)k^j = 0.5 - 0.975 = -0.475 < 0$, violating irreversibility. Even before the irreversibility check fires, the implied consumption $c^j = Y^j - I^j - \Gamma^j$ becomes huge, and in the next step the marginal utility $u'(c)$ is essentially zero, so the Euler residual gradient is uninformative.
 
 Phase 1 (uniform sampling on a wide box of states, with Euler residuals computed against *any* feasible policy guess) gives the optimizer signal to bring outputs into the feasible region before any simulation is attempted. Once the policy is in a feasible neighbourhood, Phase 2 (simulation-based sampling on the ergodic set) refines accuracy. Without Phase 1, the simulation in Phase 2 starts in regions where the policy is grossly infeasible, the loss explodes, and gradient descent diverges.
 
-##### {prf:ref}`ex-ch3-4` (statement: p. ): Adjustment-cost partials and Tobin's Q.
+##### {prf:ref}`ex-ch3-4`: Adjustment-cost partials and Tobin's Q.
 
 Write $g^j \equiv k^{j\prime}/k^j - 1$. Then $\Gamma^j = (\kappa/2)\,k^j (g^j)^2$. The partials are
 
@@ -199,7 +199,7 @@ At the steady state, $k^{j\prime} = k^j$ so $g^j = 0$. Both partials vanish: $\p
 
 The expression $\partial\Gamma^j/\partial k^{j\prime} = \kappa g^j$ is the marginal cost of investing one more unit and is the IRBC's analogue of *Tobin's marginal Q*: large positive $g^j$ (rapid expansion) creates a large investment wedge, raising the effective per-unit cost of capital next period. Higher $\kappa$ flattens the response of investment to a productivity shock: a large adjustment cost makes the planner spread the response of $k^{j\prime}$ across several periods rather than absorbing the shock in one big move, slowing convergence to the new steady state. In the limit $\kappa \to \infty$, capital adjusts only infinitesimally each period and the dynamics become arbitrarily slow.
 
-##### {prf:ref}`ex-ch3-5` (statement: p. ): Complete-markets risk sharing.
+##### {prf:ref}`ex-ch3-5`: Complete-markets risk sharing.
 
 The consumption-sharing condition {eq}`eq-irbc_consumption` reads $c_t^j = (\lambda_t/\tau^j)^{-\gamma_j}$. Therefore $$\frac{c_t^i}{c_t^j} \;=\; \!\left(\frac{\lambda_t}{\tau^i}\right)^{\!-\gamma_i}\!\Bigl/\!\left(\frac{\lambda_t}{\tau^j}\right)^{\!-\gamma_j}
    \;=\;
@@ -219,17 +219,17 @@ These are notebook exercises (`lecture_05_05_IRBC_Exercise.ipynb`); reference so
 
 (sol-ch4)=
 ## Chapter {ref}`ch-nas`: Neural Architecture Search and Loss Normalization
-##### {prf:ref}`ex-ch4-1` (statement: p. ): Random vs. grid.
+##### {prf:ref}`ex-ch4-1`: Random vs. grid.
 
 With two hyperparameters and only one "important" axis, a $3\times 3$ grid uses $9$ candidates but only $3$ distinct values along the important axis. If the near-optimal interval has length fraction $p$ and its location relative to the grid is unknown, the grid hit probability is approximately $\min\{3p,1\}$ when $p$ is small. Random search at $9$ evaluations samples $9$ independent values along the important axis, so its hit probability is $$1 - (1-p)^9 .$$ For $p=0.05$, the grid probability is approximately $0.15$, while random search gives $1-0.95^9\approx 0.37$.
 
 The general principle: with $n$ evaluations and only $r \ll d$ important axes, random search effectively gives $n$ independent draws on those $r$ axes (since the irrelevant axes don't matter), while grid search wastes most of its budget on the irrelevant axes' marginals. This is the projection argument of {cite:t}`bergstra2012random`: when the loss landscape is anisotropic, random search dominates grid search.
 
-##### {prf:ref}`ex-ch4-2` (statement: p. ): Bayesian optimization toy problem.
+##### {prf:ref}`ex-ch4-2`: Bayesian optimization toy problem.
 
 This is a coding exercise. A grid with step size $0.01$ over $[-1,2]$ has $301$ points, so the qualitative benchmark is that BO should require far fewer objective evaluations when the GP posterior and acquisition function identify the promising region early. The exact evaluation count is a notebook output and depends on the initial design, acquisition optimizer, random seed, and stopping rule.
 
-##### {prf:ref}`ex-ch4-3` (statement: p. ): Hyperband budget allocation.
+##### {prf:ref}`ex-ch4-3`: Hyperband budget allocation.
 
 Hyperband with $R = 81$, $\eta = 3$ runs a ladder of brackets indexed by $s = s_{\max}, s_{\max}-1, \dots, 0$, where $s_{\max} = \lfloor\log_\eta R\rfloor = 4$. Each bracket starts with $n_s = \lceil (s_{\max}+1)\,\eta^s / (s+1)\rceil$ candidates trained for $r_s = R / \eta^s$ resource each, then runs Successive Halving with reduction factor $\eta$. Table {numref}`tab-hyperband_r81_eta3` works out the resulting schedule.
 
@@ -251,13 +251,13 @@ Within each bracket, Successive Halving reduces candidates by $\eta$ at each run
 
 A naive "train all $n_0 = 27$ candidates to full $R = 81$" costs $27 \cdot 81 = 2187$ resource units. Hyperband is only moderately cheaper in total resource here, but it screens a much larger initial pool: across the five brackets, the total number of first-rung candidates is $81 + 34 + 15 + 8 + 5 = 143$, vs. $27$ for the naive scheme. Its advantage is adaptive allocation: many more candidates are sampled, but only a small subset receives large training budgets.
 
-##### {prf:ref}`ex-ch4-4` (statement: p. ): Loss balancing.
+##### {prf:ref}`ex-ch4-4`: Loss balancing.
 
 Let $\ell_i^{(t)}$ have magnitude $L_i \in \{10^0, 10^{-2}, 10^{-4}\}$ and per-component gradient norm $\|\nabla\ell_i\|$. If we crudely model gradient norm as scaling linearly with loss magnitude (true for, e.g., quadratic losses far from the optimum), then $\|\nabla \ell_i\| \propto L_i$. Equalising gradient contributions $\lambda_i \|\nabla\ell_i\|$ requires $\lambda_i \propto 1/L_i$, i.e. $(\lambda_1, \lambda_2, \lambda_3) \propto (1, 10^2, 10^4)$, which after normalisation becomes $$(\lambda_1, \lambda_2, \lambda_3) \;=\; \frac{1}{1 + 10^2 + 10^4}\,(1, 10^2, 10^4) \;\approx\; (10^{-4},\, 10^{-2},\, 1).$$
 
 The scheme breaks down when the gradients are correlated: $\langle \nabla\ell_i, \nabla\ell_j\rangle \neq 0$ means that scaling up $\lambda_3$ to "boost" $\ell_3$ also moves $\theta$ along the $\nabla\ell_1$ direction, changing $\ell_1$. The "equal contribution" targeted by the fixed weights is no longer a fixed point: each parameter update changes the local gradient geometry, and weights tuned at one iteration become wrong at the next. Adaptive schemes (ReLoBRaLo, GradNorm) re-tune the $\lambda_i$ at every step, recovering the equalisation in a way that fixed weights cannot.
 
-##### {prf:ref}`ex-ch4-5` (statement: p. ): Pareto front geometry.
+##### {prf:ref}`ex-ch4-5`: Pareto front geometry.
 
 *(i)* Differentiate $\mathcal{L}(\theta;\lambda) = \lambda(\theta-a)^2 + (1-\lambda)(\theta-b)^2$ in $\theta$ and set to zero: $2\lambda(\theta - a) + 2(1-\lambda)(\theta - b) = 0$, hence $$\theta^\star(\lambda) \;=\; \lambda a + (1-\lambda) b.$$
 
@@ -271,11 +271,11 @@ The scheme breaks down when the gradients are correlated: $\langle \nabla\ell_i,
 
 *(v)* In the one-dimensional toy problem the trade-off is completely described by the curve above. In a neural network, however, $\theta$ is high-dimensional and the descent direction for fixed scalar weight $\lambda$ is $$-\bigl[\lambda \nabla \ell_1(\theta) + (1-\lambda)\nabla \ell_2(\theta)\bigr].$$ If $\langle\nabla\ell_1,\nabla\ell_2\rangle>0$, reducing one component tends to reduce the other; if the inner product is negative, progress on one component can increase the other. Because this geometry changes along the training path, a fixed scalar weight can balance progress at one iterate and become badly unbalanced later. ReLoBRaLo responds to this by increasing the weight of losses whose *relative loss progress* has lagged behind. GradNorm is the related method that targets gradient magnitudes directly by trying to balance $\|w_k\nabla\ell_k\|$ across components.
 
-##### {prf:ref}`ex-ch4-6` (statement: p. ): ReLoBRaLo vs. GradNorm.
+##### {prf:ref}`ex-ch4-6`: ReLoBRaLo vs. GradNorm.
 
 This is a coding exercise. Qualitatively: GradNorm requires one extra backward pass per component per step (to compute $\|\nabla \ell_k\|$), so wall-clock per epoch is roughly $K\times$ slower than ReLoBRaLo for $K$ components. In return, GradNorm achieves tighter gradient balance, which matters when component magnitudes are not a faithful proxy for gradient magnitudes (e.g., when the loss landscape is anisotropic). For the standard PINN losses studied in this script ($K = 2$ or $3$ components, typically scaled by physical units), ReLoBRaLo's loss-magnitude proxy is usually good enough and the extra cost of GradNorm is not warranted; for losses with strongly heterogeneous Hessians (e.g., HJB residuals coupled with KFE residuals where the two operators have different stiffness), GradNorm's direct gradient measurement can give a meaningful speedup.
 
-##### {prf:ref}`ex-ch4-7` (statement: p. ): HPO vs. full NAS decision.
+##### {prf:ref}`ex-ch4-7`: HPO vs. full NAS decision.
 
 *Sketch.* The four cells are roughly:
 
@@ -291,7 +291,7 @@ The general rule: budget grows $\to$ smarter methods become affordable; search-s
 
 (sol-ch5)=
 ## Chapter {ref}`ch-olg`: Overlapping Generations Models with DEQNs
-##### {prf:ref}`ex-ch5-1` (statement: p. ): OLG market clearing for $A=3$.
+##### {prf:ref}`ex-ch5-1`: OLG market clearing for $A=3$.
 
 With three cohorts (young $h=1$, middle $h=2$, old $h=3$), the budget constraints are
 
@@ -316,22 +316,22 @@ The market-clearing condition closes the system: $$k^2_{t+1} + k^3_{t+1} \;=\; K
 
 *Equation count*: three budget constraints (used to eliminate consumption), two Euler equations, one capital-market-clearing identity. The budget constraints are bookkeeping, so the network outputs the two cohort savings $(k^2_{t+1}, k^3_{t+1})$ and is trained on the two Euler residuals; aggregate capital $K_{t+1} = k^2_{t+1} + k^3_{t+1}$ then determines next-period prices $(w_{t+1}, R_{t+1})$ algebraically through the firm FOCs. The unknown count (two savings) matches the Euler-residual count (two), and the market-clearing identity is built into the definition of $K_{t+1}$.
 
-##### {prf:ref}`ex-ch5-2` (statement: p. ): KKT under FB.
+##### {prf:ref}`ex-ch5-2`: KKT under FB.
 
 For agent $h$ with borrowing constraint $k'^h \ge 0$ and Lagrange multiplier $\lambda^h \ge 0$, the KKT system is $$k'^h \ge 0, \qquad \lambda^h \ge 0, \qquad k'^h \cdot \lambda^h = 0.$$ These three conditions are encoded by the single Fischer--Burmeister equation $\Phi(\lambda^h, k'^h) = 0$ with $\Phi(a,b) = a + b - \sqrt{a^2 + b^2}$. The Euler equation $$u'(c^h_t) - \beta\,\mathbb{E}_t[u'(c^{h+1}_{t+1})\,R_{t+1}] - \lambda^h_t \;=\; 0$$ contributes a second residual. Squared and summed: $$\mathcal{L}^h(\theta) \;=\; \bigl[\text{Euler residual}\bigr]^2 + \bigl[\Phi(\lambda^h, k'^h)\bigr]^2.$$ At any KKT point, both squared terms vanish exactly: the Euler residual is zero by definition, and $\Phi = 0$ encodes complementarity. This is what "vanishes exactly at the KKT point" means: there is no $\varepsilon$ smoothing or penalty parameter, the loss is zero on the equilibrium and strictly positive off it. Compare with a quadratic penalty $\bigl[\max(0, -k'^h)\bigr]^2 + \mu \bigl[\max(0, -\lambda^h)\bigr]^2 + (k'^h \lambda^h)^2$: this also vanishes at the KKT point but the multiplier $\mu$ has to be tuned, whereas FB has no parameter.
 
-##### {prf:ref}`ex-ch5-3` (statement: p. ): Hump-shaped lifecycle.
+##### {prf:ref}`ex-ch5-3`: Hump-shaped lifecycle.
 
 A hump-shaped labor-income profile $\ell^h$ peaks at middle age and declines toward retirement. The lifecycle savings policy $k'^h$ inherits this hump for two reasons. (i) *Consumption smoothing*: agents with high current income $w \ell^h$ relative to lifetime average save heavily to fund retirement years when $\ell^h$ drops. (ii) *Time-varying borrowing constraint*: young agents have low income, want to borrow against future earnings, are constrained by $k'^h \ge 0$, so they save little; middle-aged agents are unconstrained and save the most; old agents dis-save toward death.
 
 The expected shape: $k'^h \approx 0$ for the very young (constrained), peaks around age 40--50 (middle of working life), declines toward retirement, drops to zero for the oldest cohort that does not save into the next period. In notebook `lecture_08_10_OLG_Benchmark_DEQN_persistent.ipynb`, plotting the trained network's $k'^h$ against cohort age $h$ should reveal exactly this single-peak shape; the position of the peak depends on the calibration of $(\beta, \delta, A_\mathrm{tfp})$ and on the lifecycle labor profile.
 
-##### {prf:ref}`ex-ch5-4` (statement: p. ): Hard aggregation layer.
+##### {prf:ref}`ex-ch5-4`: Hard aggregation layer.
 
 Coding exercise. The current analytic notebook already clears the capital market by defining $K_{t+1}$ as the sum of predicted cohort savings. The alternative hard-layer variant is useful when the network has a separate aggregate-capital head. Implementation sketch: output a positive scalar $\widehat K_{t+1}$ and unnormalised cohort scores $(z^2, \dots, z^A)$; apply softmax along the cohort axis, $s^h = \mathrm{softmax}(z^h)$; rescale to capital: $$k_{t+1}^h \;=\; \widehat K_{t+1} \cdot s^h, \qquad
    \sum_{h=2}^{A} k_{t+1}^h \;=\; \widehat K_{t+1}\;\;\text{by construction}.$$ The market-clearing residual $\sum_h k^h - \widehat K_{t+1}$ is identically zero up to floating-point precision. The comparison with the current notebook should therefore focus on Euler residuals and wall-clock time: the hard layer removes one possible inconsistency but also changes the parameterisation, so faster convergence is an empirical question rather than a mathematical guarantee. In multi-asset settings each exact clearing condition needs its own accounting layer, which is why the 56-agent benchmark enforces bond-market clearing as an explicit residual instead.
 
-##### {prf:ref}`ex-ch5-5` (statement: p. ): Bond pricing in equilibrium.
+##### {prf:ref}`ex-ch5-5`: Bond pricing in equilibrium.
 
 Cohort $h$'s Euler equation for capital is $$u'(c^h_t) \;=\; \beta\,\mathbb{E}_t\!\bigl[u'(c^{h+1}_{t+1})\,R_{t+1}\bigr],$$ and for the riskless bond that costs $p_t$ today and pays one unit of consumption next period, $$u'(c^h_t)\,p_t \;=\; \beta\,\mathbb{E}_t\!\bigl[u'(c^{h+1}_{t+1})\bigr].$$ The second equation gives directly $$p_t \;=\; \frac{\beta\,\mathbb{E}_t[u'(c^{h+1}_{t+1})]}{u'(c^h_t)}.$$ Identifying the stochastic discount factor $M_{t,t+1} = \beta\,u'(c^{h+1}_{t+1})/u'(c^h_t)$, the same expression reads $p_t = \mathbb{E}_t[M_{t,t+1}]$.
 
@@ -348,7 +348,7 @@ Coding exercises. Both call for $4$--$5$ retraining runs of the 56-agent benchma
 
 (sol-ch6)=
 ## Chapter {ref}`ch-young`: Heterogeneous Agents and Young's Method
-##### {prf:ref}`ex-ch6-1` (statement: p. ): Mean-preserving lottery.
+##### {prf:ref}`ex-ch6-1`: Mean-preserving lottery.
 
 Place mass $\omega$ at $k_n$ and $1-\omega$ at $k_{n+1}$. Mean preservation: $$\omega\,k_n + (1-\omega)\,k_{n+1} \;=\; k'.$$ Solving for $\omega$: $$\omega \;=\; \frac{k_{n+1} - k'}{k_{n+1} - k_n}.$$ This is well-defined for $k_n \le k' \le k_{n+1}$ since the denominator is positive and the numerator lies in $[0, k_{n+1} - k_n]$, ensuring $\omega \in [0,1]$.
 
@@ -356,11 +356,11 @@ Place mass $\omega$ at $k_n$ and $1-\omega$ at $k_{n+1}$. Mean preservation: $$\
 
 Higher-moment matching is impossible with a two-point split unless $k'$ coincides with a grid point: any non-degenerate two-point distribution with mean $k'$ and support $\{k_n, k_{n+1}\}$ has variance $\omega(1-\omega)(k_{n+1}-k_n)^2 > 0$, while the original (delta) distribution at $k'$ has zero variance. This residual variance is the price of the discretization, and it shrinks as the grid is refined.
 
-##### {prf:ref}`ex-ch6-2` (statement: p. ): Closed-form bracketing on log-spaced grids.
+##### {prf:ref}`ex-ch6-2`: Closed-form bracketing on log-spaced grids.
 
 Coding exercise. Algorithm sketch: with grid $k_n = e^{x_0 + n\Delta x} - c$, the bracket index for a query $k'$ is $$n \;=\; \mathrm{floor}\!\left(\frac{\log(k' + c) - x_0}{\Delta x}\right).$$ This is $\mathcal{O}(1)$ per query (one log + one floor), independent of grid size $N$. By contrast, `numpy.searchsorted` costs $\mathcal{O}(\log N)$ per query (binary search). The speed difference is hardware- and implementation-dependent, so the coding exercise should report the measured wall-clock ratio on the vectorized batch rather than treating a fixed multiplier as universal.
 
-##### {prf:ref}`ex-ch6-3` (statement: p. ): Approximate aggregation, scope.
+##### {prf:ref}`ex-ch6-3`: Approximate aggregation, scope.
 
 The KS log-linear rule is built on the empirical observation that mean capital $K_t$ alone is a sufficient statistic for forecasting $K_{t+1}$ in the standard Aiyagari--Krusell--Smith calibration. This approximate aggregation breaks when the cross-sectional distribution carries information beyond its first moment that materially affects equilibrium prices.
 
@@ -370,11 +370,11 @@ The KS log-linear rule is built on the empirical observation that mean capital $
 
 *Why higher moments do not always rescue.* Adding the variance to the forecasting rule helps with smooth perturbations but cannot capture multi-modal distributions, regime-switching, or non-monotone responses to skewness. The fundamental issue is that the master equation requires *full* cross-sectional information whenever prices are non-linear in the distribution; truncating to any finite set of moments is exact only in the linear-pricing case.
 
-##### {prf:ref}`ex-ch6-4` (statement: p. ): Sequence-space vs. histogram DEQN.
+##### {prf:ref}`ex-ch6-4`: Sequence-space vs. histogram DEQN.
 
 Coding exercise. Empirically: with truncation horizon $T = 80$ and the chapter's reference calibration, the sequence-space residual after training matches the histogram-based DEQN to within a factor of $1.2$--$1.5$ on the same model. The sequence-space variant generalizes *worse* to a much longer test horizon ($T_\mathrm{test} \gg 80$) because the truncation error $\rho_z^T$ grows with the gap; the histogram variant does not have this issue because its state is stationary. The trade-off favors sequence-space when the cross-sectional distribution is intrinsically high-dimensional (e.g., multiple assets, multi-cohort wealth), at which point storing $T$ shock realizations is cheaper than discretizing the distribution.
 
-##### {prf:ref}`ex-ch6-5` (statement: p. ): DeepSets permutation invariance.
+##### {prf:ref}`ex-ch6-5`: DeepSets permutation invariance.
 
 *(i)* Let $\pi$ be a permutation of $\{1, \dots, N\}$. The aggregator's $m$-th component is $$m_t^m(\pi \cdot s) \;=\; \sum_{i=1}^N g_\theta^m\bigl(s_t^{\pi(i)}\bigr) \;=\; \sum_{j=1}^N g_\theta^m(s_t^j),$$ where the second equality is just a re-indexing of the sum (since addition is commutative). Therefore $\bm m_t(\pi \cdot s) = \bm m_t(s)$, exactly invariant.
 
@@ -394,7 +394,7 @@ Coding exercises. Guidance for interpreting the outputs:
 
 (sol-ch7)=
 ## Chapter {ref}`ch-pinn`: Physics-Informed Neural Networks
-##### {prf:ref}`ex-ch7-1` (statement: p. ): Trial-function BC enforcement.
+##### {prf:ref}`ex-ch7-1`: Trial-function BC enforcement.
 
 Define $\hat y(x) = \tfrac{2x}{\pi} + x\bigl(\tfrac{\pi}{2} - x\bigr)\,\mathcal{N}_\rho(x)$. Evaluate at the boundaries: $$\hat y(0) \;=\; 0 + 0 \cdot \tfrac{\pi}{2}\cdot \mathcal{N}_\rho(0) \;=\; 0,
    \qquad
@@ -402,13 +402,13 @@ Define $\hat y(x) = \tfrac{2x}{\pi} + x\bigl(\tfrac{\pi}{2} - x\bigr)\,\mathcal{
 
 *Why preferable to a soft penalty?* A soft penalty $\lambda\,(\hat y(0) - 0)^2 + \lambda\,(\hat y(\pi/2) - 1)^2$ in the loss involves a hyperparameter $\lambda$ that must be tuned: too small, and the BC violation is large; too large, and the interior PDE residual is starved of optimization budget. The trial-function enforcement is parameter-free, makes the BC residual identically zero, and reduces the loss to the single PDE-interior term $\sup_x |y'' + y|^2$. This separates the two optimization concerns cleanly; any wall-clock gain should be measured in the notebook rather than assumed.
 
-##### {prf:ref}`ex-ch7-2` (statement: p. ): ReLU pathology.
+##### {prf:ref}`ex-ch7-2`: ReLU pathology.
 
 A ReLU network is piecewise-linear: between consecutive kinks $x = -b_k/a_k$ it is affine in $x$, so $\partial^2 \hat y/\partial x^2 = 0$ a.e. At a kink, the second distributional derivative is a Dirac delta supported on a measure-zero set. The strong-form Black--Scholes residual $$V_t + \tfrac{1}{2}\sigma^2 S^2 V_{SS} + rS V_S - rV \;=\; 0$$ must hold pointwise for almost every $S$. With ReLU, $V_{SS} = 0$ a.e., so the residual reduces to $V_t + rS V_S - rV$, which has no nontrivial solution that respects the option-pricing boundary condition. The PINN cannot decrease its loss below the order of magnitude of the missing $V_{SS}$ term.
 
 *Weak-form fix.* Multiply both sides by a smooth test function $\varphi(S)$ with compact support on $[S_\mathrm{min}, S_\mathrm{max}]$ and integrate by parts on the $V_{SS}$ term: $$\int_{S_\mathrm{min}}^{S_\mathrm{max}}\! V_{SS}\,\varphi\, dS \;=\; -\int V_S\,\varphi'\, dS \;+\;[V_S\,\varphi]_{S_\mathrm{min}}^{S_\mathrm{max}}.$$ The boundary terms vanish for compactly supported $\varphi$, and the residual now involves only first-order derivatives of $V$. ReLU networks have well-defined first derivatives a.e., so the weak-form PINN can minimize this residual. This is exactly the Galerkin / Deep Galerkin formulation of {cite:t}`sirignano2018dgm`.
 
-##### {prf:ref}`ex-ch7-3` (statement: p. ): Discrete $\to$ continuous bridge.
+##### {prf:ref}`ex-ch7-3`: Discrete $\to$ continuous bridge.
 
 Start with $$V(a) = \max_c \bigl[u(c)\,\Delta t + \beta_{\Delta t}\,\mathbb{E}V(a')\bigr],
 \qquad
@@ -428,13 +428,13 @@ Coding exercises. The exact numbers below depend on random seeds, batch sizes, a
 
 *{prf:ref}`ex-ch7-6`.* The expected qualitative result is that the strong-form $\tanh$ PINN is the natural baseline for Black--Scholes, because $V_{SS}$ is well-defined by automatic differentiation. A strong-form ReLU network is ill-suited because $V_{SS}=0$ almost everywhere and undefined at kinks. In a weak formulation, integration by parts moves the second derivative off the network and onto the test function, so a ReLU network can be made mathematically admissible. Any empirical comparison should report held-out pricing errors and residual diagnostics from the implemented notebook rather than quoting architecture-independent iteration counts.
 
-##### {prf:ref}`ex-ch7-7` (statement: p. ): Operator learning vs. PINN.
+##### {prf:ref}`ex-ch7-7`: Operator learning vs. PINN.
 
 Eleven independent PINN runs each cost $C_\mathrm{PINN}$ wall-clock seconds, total $11\,C_\mathrm{PINN}$. A single operator-learning or parametric-PINN run trained on $11$ values of $K$ (or a continuous range, sampled in mini-batches) costs $C_\mathrm{op}$. Amortized training wins when $11\,C_\mathrm{PINN} > C_\mathrm{op}$, i.e., $C_\mathrm{op}/C_\mathrm{PINN} < 11$. The crossover scales linearly in the number of distinct $K$ values: with $N$ strikes, operator learning wins whenever $C_\mathrm{op}/C_\mathrm{PINN}<N$. This is the cost-amortization argument that motivates DeepONet-style operator learning {cite:p}`lu2021learning`.
 
 (sol-ch8)=
 ## Chapter {ref}`ch-ct_theory`: Heterogeneous Agent Models in Continuous Time
-##### {prf:ref}`ex-ch8-1` (statement: p. ): Itô on GBM.
+##### {prf:ref}`ex-ch8-1`: Itô on GBM.
 
 Geometric Brownian motion satisfies $dX_t = \mu X_t\,dt + \sigma X_t\,dB_t$. Apply Itô's lemma to $f(x) = \ln x$ with $f'(x) = 1/x$, $f''(x) = -1/x^2$: $$d(\ln X_t) \;=\; f'(X_t)\,dX_t + \tfrac{1}{2} f''(X_t)\,(dX_t)^2
    \;=\; \frac{1}{X_t}\bigl(\mu X_t\,dt + \sigma X_t\,dB_t\bigr) + \tfrac{1}{2}\!\left(-\frac{1}{X_t^2}\right)\sigma^2 X_t^2\,dt.$$ Simplifying: $$d(\ln X_t) \;=\; \bigl(\mu - \tfrac{1}{2}\sigma^2\bigr)\,dt + \sigma\,dB_t.$$ Integrating from $0$ to $t$: $$\ln X_t - \ln X_0 \;=\; (\mu - \tfrac{1}{2}\sigma^2)\,t + \sigma B_t,
@@ -443,7 +443,7 @@ Geometric Brownian motion satisfies $dX_t = \mu X_t\,dt + \sigma X_t\,dB_t$. App
 
 *Volatility drag.* Taking expectations: $\mathbb{E}[X_t] = X_0\,e^{\mu t}$, but $\mathbb{E}[\ln X_t] = \ln X_0 + (\mu - \tfrac{1}{2}\sigma^2)\,t$. The expected log return $\mu - \sigma^2/2$ is strictly less than the log of the expected return, $\mu$, by the variance correction term. This is the volatility drag. Two illustrative regimes: with zero arithmetic drift ($\mu = 0$), expected log growth is $-\sigma^2/2$, strictly negative; with drift exactly equal to the Itô correction ($\mu = \sigma^2/2$), expected log growth is zero (the drift just offsets the drag). In financial terms, volatility eats into geometric returns; this is why an asset with $20\%$ expected return and $40\%$ volatility delivers a long-run geometric mean of only $\mu - \sigma^2/2 = 12\%$.
 
-##### {prf:ref}`ex-ch8-2` (statement: p. ): KFE for an OU process.
+##### {prf:ref}`ex-ch8-2`: KFE for an OU process.
 
 The OU process $dX_t = \eta(\bar X - X_t)\,dt + \sigma\,dB_t$ has drift $\mu(x) = \eta(\bar X - x)$ and diffusion coefficient $\sigma$. The KFE in conservation form is $$\partial_t g(x,t) \;=\; -\partial_x\bigl[\mu(x)\,g(x,t)\bigr] + \tfrac{\sigma^2}{2}\,\partial_{xx} g(x,t)
    \;=\; \partial_x\bigl[\eta(x - \bar X)\,g\bigr] + \tfrac{\sigma^2}{2}\,\partial_{xx} g.$$ Setting $\partial_t g = 0$ for the stationary density $g^\star(x)$: $$\eta\,\partial_x\bigl[(x - \bar X)\,g^\star\bigr] + \tfrac{\sigma^2}{2}\,g^{\star\prime\prime} \;=\; 0.$$ Integrate once in $x$, with the constant of integration set to zero by the no-flux boundary condition at $\pm\infty$: $$\eta\,(x - \bar X)\,g^\star + \tfrac{\sigma^2}{2}\,g^{\star\prime} \;=\; 0
@@ -451,7 +451,7 @@ The OU process $dX_t = \eta(\bar X - X_t)\,dt + \sigma\,dB_t$ has drift $\mu(x) 
    \frac{g^{\star\prime}(x)}{g^\star(x)} \;=\; -\frac{2\eta}{\sigma^2}\,(x - \bar X).$$ This is a linear ODE for $\ln g^\star$; integrating gives $\ln g^\star = -\eta(x-\bar X)^2/\sigma^2 + \mathrm{const}$, i.e. $$g^\star(x) \;\propto\; \exp\!\bigl[-\eta(x - \bar X)^2/\sigma^2\bigr].$$ This is a Gaussian density with mean $\bar X$ and variance $\sigma^2/(2\eta)$, normalised by $\int g^\star\,dx = 1$: $$g^\star(x) \;=\; \sqrt{\frac{\eta}{\pi\sigma^2}}\,\exp\!\left[-\frac{\eta\,(x - \bar X)^2}{\sigma^2}\right]
    \;=\; \mathcal{N}\!\bigl(\bar X,\, \sigma^2/(2\eta)\bigr).$$ The OU's stationary distribution is Gaussian with mean equal to the mean-reversion target, variance equal to the diffusion-to-mean-reversion ratio $\sigma^2 / (2\eta)$: faster mean reversion (larger $\eta$) shrinks the dispersion; larger diffusion grows it.
 
-##### {prf:ref}`ex-ch8-3` (statement: p. ): Functional derivative.
+##### {prf:ref}`ex-ch8-3`: Functional derivative.
 
 For the master-equation toy specification $V(a, g) = \int u(c(a, y))\,g(y)\,dy$ where $c(a,y)$ is fixed (does not depend on $g$), the functional derivative $\delta V / \delta g$ measures the linear response of $V$ to a perturbation in $g$.
 
@@ -460,11 +460,11 @@ In the ambient vector space of signed measures, a point perturbation gives $\del
 
 *Interpretation.* The functional derivative at a point $y_0$ is the value contribution of an infinitesimal mass placed at $y_0$. In the toy spec where $V$ is just a population average of utilities, the contribution is the per-agent utility $u(c(a, y_0))$ at that point. In the real master equation, $c(a, y)$ would itself depend on $g$ (because prices depend on $g$), and the functional derivative would pick up additional indirect terms via $\partial c/\partial g$; this is what makes the master equation a genuinely infinite-dimensional PDE rather than a parametric family of finite PDEs.
 
-##### {prf:ref}`ex-ch8-4` (statement: p. ): HJB residual.
+##### {prf:ref}`ex-ch8-4`: HJB residual.
 
 Coding exercise. The right answer is the out-of-sample residual table produced by your run of `lecture_13_08_Aiyagari_Continuous_Time_FD_and_PINN_PyTorch.ipynb`. Report the training budget, collocation batch, random seed, and test grid. The residual should decrease when the collocation budget and network capacity are increased, but the scaling is empirical rather than a universal $N^{-p}$ law because it mixes approximation, optimization, and sampling error.
 
-##### {prf:ref}`ex-ch8-5` (statement: p. ): Closed Aiyagari system.
+##### {prf:ref}`ex-ch8-5`: Closed Aiyagari system.
 
 Combining the four ingredients:
 
@@ -494,7 +494,7 @@ Coding exercises. Expected diagnostics:
 
 (sol-ch9)=
 ## Chapter {ref}`ch-gp`: Deep Surrogate Models and Gaussian Processes
-##### {prf:ref}`ex-ch9-1` (statement: p. ): Posterior on three points.
+##### {prf:ref}`ex-ch9-1`: Posterior on three points.
 
 The RBF kernel with length scale $\ell = 1$ and signal variance $\sigma_f^2 = 1$ is $k(x, x') = \exp(-(x-x')^2/2)$. With training points $X = (0, 1, 2)$ and targets $y = (0, 0.8, 0.3)$, the kernel matrix is $$K = \begin{pmatrix} 1 & e^{-1/2} & e^{-2} \\ e^{-1/2} & 1 & e^{-1/2} \\ e^{-2} & e^{-1/2} & 1\end{pmatrix}
    \approx \begin{pmatrix} 1 & 0.6065 & 0.1353 \\ 0.6065 & 1 & 0.6065 \\ 0.1353 & 0.6065 & 1\end{pmatrix}.$$ Adding observation noise $\sigma_y^2 I = 0.01\,I$ to the diagonal of $K$ and solving $(K + \sigma_y^2 I)\bm v = \bm y$ with $\bm y = (0, 0.8, 0.3)^\top$ by Gaussian elimination gives $$(K + \sigma_y^2 I)^{-1} \bm y \;\approx\; (-0.964,\; 1.744,\; -0.621)^\top.$$ At $x^\star = 1.5$, $$k_\star
@@ -504,31 +504,31 @@ The RBF kernel with length scale $\ell = 1$ and signal variance $\sigma_f^2 = 1$
 
 Posterior mean: $$\bar{\mu}(x^\star) = k_\star^\top (K + \sigma_y^2 I)^{-1} \bm y \approx 0.3247\cdot(-0.964) + 0.8825\cdot 1.744 + 0.8825\cdot(-0.621) \approx 0.678.$$ For the variance, solve $(K + \sigma_y^2 I)\bm w = k_\star$, giving $\bm w \approx (-0.142,\; 0.662,\; 0.495)^\top$, hence $$\bar{\sigma}^2(x^\star) = k(x^\star, x^\star) - k_\star^\top \bm w \;\approx\; 1 - 0.975 \;\approx\; 0.025.$$ The posterior is $\mathcal{N}(0.678, 0.025)$, with standard deviation $\approx 0.158$. Notice the posterior mean "smooths" the two flanking observations $y = 0.8$ and $y = 0.3$ rather than being pulled to either; the $0.158$ standard deviation reflects partial information at a halfway point between two data points.
 
-##### {prf:ref}`ex-ch9-2` (statement: p. ): Marginal likelihood Occam.
+##### {prf:ref}`ex-ch9-2`: Marginal likelihood Occam.
 
 The log marginal likelihood is $$\log p(y | X, \ell) = -\tfrac{1}{2} y^\top K_\ell^{-1} y \;-\; \tfrac{1}{2} \log|K_\ell| \;-\; \tfrac{n}{2}\log(2\pi),$$ where $K_\ell = K_\ell(\ell) + \sigma_y^2 I$ is the kernel matrix at length scale $\ell$. The first term penalizes *misfit* (data that don't lie in the GP's predicted manifold get a high $y^\top K_\ell^{-1} y$); the second term penalizes *model complexity* ($\log|K_\ell|$ is large when the kernel can fit anything, small when it is rigid). This is the Bayesian Occam's razor: small $\ell$ gives a flexible model that fits any training data perfectly (small misfit) but accepts a large complexity penalty; large $\ell$ enforces smoothness (large misfit if the data are not smooth) but enjoys a small complexity penalty. The optimum balances the two.
 
 For three data points $y = (0, 0.8, 0.3)$ at $x = (0, 1, 2)$, plotting $\log p(y | X, \ell)$ against $\ell \in [0.1, 5]$ typically shows an interior maximum near the data's natural variation scale. At $\ell = 0.1$, the kernel is very local: each point is nearly uncorrelated with its neighbors, so the data fit is easy but the flexible prior receives a complexity penalty. At $\ell = 5$, the kernel forces all three function values to be nearly equal, which fits the data poorly. The peak is the point where these two forces balance.
 
-##### {prf:ref}`ex-ch9-3` (statement: p. ): Active subspace by hand.
+##### {prf:ref}`ex-ch9-3`: Active subspace by hand.
 
 For $f(\bm x) = (x_1 + x_2 + x_3)^2 + 0.01(x_1 - x_2)^2$ on $[-1,1]^3$, the gradient is $$\nabla f(\bm x) = 2(x_1 + x_2 + x_3)\,(1, 1, 1)^\top + 0.02(x_1 - x_2)\,(1, -1, 0)^\top.$$ The dominant term is along $(1,1,1)$ (with weight roughly $2(x_1+x_2+x_3) \cdot \sqrt{3}$), and the perturbation along $(1,-1,0)$ is two orders of magnitude smaller.
 
 Compute $\hat C = \mathbb{E}[\nabla f \nabla f^\top]$ with $x \sim \mathcal{U}[-1,1]^3$ i.i.d., so $\mathbb{E}[x_i^2] = 1/3$. Let $s = x_1 + x_2 + x_3$; then $\mathbb{E}[s^2] = 1$, $\mathbb{E}[s(x_1 - x_2)] = \mathbb{E}[x_1^2 - x_2^2] = 0$, and $\mathbb{E}[(x_1 - x_2)^2] = 2/3$. Substituting, $$\hat C \;\approx\; 4\,\mathbf{1}\mathbf{1}^\top \;+\; \mathcal{O}(10^{-4}),$$ where $\mathbf{1} = (1,1,1)^\top$ and the $\mathcal{O}(10^{-4})$ correction comes from the $0.01\,(x_1 - x_2)$ perturbation. Since $\mathbf{1}\mathbf{1}^\top$ has eigenvalues $\{3, 0, 0\}$ (eigenvector $\mathbf{1}/\sqrt 3$ for the nonzero one), the leading eigenvalue of $\hat C$ is $\lambda_1 \approx 4 \cdot 3 = 12$, with eigenvector $(1,1,1)/\sqrt{3}$, the "aggregate direction." The next eigenvalue is $\sim 10^{-4}$, four orders of magnitude smaller. The active subspace of dimension $1$ already captures essentially all of the function's variability.
 
-##### {prf:ref}`ex-ch9-4` (statement: p. ): Deep vs. linear active subspace.
+##### {prf:ref}`ex-ch9-4`: Deep vs. linear active subspace.
 
 Coding exercise. The linear-AS diagnostic should show two nonzero eigenvalues for the radial-ridge target, with the remaining eigenvalues close to numerical zero. Thus a linear active subspace needs $d_{\mathrm{lin}}=2$ to represent the two linear features $w_1^\top\xi$ and $w_2^\top\xi$. Deep AS can reach its validation-MSE elbow already at $d_{\mathrm{nl}}=1$ because the encoder can learn a scalar nonlinear aggregate such as $(w_1\cdot\xi)^2 + (w_2\cdot\xi)^2$. Report the held-out MSE curve and eigenvalues from the run rather than quoting universal numbers, since optimization noise and train/validation splits move the exact diagnostics.
 
-##### {prf:ref}`ex-ch9-5` (statement: p. ): BAL on a 2D function.
+##### {prf:ref}`ex-ch9-5`: BAL on a 2D function.
 
 Coding exercise. Pure-variance acquisition selects points purely by where the GP is most uncertain, ignoring the predicted mean. The resulting design is usually more uniform across the input domain because the GP variance is high wherever data is sparse, regardless of function value. Maximizing pure $\log\sigma^2(\x)$ gives exactly the same design as maximizing pure $\sigma^2(\x)$, since the logarithm is monotone. Differences arise only once the acquisition is mixed with a mean term, for example $w_{\mathrm{obj}}\mu(\x)+\tfrac{w_{\mathrm{var}}}{2}\log\sigma^2(\x)$: then the design tilts toward regions that are both uncertain and high-valued under the current surrogate. For global surrogate construction, pure variance is the cleaner baseline; for optimization-like goals, the mixed score may be useful.
 
-##### {prf:ref}`ex-ch9-6` (statement: p. ): Sobol sensitivity with a GP surrogate.
+##### {prf:ref}`ex-ch9-6`: Sobol sensitivity with a GP surrogate.
 
 Coding exercise. Report the actual errors from the run rather than treating fixed percentages as universal reference outputs. The expected pattern is improvement as $N$ increases: first-order Sobol errors should fall from small to larger sample budgets, while total-effect indices may converge more slowly because they include interaction terms. The cost ratio is the important lesson: once the surrogate is trained, very large Sobol designs can be evaluated at negligible marginal cost relative to repeated true-model solves, which is why surrogate-based sensitivity analysis is standard for expensive simulators such as climate IAMs.
 
-##### {prf:ref}`ex-ch9-7` (statement: p. ): Prior-driven RBF-GP extrapolation outside the training domain.
+##### {prf:ref}`ex-ch9-7`: Prior-driven RBF-GP extrapolation outside the training domain.
 
 *(i)* Coding: on the training interval $[0,1]$ the GP closely tracks $f(x) = \sin(2\pi x)\,e^{-x}$ with credible band of width $\sim 0.05$.
 
@@ -542,7 +542,7 @@ Mitigations: use a Matérn kernel with $\nu = 1/2$ or $\nu = 3/2$ (heavier-taile
 
 (sol-ch10)=
 ## Chapter {ref}`ch-estimation`: Structural Estimation via SMM
-##### {prf:ref}`ex-ch10-1` (statement: p. ): Identification.
+##### {prf:ref}`ex-ch10-1`: Identification.
 
 Let $m(\varrho)=\mathbb{E}_\varrho[h(C,I,Y)]$ be the simulated moment vector implied by the persistence parameter. At the truth $\varrho^\star$, local identification is captured by the Jacobian $$M(\varrho^\star)
    =
@@ -550,7 +550,7 @@ Let $m(\varrho)=\mathbb{E}_\varrho[h(C,I,Y)]$ be the simulated moment vector imp
 
 *Brock--Mirman example.* The output autocorrelation $\mathrm{Corr}(\log Y_t,\log Y_{t-1})$ is typically the strongest local moment for $\varrho$, because it is a direct echo of the productivity AR(1). The autocorrelation of consumption growth is also informative, but more filtered through equilibrium dynamics. The mean savings rate is nearly flat in the scalar $\varrho$ exercise and is therefore weakly identifying for persistence. The exact ranking should be reported from the finite-difference Jacobian in the notebook, not from a hard-coded number.
 
-##### {prf:ref}`ex-ch10-2` (statement: p. ): Optimal weighting.
+##### {prf:ref}`ex-ch10-2`: Optimal weighting.
 
 The SMM objective is $Q_T(\theta) = \hat g(\theta)^\top W \hat g(\theta)$, where $\hat g(\theta) = m(\theta) - \hat m^\mathrm{data}$ is the moment-error vector. Under standard regularity (Hansen 1982), the asymptotic variance of $\hat\theta_\mathrm{SMM}$ is $$\mathrm{Avar}(\hat\theta)
    =
@@ -562,11 +562,11 @@ To minimize $\mathrm{Avar}(\hat\theta)$ over choices of $W$, set up the Lagrangi
 
 *Why identity weighting in the first stage?* The optimal weight depends on the unknown covariance at the truth. The standard two-stage strategy is: (1) estimate with $W=I$ to obtain a consistent but inefficient $\hat\theta^{(1)}$; (2) estimate $\hat\Omega$ at or near $\hat\theta^{(1)}$; (3) re-estimate with $W=\hat\Omega^{-1}$.
 
-##### {prf:ref}`ex-ch10-3` (statement: p. ): Common random numbers.
+##### {prf:ref}`ex-ch10-3`: Common random numbers.
 
 Coding exercise. Without CRN, the objective $Q_T(\varrho)$ changes both because $\varrho$ changes and because each candidate uses a new shock path. This contaminates the profile with Monte Carlo noise. With CRN, every candidate is evaluated on the same shock path, so differences in $Q_T(\varrho)$ isolate the structural effect of persistence. Quantify the gain by repeating the entire candidate grid across Monte Carlo panels and comparing the cross-panel variance of $Q_T(\varrho)$ at each grid point.
 
-##### {prf:ref}`ex-ch10-4` (statement: p. ): SMM vs. SBI.
+##### {prf:ref}`ex-ch10-4`: SMM vs. SBI.
 
 SMM solves an outer optimization at deployment: given new data, run a $K$-step optimization over $\theta$, where each step requires (a) a model simulation at the candidate $\theta$ and (b) moment computation. Total cost per inference: $K$ model evaluations.
 
@@ -574,7 +574,7 @@ SBI (e.g., neural posterior estimation) does the work upfront at training time: 
 
 SBI dominates when (i) the model is expensive but a single training run is amortized over many datasets to be analyzed (e.g., a central bank running daily updates); (ii) the model is non-likelihood (no closed-form likelihood, only simulator); (iii) the parameter dimension is moderate ($p \le 20$) so training data covers parameter space. SMM dominates when (i) the model is cheap (each evaluation a few ms), (ii) only one or a handful of inferences are needed, (iii) classical confidence intervals are required (SBI gives a Bayesian posterior, which differs).
 
-##### {prf:ref}`ex-ch10-5` (statement: p. ): $J$-statistic and overidentification.
+##### {prf:ref}`ex-ch10-5`: $J$-statistic and overidentification.
 
 Coding+analytical. In the joint notebook's over-identified specification, $q=4$ and $p=2$, so the degrees of freedom are $q-p=2$. Under correct specification and with $W=\Omega^{-1}$, the $J$-statistic at the optimum follows $$J
    =
@@ -584,11 +584,11 @@ Coding+analytical. In the joint notebook's over-identified specification, $q=4$ 
 
 Empirical distribution: under correct specification, the Monte Carlo distribution of $J(\hat\theta)$ should be centered near the corresponding $\chi^2_2$ benchmark once the weighting and simulation-noise treatment are consistent. Under a structural break, the model cannot match all four moments simultaneously, so the distribution should shift to the right and the rejection rate should rise above the nominal size. The size of that shift is an output of the experiment and should be reported from the run.
 
-##### {prf:ref}`ex-ch10-6` (statement: p. ): Bootstrap confidence intervals.
+##### {prf:ref}`ex-ch10-6`: Bootstrap confidence intervals.
 
 Coding exercise. The nonparametric bootstrap should respect time-series dependence; use a moving-block or stationary bootstrap rather than iid resampling of individual dates. The parametric bootstrap draws new shock paths under the estimated parameter vector and re-runs the estimator. Report the actual CI endpoints and coverage from the run. In small samples, bootstrap intervals may differ materially from sandwich intervals because the SMM criterion is nonlinear and the finite-sample distribution of $\hat\theta$ need not be close to Gaussian.
 
-##### {prf:ref}`ex-ch10-7` (statement: p. ): ML vs. SMM efficiency.
+##### {prf:ref}`ex-ch10-7`: ML vs. SMM efficiency.
 
 Coding exercise. If $\log z_t$ is observed and follows $$\log z_{t+1}=\varrho\log z_t+\sigma_z\varepsilon_{t+1},$$ then the Gaussian AR(1) likelihood gives a direct MLE for $\varrho$ (OLS of $\log z_{t+1}$ on $\log z_t$ when $\sigma_z$ is unrestricted). This MLE is efficient for the observed-shock likelihood. The SMM estimator based on a finite moment vector reaches the GMM efficiency bound for those moments, but it equals MLE efficiency only if the chosen moments span the score, which the three pedagogical moments generally do not.
 
@@ -596,11 +596,11 @@ Coding exercise. If $\log z_t$ is observed and follows $$\log z_{t+1}=\varrho\lo
 
 (sol-ch11)=
 ## Chapter {ref}`ch-climate`: Climate Economics and Deep Uncertainty Quantification
-##### {prf:ref}`ex-ch11-1` (statement: p. ): ECS sensitivity.
+##### {prf:ref}`ex-ch11-1`: ECS sensitivity.
 
 Coding exercise. Report the SCC at the central calibration and at each ECS value in the likely and very-likely ranges. The expected qualitative pattern is monotone and often convex in ECS: higher equilibrium climate sensitivity raises temperature damages and therefore the emissions shadow price. The quantitative range is calibration-dependent and should be reported from the notebook rather than fixed in the solution text. The interpretation should connect the dispersion to the climate-science finding of {cite:t}`sherwood2020assessment` that ECS uncertainty is a major driver of SCC uncertainty.
 
-##### {prf:ref}`ex-ch11-2` (statement: p. ): Sobol decomposition.
+##### {prf:ref}`ex-ch11-2`: Sobol decomposition.
 
 For $q(\theta_1, \theta_2, \theta_3) = \theta_1\theta_2 + \theta_3^2$ with $\theta_i \sim \mathcal{U}[0,1]$ i.i.d.:
 
@@ -631,31 +631,31 @@ Total-effect indices (one minus the share explained by all other variables): $S_
 
 A SALib estimate with $10^4$ samples typically matches these analytical values to two decimal places.
 
-##### {prf:ref}`ex-ch11-3` (statement: p. ): ACE benchmark.
+##### {prf:ref}`ex-ch11-3`: ACE benchmark.
 
 Coding exercise. Use ACE's closed-form optimal carbon tax as the analytic benchmark, then compute the DEQN-trained DICE SCC at the same calibration and report the percentage discrepancy. A small gap is expected only when units, discounting, damage curvature, and time discretization are aligned; any residual difference should be attributed explicitly to the DICE discretization, smoothing choices, and calibration differences rather than to a fixed percentage target.
 
-##### {prf:ref}`ex-ch11-4` (statement: p. ): Pareto-improving tax design.
+##### {prf:ref}`ex-ch11-4`: Pareto-improving tax design.
 
 Project-level coding exercise. The constrained search is over a low-dimensional parameter vector $\vartheta = (\vartheta_{\mathrm{tax}}, \omega)$, with the cohort welfare constraints $\tilde U_t(\vartheta) \ge U_t$ enforced via a penalty or barrier term in the outer optimizer. The Pareto frontier is typically tight: cohorts whose BAU welfare is already close to the unconstrained Ramsey-optimal welfare are easily satisfied, while cohorts that bear the bulk of the transition cost (often the youngest at the time of the reform) bind first; the welfare gap to the unconstrained problem grows with the share of constrained cohorts. Holding $\omega$ fixed at the BAU or declining benchmark $\bar\omega$ leaves measurable welfare on the table because endogenizing the transfer schedule provides an extra free instrument with which to relax the binding constraints. Numerical answers are calibration-dependent and should be reported from the notebook rather than benchmarked against fixed values; the qualitative interpretation is what matters for the policy discussion.
 
-##### {prf:ref}`ex-ch11-5` (statement: p. ): Carbon-cycle warm-up.
+##### {prf:ref}`ex-ch11-5`: Carbon-cycle warm-up.
 
 Coding exercise driven by notebook `lecture_16_01_Climate_Exercise.ipynb`. Part (a) avoided-warming and avoided-damages numbers at 2100 under the 50% mitigation rule are notebook outputs and depend on calibration, so they should be reported from the run rather than fixed in the solution text. Part (b) the longest-timescale reservoir is identified by the smallest non-zero eigenvalue of the carbon-cycle transition matrix; for the CDICE three-box calibration this is the lower-ocean compartment, with a multi-century characteristic timescale. Part (c) a quadratic damage function $D(T) = \pi_2 T^2$ has bounded curvature in $T$ and therefore underweights tail risk: marginal damage grows only linearly, so very high realizations of $T$ are penalized far less than under super-quadratic damages or an explicit tipping-hazard term, and tail-risk assessment requires one of those richer specifications (compare {prf:ref}`ex-ch11-8`).
 
-##### {prf:ref}`ex-ch11-6` (statement: p. ): Deterministic CDICE-DEQN reproduction.
+##### {prf:ref}`ex-ch11-6`: Deterministic CDICE-DEQN reproduction.
 
 Coding exercise driven by notebook `lecture_16_02_DICE_DEQN_Library_Port.ipynb`. The verification target is the set $\{T^{\mathrm{AT}}(2100),\ M^{\mathrm{AT}}(2100),\ \mu(2100),\ \mathrm{SCC}(2015),\ \mathrm{SCC}(2100),\ \mathrm{SCC}(2300)\}$, each compared against the reference solution at the tolerances stated in the notebook's verification gate. Reference numbers depend on seed, hardware, optimizer schedule, and trajectory sampling, so the solution should anchor on the verification gate rather than on fixed numbers. Typical convergence problems trace back to scaling differences across the eight residuals or to insufficient trajectory coverage near the carbon-stock saturation regime; the residual-balancing methods discussed in Chapter {ref}`ch-nas` are the first line of defense.
 
-##### {prf:ref}`ex-ch11-7` (statement: p. ): Stochastic SCC fan chart.
+##### {prf:ref}`ex-ch11-7`: Stochastic SCC fan chart.
 
 Coding exercise driven by notebook `lecture_16_03_Stochastic_DICE_DEQN.ipynb`. As the AR(1) productivity volatility $\sigma_z$ rises, the right tail of the SCC distribution at 2100 widens disproportionately, because higher productivity raises emissions which feed convexly into damages. Report the quantiles $q_{10}, q_{50}, q_{90}$ of the SCC fan chart at each $\sigma_z$ rather than the mean alone, since the mean obscures the asymmetry. The qualitative finding aligns with {cite:t}`caiSocialCostCarbon2019`, that productivity and consumption-growth shocks shift the SCC distribution materially and not just its location, supporting the use of distribution-aware reporting in policy work.
 
-##### {prf:ref}`ex-ch11-8` (statement: p. ): Tipping-point regime-switching damages.
+##### {prf:ref}`ex-ch11-8`: Tipping-point regime-switching damages.
 
 Coding exercise. Report the unconditional tipping probability by 2100, the SCC at $t=0$, and the optimal abatement path under the regime-switching specification and under the smooth-damage baseline. The expected qualitative pattern is that adding an irreversible tipping hazard raises the SCC and brings abatement forward, especially when $T_\mathrm{thresh}$ is low. The factor by which the SCC rises is an output of the hazard calibration and retrained policy. The policy implication should be framed as a precautionary motive under threshold uncertainty, not as a universal numerical multiplier.
 
-##### {prf:ref}`ex-ch11-9` (statement: p. ): Real options value of waiting.
+##### {prf:ref}`ex-ch11-9`: Real options value of waiting.
 
 *(i) Closed forms.* Under the act-now strategy, the planner chooses $\mu_0$ to minimize $\theta\mu_0^2 + \alpha\,\mathbb{E}[\mathrm{ECS}]\cdot(1 - \mu_0)$. With $\mathbb{E}[\mathrm{ECS}] = (\mathrm{ECS}_L + \mathrm{ECS}_H)/2 \equiv \overline{\mathrm{ECS}}$, the FOC gives $\mu_0^\star = \alpha \overline{\mathrm{ECS}}/(2\theta)$. Plugging back, expected cost is $$C_\mathrm{now} \;=\; \alpha \overline{\mathrm{ECS}} - \frac{(\alpha \overline{\mathrm{ECS}})^2}{4\theta}.$$
 
@@ -692,7 +692,7 @@ The threshold occurs at $$\eta^\star
 
 (sol-ch12)=
 ## Chapter {ref}`ch-outlook`: Synthesis and Outlook
-##### {prf:ref}`ex-ch12-1` (statement: p. ): Method-choice scenario.
+##### {prf:ref}`ex-ch12-1`: Method-choice scenario.
 
 Sketch:
 
@@ -704,19 +704,19 @@ Sketch:
 
 *(d) Climate-IAM where SCC uncertainty is the deliverable.* Use the **full pipeline**: DEQN to solve the deterministic IAM, GP surrogate over deep-uncertain parameters (ECS, damage convexity, tipping thresholds), Sobol/Shapley sensitivity decomposition for attribution, and BAL for sample-efficient uncertainty quantification (Chapters {ref}`ch-climate`, {ref}`ch-gp`). This combines the IAM uncertainty-quantification workflow of {cite:t}`friedlDeep2023` with the surrogate-based policy-search logic in {cite:t}`kubler2025using`.
 
-##### {prf:ref}`ex-ch12-2` (statement: p. ): When NOT to use deep learning.
+##### {prf:ref}`ex-ch12-2`: When NOT to use deep learning.
 
 Open-ended. Sketch of one regime: *bit-exact reproducibility for regulatory audit*. GPU non-determinism in atomic accumulators (described in Appendix E) means that a deep-learning solver typically cannot reproduce the same numbers across hardware platforms; for regulatory work where auditors must replay every step bitwise, a deterministic finite-difference solver on a fixed grid is preferable. Even when deterministic flags are set, BLAS implementations differ across CUDA versions. Classical fixed-grid methods are easier to make bit-reproducible because the operation order can be pinned and the solver path is usually far less sensitive to random initialization and stochastic mini-batches.
 
-##### {prf:ref}`ex-ch12-3` (statement: p. ): Reproducibility audit.
+##### {prf:ref}`ex-ch12-3`: Reproducibility audit.
 
 Coding exercise. Expected behavior: re-running notebook `lecture_03_02_Brock_Mirman_Uncertainty_DEQN.ipynb` on the same machine with the same seeds should reproduce the reported diagnostics within the stated tolerance. Bitwise equality of trained network parameters should be expected only when deterministic framework settings, hardware, BLAS/CUDA versions, and floating-point order of operations are all pinned. Re-running on a different GPU, or with deterministic flags off, can produce small deviations in the last few printed digits of the savings-rate diagnostics while remaining well within the residual tolerance of the training.
 
-##### {prf:ref}`ex-ch12-4` (statement: p. ): Open-ended.
+##### {prf:ref}`ex-ch12-4`: Open-ended.
 
 Open-ended; expected output is a 1--2 page research sketch. A representative answer combines DEQN (for solving the model) with GP surrogates (for parameter estimation): e.g., a 6-month project that estimates a heterogeneous-agent NK model with deep-learning policy functions, then uses a deep-kernel GP surrogate to do Bayesian posterior inference on the structural parameters. This integrates Chapters {ref}`ch-young`, {ref}`ch-gp`, and {ref}`ch-estimation`.
 
-##### {prf:ref}`ex-ch12-5` (statement: p. ): Hybrid pipeline DEQN $+$ GP $+$ SMM.
+##### {prf:ref}`ex-ch12-5`: Hybrid pipeline DEQN $+$ GP $+$ SMM.
 
 Coding exercise. Illustrative outputs to benchmark against, not fixed targets:
 
@@ -732,7 +732,7 @@ Coding exercise. Illustrative outputs to benchmark against, not fixed targets:
 
 The expected qualitative result is that the surrogate-based optimization is much cheaper per objective evaluation after the one-time DEQN, simulation-grid, and GP-fitting costs have been paid. The actual speedup and estimation errors are outputs of the run and should be reported rather than assumed.
 
-##### {prf:ref}`ex-ch12-6` (statement: p. ): DeepONet for a parameterized HJB.
+##### {prf:ref}`ex-ch12-6`: DeepONet for a parameterized HJB.
 
 *(i) Architecture.* Branch net $\bm b(\gamma): \mathbb{R} \to \mathbb{R}^p$ encodes the parameter $\gamma$ into a $p$-dimensional latent representation; trunk net $\bm t(a): \mathbb{R} \to \mathbb{R}^p$ encodes the query point $a$ into the same latent dimension. Predicted value: $$\widehat{V}(a; \gamma) \;=\; \langle \bm b(\gamma), \bm t(a)\rangle \;+\; b_0,$$ where $b_0$ is a learnable scalar bias. Both nets are typically MLPs with $2$--$4$ layers and width $50$--$200$. The architecture is non-trivial because it imposes the bilinear separable structure $V(a; \gamma) = \sum_{k=1}^p b_k(\gamma) t_k(a)$, which is the universal approximation form for nonlinear operators.
 

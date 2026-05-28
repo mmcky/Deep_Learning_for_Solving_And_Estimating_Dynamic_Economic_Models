@@ -376,14 +376,14 @@ The design choice of {ref}`sec-nsdeqn_setup` translates into a single training a
 ```{prf:definition}
 :label: alg-nsdeqn
 
-- **Input:** \textcolor{uzhgreydark!70}{Network $\mathcal{N}_\rho$, learning rate $\eta$, episodes $E$, training steps $T_{\mathrm{train}}$;} \\ \hspace{1.05em}**[NEW]** calibrated initial state $\bm x_0$ (e.g., the 2015 state) and a planning horizon $T_{\max}$
+- **Input:** Network $\mathcal{N}_\rho$, learning rate $\eta$, episodes $E$, training steps $T_{\mathrm{train}}$; \\ **[NEW]** calibrated initial state $\bm x_0$ (e.g., the 2015 state) and a planning horizon $T_{\max}$
 - for episode $e = 1, \ldots, E$:
   - **[CHANGED] Simulate $K$ forward trajectories from $\bm x_0$ over $[0, T_{\max}]$ under the current policy, and collect the time-stamped states $(\tau_t, \bm x_t)$ into $\mathcal D$**
   - for gradient step $t = 1, \ldots, T_{\mathrm{train}}$:
-    - \textcolor{uzhgreydark!70}{Draw mini-batch $\mathcal B \subset \mathcal D$}
-    - \textcolor{uzhgreydark!70}{Compute loss:~$\ell_\rho = \frac{1}{|\mathcal B|}\sum_{\bm x_i \in \mathcal B}\|G(\bm x_i, \mathcal N_\rho(\bm x_i))\|^2$}
-    - \textcolor{uzhgreydark!70}{Update:~$\rho \leftarrow \rho - \eta \cdot \nabla_\rho \ell_\rho$}
-- \textcolor{uzhgreydark!70}{**Output:** Trained network $\mathcal{N}_{\rho^\star}$ approximating the policy function}
+    - Draw mini-batch $\mathcal B \subset \mathcal D$
+    - Compute loss:~$\ell_\rho = \frac{1}{|\mathcal B|}\sum_{\bm x_i \in \mathcal B}\|G(\bm x_i, \mathcal N_\rho(\bm x_i))\|^2$
+    - Update:~$\rho \leftarrow \rho - \eta \cdot \nabla_\rho \ell_\rho$
+- **Output:** Trained network $\mathcal{N}_{\rho^\star}$ approximating the policy function
 ```
 
 
