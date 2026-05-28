@@ -145,27 +145,6 @@ preprocess:
     # ("0.027 + 0.003 + 0.018 + 0.002 = 0.05 = m ✓").
     - { from: '\\checkmark(?![A-Za-z@])',
         to:   '✓' }
-    # `\,^\circ` (thin-space + degree superscript) breaks KaTeX
-    # ("Got group of unknown type: 'internal'"). Inserting an empty group
-    # fixes it. History of the upstream coverage:
-    #   - #45 (0c41795): generic \,^X → \,{}^X rewrite in
-    #     fix_spacing_superscript, run early. Missed table cells because
-    #     marker preprocessors had base64-encoded the table content (#85).
-    #   - #85 (3d0d797): moved the rewrite AFTER marker decoders. New
-    #     regression — the stash regex (_PLAIN_FENCED_CODE_RE) treats
-    #     the closing ``` of a {figure}/{prf:remark}/etc. content
-    #     directive as a phantom opener of a new plain fence, swallowing
-    #     downstream prose + table cells until it finds the next bare
-    #     ```. 3 sites in ch11_climate land in this phantom region
-    #     (lines 247 prose + 314, 323 table cells) and stay unfixed.
-    #
-    # Running our rewrite at PREPROCESS on the source .tex (before pandoc,
-    # before any markdown fence exists) is robust against both classes of
-    # upstream regression. Idempotent with whatever the upstream transform
-    # does (no `\,^` left for it to find). Remove when upstream resolves
-    # the orphan-closing-fence pairing bug.
-    - { from: '\\,\^(\{?\\circ\}?)',
-        to:   '\\,{}^\1' }
 
 # --- Post-pandoc Markdown rewrites ------------------------------------------
 

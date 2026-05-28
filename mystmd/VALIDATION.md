@@ -10,6 +10,8 @@
 **Round 7 update:** 2026-05-27 — re-tally after fast-forward from `0e88cab` → `9649b0b` (six new commits, including #51/#55/#60 table unification, #49 nested-subfigure fast path, #50/#22 dropped-text-macro warner, #54 longtable extraction, and #63 `regen: false`). Headline wins: **all 41 captioned tables now render as `{table}` directives** (R6: 4 list-tables, 37 anchors-only) — issue #34 fully closed end-to-end. Headline gap: a methodology defect was discovered — **`validate.py` has been silently skipping every chapter in this book since R1**, because it looks for split-source `.tex` files in `lecture_script/` (which only ships the monolithic file; split outputs live in `mystmd/tmp/`). Building the html surfaces what `validate.py` missed: 96 unresolved `{prf:ref}\`ex-chN-M\`` exercise refs (labels inside `\item\label{ex:ch1:1}` are dropped by pandoc), 15 per-row `\label{}` collisions on `\begin{align}` blocks that MyST collapses to one anchor, and the 3rd algorithm renders as `{prf:definition}` because its source wrapper is `\begin{definitionbox}[Algorithm: …]` rather than `\begin{algorithm}`. None of these were introduced by R7 upstream — they are pre-existing, only newly visible. Five issues filed: upstream #68 (validate.py no-op), #69 (exercise labels), #70 (align collisions), #71 (lstlisting caption escapes); downstream book #13 (source fixes) + #14 (missing assets).
 **Round 8 update:** 2026-05-28 — re-tally after fast-forward `9649b0b` → `94baac5` (seven new commits). **All four R7-filed upstream issues landed**: #68 (`291497c` — validate.py tmp_dir fallback, now actually runs), #69 (`cd7a0f9` — `\item\label{ex:…}` → `{exercise}` directive), #70 (`4d02d3f` — per-row align split into separate `$$` blocks), #71 (`fcba7b0` — lstlisting caption escape decode). Result, measured from the **now-working** `validate.py` and the build log: **0 unresolved cross-references** (was 106), **0 empty cross-refs** (was 129), **0 label collisions** (was 15), **0 KaTeX errors** (was 10). The 96 exercise back-refs in appF all resolve — exercises now render as 87 `{exercise}` directives. The last KaTeX failures were the 8 `\,^\circ` degree-symbol instances (upstream #45, still open / "possibly KaTeX upstream"); cleared with a local `preprocess.rewrites` stopgap (`\,^\circ` → `\,{}^\circ`). Remaining non-cosmetic items are all source-side and already tracked downstream: `alg-nsdeqn` still renders as Definition (book #13 — upstream #79's `prf:algorithm` generalisation doesn't catch it because our config maps `definitionbox`→`prf:definition`), 2 citation false-positives (`unil` mailto + `@tf.function`, book #13), 2 missing `restud_fig*.pdf` assets (book #14). **The MyST build is now structurally clean.**
 **Round 9 update:** 2026-05-28 — re-tally after fast-forward `94baac5` → `0c41795` (two new commits). #45 (degree-symbol) landed upstream (`0c41795`, generic `fix_spacing_superscript` transform). #52 (nested-list-table numref drift) landed too (`ef0acf4` — touched 1 `{list-table}` in ch06_ha_youngs, adding `:enumerated: false` to suppress drift; the other 2 `{list-table}` directives unchanged). Initially removed the local `\,^\circ` stopgap on the assumption #45 covered it; build re-introduced **2 KaTeX errors in ch11 table cells** — the upstream fix stashes ALL backtick-fenced regions (including `{table}` directives, which are 4-backtick fences) before applying the rewrite, so math inside table cells is skipped. Filed regression as [QE#85](https://github.com/QuantEcon/claude-latex-to-myst/issues/85) with a proposed fix (distinguish directive fences from plain code fences) and **restored the local stopgap** in `mystmd/config.yaml`. Because the stopgap runs at *preprocess* on the source `.tex` (before pandoc, before any markdown fence exists), it catches all 8 instances regardless of where they end up. Build state matches R8: **0 unresolved cross-refs, 0 KaTeX errors, 0 label collisions.**
+**Round 11 update:** 2026-05-28 — fast-forward `0c41795` → `43565a4` ([QE#88](https://github.com/QuantEcon/claude-latex-to-myst/pull/88) merged, closing [QE#87](https://github.com/QuantEcon/claude-latex-to-myst/issues/87)). The upstream rebuilt `fix_spacing_superscript` as a line-based state machine — no more regex fence-pairing, no more stash/restore step. Result: structurally eliminates the whole class of fence-pairing bugs that produced #84/#85/#86/#87. Verified end-to-end against this book WITH the local `\,^\circ` stopgap **removed**: 0 KaTeX errors, 0 FSS marker leaks, 0 content loss, all 8 `\,^\circ` + 1 `\,^{\circ}` source instances rewritten to `\,{}^\circ` / `\,{}^{\circ}`, ch03's Fischer–Burmeister `{code-block}` intact. The local `preprocess.rewrites` stopgap that lived in `mystmd/config.yaml` from R8 through R10 has been **deleted** — the entire degree-symbol handling now lives durably upstream. Net build state: **0 unresolved cross-refs, 0 KaTeX errors, 0 label collisions, no content loss**. Remaining items unchanged: 2 citation false-positives (book #13), 2 missing image assets (book #14), `alg-nsdeqn` still renders as Definition (book #13) — all source-side.
+
 **Round 10 update:** 2026-05-28 — attempted fast-forward `0c41795` → `3d0d797` (one new commit closing the R9-filed [QE#85](https://github.com/QuantEcon/claude-latex-to-myst/issues/85)). The R10 pin point **reverted to R9's `0c41795`** after discovering a second regression that is much more severe than the first. Two cascading bugs in the `3d0d797` fix:
 1. Phantom-fence pairing (same class as QE#85): the closing `` ``` `` of a `{figure}` directive (3-backtick fence) is treated by `_PLAIN_FENCED_CODE_RE` as the opener of a new plain code fence; the regex pairs it with the next bare `` ``` `` it finds (often another figure's closer many paragraphs down), exempting everything in between from the `\,^X` rewrite. 3 KaTeX errors return on stopgap-removed test (including prose, not just table cells).
 2. Stash-restoration collision (worse — **content-loss**): when `_PLAIN_FENCED_CODE_RE`'s phantom region contains an earlier `_CODE_DIRECTIVE_FENCE_RE` stash marker (`\x00FSS0\x00`), the outer stash captures the marker. Forward-order restoration then runs FSS0 first (no-op — marker is hidden inside FSS1's value), then FSS1 (reintroducing the literal `\x00FSS0\x00`). The loop ends with FSS0 visible and unrestored. In ch03_irbc.md this silently destroyed a `{code-block}` directive (Fischer–Burmeister smoothing listing) — literal `FSS0` shows up where the code listing should be. Filed as a comment on [QE#87](https://github.com/QuantEcon/claude-latex-to-myst/issues/87) with a two-part fix proposal (stateful fence-scan + reverse-order restoration). Both bugs originate in the same place; either fix alone closes this book's regression.
@@ -27,26 +29,44 @@
 
 ---
 
-## 1. Headline result (Round 10)
+## 1. Headline result (Round 11)
 
-Upstream pin: **held at `0c41795`** (R9) after a test fast-forward to `3d0d797` (the commit closing [QE#85](https://github.com/QuantEcon/claude-latex-to-myst/issues/85)) revealed two new regressions — including silent **content-loss** of a `{code-block}` in ch03 (stash-restoration collision when `_PLAIN_FENCED_CODE_RE` matches a region containing an earlier code-directive stash marker). Both bugs trace to the same root: incorrect Markdown fence pairing in the upstream stash logic. Filed as a comment on [QE#87](https://github.com/QuantEcon/claude-latex-to-myst/issues/87) with a two-part fix (stateful fence-scan + reverse-order restoration). **Build state unchanged from R9: 0 unresolved cross-refs, 0 KaTeX errors, 0 label collisions, no content loss.** Will re-attempt the upstream fast-forward once QE#87 lands and verifies clean against this book.
+Upstream pin: `43565a4` (fast-forward from `0c41795`). [QE#88](https://github.com/QuantEcon/claude-latex-to-myst/pull/88) merged the state-machine rebuild of `fix_spacing_superscript` (no regex fence-pairing, no stash/restore), structurally eliminating the whole bug class that produced #84/#85/#86/#87. **Local `\,^\circ` stopgap removed** — entire degree-symbol handling now lives durably upstream. **Build is structurally clean: 0 unresolved cross-refs, 0 KaTeX errors, 0 label collisions, no content loss.** All remaining items are source-side (book #13 / #14).
 
-| Dimension | Source | MyST | R10 | R9 | R8 | R7 | R6 | R5 | R1 |
-|---|---|---|---|---|---|---|---|---|---|
-| Chapters / sections / subsections / subsubsections | 22/144/81/5 | 22/144/81/5 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Paragraph heads / footnotes | 385 / 24 | 385 / 24 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️ |
-| Figures rendered | 88 | 88 | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ #42 | ✅ |
-| Captioned tables — `{table}` directives / anchors | 41 / 41 | 41 / 41 | ✅ | ✅ | ✅ | ✅ | ⚠️ #34 | ⚠️ | ⚠️ |
-| Exercises → `{exercise}` directives w/ labels | 87 labels | 87 directives, all refs resolve | ✅ | ✅ | ✅ | ❌ 96 broken | (masked) | (masked) | (masked) |
-| `\label{alg:X}` → `{prf:algorithm}` round-trip | 3 labels | 2 of 3 (alg-nsdeqn → `prf:definition`; book #13) | ⚠️ same | ⚠️ same | ⚠️ same | ⚠️ | ⚠️ #43 | ⚠️ #39 | n/a |
-| `{numref}` cross-ref targets | — | all resolve | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `{ref}` cross-ref targets | — | all resolve | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️ 11 | — |
-| `{eq}` cross-ref targets | — | all resolve (per-row align split, #70) | ✅ | ✅ | ✅ | ⚠️ 15 collisions | ✅ | ✅ | — |
-| `{prf:ref}` to exercises | 87 | all resolve (#69) | ✅ | ✅ | ✅ | ❌ 96 broken | (masked) | (masked) | (masked) |
-| Citation keys vs `references.bib` | 254 | all resolve except `unil`, `tf.function` (book #13) | ⚠️ 2 src | ⚠️ 2 src | ⚠️ 2 | ⚠️ 2 | ✅ | ✅ | — |
-| KaTeX build errors (`⛔`) | — | **0** (`\,^\circ` cleared by local stopgap; upstream #45 / #85 partial, [QE#87](https://github.com/QuantEcon/claude-latex-to-myst/issues/87) follow-on filed; stopgap kept) | ✅ | ✅ | ✅ | ⚠️ 10 | ⚠️ | ⚠️ | n/a |
-| Missing image files (`fig/restud_fig{11a,15a}.pdf`) | 2 refs | still absent (book #14) | ⚠️ asset | ⚠️ asset | ⚠️ asset | ⚠️ | (missed) | (missed) | n/a |
-| `Could not convert TeX math` (pandoc macro coverage) | — | ~22 (render fine via `myst.yml`) | ℹ️ noise | ℹ️ noise | ℹ️ noise | ⚠️ | (missed) | (missed) | n/a |
+| Dimension | Source | MyST | R11 | R10 | R9 | R8 | R7 | R6 | R5 | R1 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Chapters / sections / subsections / subsubsections | 22/144/81/5 | 22/144/81/5 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Paragraph heads / footnotes | 385 / 24 | 385 / 24 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️ |
+| Figures rendered | 88 | 88 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ #42 | ✅ |
+| Captioned tables — `{table}` directives / anchors | 41 / 41 | 41 / 41 | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️ #34 | ⚠️ | ⚠️ |
+| Exercises → `{exercise}` directives w/ labels | 87 labels | 87 directives, all refs resolve | ✅ | ✅ | ✅ | ✅ | ❌ 96 broken | (masked) | (masked) | (masked) |
+| `\label{alg:X}` → `{prf:algorithm}` round-trip | 3 labels | 2 of 3 (alg-nsdeqn → `prf:definition`; book #13) | ⚠️ same | ⚠️ same | ⚠️ same | ⚠️ same | ⚠️ | ⚠️ #43 | ⚠️ #39 | n/a |
+| `{numref}` cross-ref targets | — | all resolve | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `{ref}` cross-ref targets | — | all resolve | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️ 11 | — |
+| `{eq}` cross-ref targets | — | all resolve (per-row align split, #70) | ✅ | ✅ | ✅ | ✅ | ⚠️ 15 collisions | ✅ | ✅ | — |
+| `{prf:ref}` to exercises | 87 | all resolve (#69) | ✅ | ✅ | ✅ | ✅ | ❌ 96 broken | (masked) | (masked) | (masked) |
+| Citation keys vs `references.bib` | 254 | all resolve except `unil`, `tf.function` (book #13) | ⚠️ 2 src | ⚠️ 2 src | ⚠️ 2 src | ⚠️ 2 | ⚠️ 2 | ✅ | ✅ | — |
+| KaTeX build errors (`⛔`) | — | **0** (R11: entirely handled by upstream `fix_spacing_superscript` state machine, [QE#88](https://github.com/QuantEcon/claude-latex-to-myst/pull/88); local stopgap removed) | ✅ | ✅ | ✅ | ✅ | ⚠️ 10 | ⚠️ | ⚠️ | n/a |
+| Content-loss (`\x00FSS*\x00` marker leaks) | — | 0 across all .md | ✅ | ✅ | ✅ | ✅ | (n/a) | (n/a) | (n/a) | n/a |
+| Missing image files (`fig/restud_fig{11a,15a}.pdf`) | 2 refs | still absent (book #14) | ⚠️ asset | ⚠️ asset | ⚠️ asset | ⚠️ asset | ⚠️ | (missed) | (missed) | n/a |
+| `Could not convert TeX math` (pandoc macro coverage) | — | ~22 (render fine via `myst.yml`) | ℹ️ noise | ℹ️ noise | ℹ️ noise | ℹ️ noise | ⚠️ | (missed) | (missed) | n/a |
+
+**Round 11 verdict — first round where every transform lives upstream; local KaTeX stopgap deleted.**
+
+Upstream [QE#88](https://github.com/QuantEcon/claude-latex-to-myst/pull/88) merged the state-machine rebuild we test-verified at R10 ([comment](https://github.com/QuantEcon/claude-latex-to-myst/pull/88#issuecomment-4561019390)). The new `fix_spacing_superscript`:
+
+- Walks the markdown line-by-line with an explicit fence stack — closers are identified by the stack, not by another regex match.
+- No stash/restore step → marker-leak content-loss class is structurally impossible.
+- Nesting (e.g. `{code-block}` inside `{exercise}`) handled by construction.
+- Adding a new directive emitter in future = one entry in `_CODE_DIRECTIVE_NAMES` or zero changes.
+
+Verified end-to-end against this book with the local `\,^\circ` stopgap **removed**:
+- 0 KaTeX errors (was 3 at R10-attempt)
+- 0 `\x00FSS*\x00` marker leaks across all `.md` (was 1 destroyed `{code-block}` at R10-attempt)
+- ch03 Fischer–Burmeister `{code-block}` intact
+- All 8 `\,^\circ` + 1 `\,^{\circ}` source instances rewritten
+
+The local `preprocess.rewrites` stopgap (lived in `mystmd/config.yaml` from R8 through R10) **deleted** in this commit. First round where every transform in this book's MyST pipeline lives upstream.
 
 **Round 10 verdict — no observable change vs R9; second upstream regression filed, local stopgap stays.**
 
@@ -383,11 +403,25 @@ Verified against `mystmd/ch11_climate.md:911–944`. Result: **substantial match
 | R7-5 | lstlisting `[caption={…math…}]` doubles backslashes (§3.3) | [QE#71](https://github.com/QuantEcon/claude-latex-to-myst/issues/71) | ✅ closed `fcba7b0` — decode pandoc quoted-attr escapes |
 | R7-4 | `\begin{definitionbox}[Algorithm: …]` not auto-routed to `prf:algorithm` (§3.4) | [book#13](https://github.com/mmcky/Deep_Learning_for_Solving_And_Estimating_Dynamic_Economic_Models/issues/13) | ⏳ open — source-side fix; upstream #79 generalised env-div `prf:algorithm` but our `definitionbox`→`prf:definition` config mapping intercepts it |
 
+### Round 11 — remaining open items
+
+| Item | Tracker | Layer | Notes |
+|---|---|---|---|
+| `alg-nsdeqn` renders as Definition | [book#13](https://github.com/mmcky/Deep_Learning_for_Solving_And_Estimating_Dynamic_Economic_Models/issues/13) | 1 (source) | one-line `\begin{algorithm}` swap; cross-ref already resolves |
+| `@tf.function` / `unil` citation false-positives | [book#13](https://github.com/mmcky/Deep_Learning_for_Solving_And_Estimating_Dynamic_Economic_Models/issues/13) | 1 (source) | escape `@` / mailto |
+| Missing `restud_fig{11a,15a}.pdf` | [book#14](https://github.com/mmcky/Deep_Learning_for_Solving_And_Estimating_Dynamic_Economic_Models/issues/14) | 1 (assets) | author decision |
+
+### Items closed since R10
+
+| Item | Tracker | Status |
+|---|---|---|
+| `fix_spacing_superscript` phantom-fence + stash-collision (R10 content-loss + KaTeX) | [QE#87](https://github.com/QuantEcon/claude-latex-to-myst/issues/87) / [QE#88](https://github.com/QuantEcon/claude-latex-to-myst/pull/88) | ✅ closed `43565a4` (R11) — line-based state machine; local stopgap deleted |
+
 ### Round 10 — remaining open items
 
 | Item | Tracker | Layer | Notes |
 |---|---|---|---|
-| `fix_spacing_superscript` (a) pairs phantom closing-fence with next bare ``` `````` ``` (KaTeX errors return), (b) outer stash captures inner `\x00FSS*\x00` marker and forward-order restoration leaves it unrestored (silent content loss of `{code-block}` in ch03) | [QE#87](https://github.com/QuantEcon/claude-latex-to-myst/issues/87) | 2 (post-#85 follow-on) | ⏳ open upstream; pin **held at R9 (`0c41795`)** until QE#87 lands. The local `preprocess.rewrites` stopgap handles the original `\,^\circ` symptom regardless. |
+| `fix_spacing_superscript` (a) pairs phantom closing-fence with next bare ``` `````` ``` (KaTeX errors return), (b) outer stash captures inner `\x00FSS*\x00` marker and forward-order restoration leaves it unrestored (silent content loss of `{code-block}` in ch03) | [QE#87](https://github.com/QuantEcon/claude-latex-to-myst/issues/87) | 2 (post-#85 follow-on) | ✅ closed at R11 via [QE#88](https://github.com/QuantEcon/claude-latex-to-myst/pull/88) state-machine rebuild |
 | `alg-nsdeqn` renders as Definition | [book#13](https://github.com/mmcky/Deep_Learning_for_Solving_And_Estimating_Dynamic_Economic_Models/issues/13) | 1 (source) | one-line `\begin{algorithm}` swap; cross-ref already resolves |
 | `@tf.function` / `unil` citation false-positives | [book#13](https://github.com/mmcky/Deep_Learning_for_Solving_And_Estimating_Dynamic_Economic_Models/issues/13) | 1 (source) | escape `@` / mailto |
 | Missing `restud_fig{11a,15a}.pdf` | [book#14](https://github.com/mmcky/Deep_Learning_for_Solving_And_Estimating_Dynamic_Economic_Models/issues/14) | 1 (assets) | author decision |
