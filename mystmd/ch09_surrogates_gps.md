@@ -20,7 +20,7 @@ The point of a surrogate is to break this nesting. One pays a one-time offline c
 ```{figure} figures/fig-surrogate_outer_loop.svg
 :name: fig-surrogate_outer_loop
 
-Why surrogates help. Left: structural estimation, uncertainty quantification, and optimal policy design are outer loops over a parameter vector θ, and the direct implementation re-solves the full model inside the loop, so the cost scales with the number of outer iterations times the per-solve cost. Right: a surrogate moves that solve into a one-time offline phase, solving the model only at a design of experiments and fitting ϕ(s, θ); the outer loop then queries a cheap, differentiable interpolant. The saving grows with both the number of outer iterations and the per-solve cost. The same picture applies to GP value-function iteration with the outer loop relabeled as the Bellman iteration and the inner solve as one TV evaluation; the offline phase is then replaced by a per-iteration GP refit at modest design size.
+Why surrogates help. *Left*: structural estimation, uncertainty quantification, and optimal policy design are outer loops over a parameter vector $\theta$, and the direct implementation re-solves the full model inside the loop, so the cost scales with the number of outer iterations times the per-solve cost. *Right*: a surrogate moves that solve into a one-time offline phase, solving the model only at a design of experiments and fitting $\phi(s,\theta)$; the outer loop then queries a cheap, differentiable interpolant. The saving grows with both the number of outer iterations and the per-solve cost. The same picture applies to GP value-function iteration with the outer loop relabeled as the Bellman iteration and the inner solve as one $TV$ evaluation; the offline phase is then replaced by a per-iteration GP refit at modest design size.
 ```
 
 ##### Two surrogate strategies.
@@ -60,7 +60,7 @@ $$
 ```{figure} figures/fig-pseudo_state_surrogate.svg
 :name: fig-pseudo_state_surrogate
 
-Pseudo-state surrogate architecture. Economic states s and model parameters θ are concatenated into the augmented input $\tilde{\x} = (s, \theta)$ and fed to a single approximator $\phi(\tilde{\x}\,|\,\theta_\mathrm{NN})$ with weights θNN, yielding a target quantity y (price, policy, moment) as a continuous, differentiable function of both the state and the parameter vector. After one offline training pass, the surrogate is queried instantly across the parameter space without re-solving the original model.
+Pseudo-state surrogate architecture. Economic states $s$ and model parameters $\theta$ are concatenated into the augmented input $\tilde{\x} = (s, \theta)$ and fed to a single approximator $\phi(\tilde{\x}\,|\,\theta_\mathrm{NN})$ with weights $\theta_\mathrm{NN}$, yielding a target quantity $y$ (price, policy, moment) as a continuous, differentiable function of both the state and the parameter vector. After one offline training pass, the surrogate is queried instantly across the parameter space without re-solving the original model.
 ```
 
 The surrogate is trained once over the full augmented space and can then be queried instantly for any parameter configuration, without re-solving the model. This is fundamentally different from simply re-running the model: the surrogate provides a continuous, differentiable mapping from parameters to outputs, enabling gradient-based optimization and uncertainty propagation that would be impossible with the original model. Figure {numref}`fig-pseudo_state_surrogate` sketches this concatenated input.
@@ -127,7 +127,7 @@ where $\ell$ is the length scale (controlling smoothness) and $\sigma_f^2$ is th
 ```{figure} figures/fig-rbf_length_scale.svg
 :name: fig-rbf_length_scale
 
-Squared-exponential kernel as a function of distance for three length scales. Small ℓ makes correlations decay quickly and produces rougher, more local fits; large ℓ couples distant points and imposes smoother functions.
+Squared-exponential kernel as a function of distance for three length scales. Small $\ell$ makes correlations decay quickly and produces rougher, more local fits; large $\ell$ couples distant points and imposes smoother functions.
 ```
 
 Figure {numref}`fig-rbf_length_scale` shows how the RBF length scale controls the distance over which observations remain informative. Given training data $\mathcal{D} = \{(\x_i, y_i)\}_{i=1}^n$, let $\bm{\mu}_X = (\mu(\x_1),\ldots,\mu(\x_n))^\top$, $\mu_*=\mu(\x_*)$, and $K_y = K + \sigma_y^2 I$. The GP posterior at a test point $\x_*$ has a closed-form latent-function mean and variance:
@@ -157,7 +157,7 @@ Figure {numref}`fig-gp_prior_posterior` illustrates the GP prior and posterior 
 ```{figure} figures/fig-gp_prior_posterior.svg
 :name: fig-gp_prior_posterior
 
-Gaussian-process prior and posterior on a 1D regression problem. Left: the prior has constant mean (here zero) and uniform uncertainty; the shaded bands show the 68% and 95% credible intervals, and the thin grey curves are three sample paths drawn from the prior. Right: after conditioning on five observations (black dots), the posterior mean (red curve) interpolates the data exactly, and the credible band collapses near the observed points while widening in unexplored regions away from the data, giving the GP its built-in uncertainty quantification.
+Gaussian-process prior and posterior on a 1D regression problem. *Left:* the prior has constant mean (here zero) and uniform uncertainty; the shaded bands show the $68\%$ and $95\%$ credible intervals, and the thin grey curves are three sample paths drawn from the prior. *Right:* after conditioning on five observations (black dots), the posterior mean (red curve) interpolates the data exactly, and the credible band collapses near the observed points while widening in unexplored regions away from the data, giving the GP its built-in uncertainty quantification.
 ```
 
 ```{prf:remark}
@@ -183,7 +183,7 @@ The log evidence $\log p(\bm y \mid \X, \bm\vartheta)$ encodes both data fit *an
 ```{figure} figures/fig-occam_marginal_likelihood.svg
 :name: fig-occam_marginal_likelihood
 
-Marginal-likelihood Occam’s razor for a GP. As the kernel becomes more flexible (smaller length scale ℓ), the data-fit term improves but the log |Ky| complexity penalty grows linearly. Their sum, the log evidence, peaks at an interior optimum that is just expressive enough to explain the data, automatically. No held-out validation set is required.
+Marginal-likelihood Occam's razor for a GP. As the kernel becomes more flexible (smaller length scale $\ell$), the data-fit term improves but the $\log|K_y|$ complexity penalty grows linearly. Their sum, the log evidence, peaks at an interior optimum that is just expressive enough to explain the data, automatically. No held-out validation set is required.
 ```
 
 ##### A free held-out diagnostic.
@@ -256,7 +256,7 @@ The intuition behind the acquisition function is as follows. The first term $w_{
 ```{figure} figures/gp_active_learning.pdf
 :name: fig-bal-iterations
 
-Bayesian Active Learning in action. (a) Starting from three initial observations (red dots), the GP posterior mean (blue line) deviates from the true function (dashed black) in the data-sparse region, where the 95% credible band (blue shading) is wide. (b) The acquisition function selects the point of maximum posterior variance (green diamond); after evaluation, the posterior tightens locally and the mean improves. (c) A second active-learning iteration fills the remaining gap. With only five strategically chosen points, the GP posterior closely tracks the true function across the entire domain.
+Bayesian Active Learning in action. **(a)** Starting from three initial observations (red dots), the GP posterior mean (blue line) deviates from the true function (dashed black) in the data-sparse region, where the 95% credible band (blue shading) is wide. **(b)** The acquisition function selects the point of maximum posterior variance (green diamond); after evaluation, the posterior tightens locally and the mean improves. **(c)** A second active-learning iteration fills the remaining gap. With only five strategically chosen points, the GP posterior closely tracks the true function across the entire domain.
 ```
 
 (sec-gp_vs_dnn)=
@@ -305,7 +305,7 @@ The *inducing-point* idea (Figure {numref}`fig-inducing_points`) is simple: ins
 ```{figure} figures/fig-inducing_points.svg
 :name: fig-inducing_points
 
-Inducing-point intuition. Exact GP inference conditions on all n = 21 observations and uses the full n × n kernel matrix. Sparse variational GP methods introduce m ≪ n inducing inputs Z and approximate the posterior through the low-rank structure induced by KnmKmm−1Kmn. The top panel compares the exact posterior mean and uncertainty band with a sparse approximation using m = 4 pseudo-inputs; the bottom panel shows the absolute difference between the two means. In this smooth one-dimensional illustration the approximation is close, but its quality depends on m, the kernel hyperparameters, and the placement of Z. The dominant training cost falls from 𝒪(n3) to 𝒪(nm2 + m3); the variational formulation of {cite:t}`titsias2009variational` optimizes Z jointly with the kernel hyperparameters.
+Inducing-point intuition. Exact GP inference conditions on all $n=21$ observations and uses the full $n\times n$ kernel matrix. Sparse variational GP methods introduce $m\ll n$ inducing inputs $\bm Z$ and approximate the posterior through the low-rank structure induced by $K_{nm}K_{mm}^{-1}K_{mn}$. The top panel compares the exact posterior mean and uncertainty band with a sparse approximation using $m=4$ pseudo-inputs; the bottom panel shows the absolute difference between the two means. In this smooth one-dimensional illustration the approximation is close, but its quality depends on $m$, the kernel hyperparameters, and the placement of $\bm Z$. The dominant training cost falls from $\mathcal{O}(n^3)$ to $\mathcal{O}(nm^2 + m^3)$; the variational formulation of {cite:t}`titsias2009variational` optimizes $\bm Z$ jointly with the kernel hyperparameters.
 ```
 
 (sec-active_subspaces)=
@@ -348,7 +348,7 @@ $$ (eq-linear_as_ansatz)
 ```{figure} figures/fig-active_subspace_spectrum.svg
 :name: fig-active_subspace_spectrum
 
-Spectral decay of the active-subspace eigenvalues for a schematic example with d = 12 state variables. The first three eigenvalues are orders of magnitude larger than the rest; the dashed red line marks the spectral gap after λ3, which indicates that f effectively lives on a 3-dimensional active subspace (green brace) and reduces the GP regression problem from $\R^{12}$ to $\R^3$. The remaining nine directions form the inactive subspace (gray brace), along which f is nearly constant on average.
+Spectral decay of the active-subspace eigenvalues for a schematic example with $d=12$ state variables. The first three eigenvalues are orders of magnitude larger than the rest; the dashed red line marks the spectral gap after $\lambda_3$, which indicates that $f$ effectively lives on a 3-dimensional active subspace (green brace) and reduces the GP regression problem from $\R^{12}$ to $\R^3$. The remaining nine directions form the inactive subspace (gray brace), along which $f$ is nearly constant on average.
 ```
 
 ##### Computing the gradient.
@@ -460,7 +460,7 @@ The spectral gap of $C$ is no longer available -- the encoder is nonlinear -- so
 ```{figure} figures/fig-deep_as_elbow.svg
 :name: fig-deep_as_elbow
 
-Stylized comparison of the two selection criteria for the radial-ridge target y(ξ) = exp (−[(w1⊤ξ)2 + (w2⊤ξ)2]) in D = 20 (see notebook 09). The linear-AS eigenvalue spectrum has two dominant directions, so the spectral-gap criterion picks d = 2 (right green dashed line). The deep-AS validation MSE, by contrast, is already at its plateau at d = 1 (left green dashed line): the learned encoder hθ represents the nonlinear aggregate r2 = s12 + s22 as a scalar. The curves are stylized; the orders of magnitude track the notebook (linear-AS eigenvalues  ≈ 0.16 for i = 1, 2 then a sharp drop; deep-AS validation MSE  ≈ 10−4 at d = 1 and roughly flat thereafter), and the elbow-at-d = 1 versus spectral-gap-at-d = 2 contrast is reproduced.
+Stylized comparison of the two selection criteria for the radial-ridge target $y(\xi) = \exp(-[(w_1^\top\xi)^2 + (w_2^\top\xi)^2])$ in $D = 20$ (see notebook `09`). The linear-AS eigenvalue spectrum has two dominant directions, so the spectral-gap criterion picks $d = 2$ (right green dashed line). The deep-AS validation MSE, by contrast, is already at its plateau at $d = 1$ (left green dashed line): the learned encoder $h_\theta$ represents the nonlinear aggregate $r^2 = s_1^2 + s_2^2$ as a *scalar*. The curves are stylized; the orders of magnitude track the notebook (linear-AS eigenvalues $\approx 0.16$ for $i = 1, 2$ then a sharp drop; deep-AS validation MSE $\approx 10^{-4}$ at $d = 1$ and roughly flat thereafter), and the elbow-at-$d=1$ versus spectral-gap-at-$d=2$ contrast is reproduced.
 ```
 
 ##### Training recipe.
@@ -478,7 +478,7 @@ Sample-budget rule of thumb: $N \approx 50\, d_{\mathrm{nl}}$ to *find* the bott
 ```{figure} figures/fig-deep_as_pipeline.svg
 :name: fig-deep_as_pipeline
 
-Deep active-subspace pipeline. Input–output pairs (ξi, yi) are drawn directly from the simulator (no gradient samples needed); a nonlinear encoder hθ compresses the high-dimensional input into a d-dimensional latent code, a small link network gθ maps the latent code to the response, and an elastic-net / validation-MSE elbow chooses d. The trained composition f̂θ = gθ ∘ hθ is the deployed surrogate. Compared with the linear active-subspace pipeline (Figure {numref}`fig-active_subspace_pipeline`), the encoder + link boxes replace the eigendecomposition + linear projection, the elbow box replaces the spectral-gap search, and the gradient-sampling step disappears entirely.
+Deep active-subspace pipeline. Input--output pairs $(\xi_i, y_i)$ are drawn directly from the simulator (no gradient samples needed); a nonlinear encoder $h_\theta$ compresses the high-dimensional input into a $d$-dimensional latent code, a small link network $g_\theta$ maps the latent code to the response, and an elastic-net / validation-MSE elbow chooses $d$. The trained composition $\hat f_\theta = g_\theta \circ h_\theta$ is the deployed surrogate. Compared with the linear active-subspace pipeline (Figure {numref}`fig-active_subspace_pipeline`), the encoder + link boxes replace the eigendecomposition + linear projection, the elbow box replaces the spectral-gap search, and the gradient-sampling step disappears entirely.
 ```
 
 Figure {numref}`fig-deep_as_pipeline` should be compared with the linear pipeline in Figure {numref}`fig-active_subspace_pipeline`: the two blue encoder / link boxes replace "eigendecomposition + project", the "elastic-net + elbow" box replaces "find spectral gap", and the gradient-sampling step is gone entirely. The economic pay-off is the same, a cheap surrogate in $d$ variables where the original has $D$, but the modeling assumption is weaker: curved active manifolds are now admissible.
@@ -630,7 +630,7 @@ The companion notebook compares a same-budget fixed Latin-hypercube design with 
 ```{figure} figures/gp_vfi_active_learning_1d.png
 :name: fig-gp_vfi_active_1d
 
-Same-budget active enrichment inside one-dimensional GP value-function iteration. The left panel compares the GP posterior means from a fixed Latin-hypercube design and an active design against a reference GP-VFI solution. The middle panel shows the posterior standard deviation and the states added by the active rule {eq}`eq-bal_vfi`, marked as triangles on the horizontal axis. The right panel reports the dense-grid Bellman residual. Unlike the previously used two-dimensional separable interpolation benchmark, every plotted training value here is generated by a Bellman maximization. Generated by notebook lecture_14_04_GP_Value_Function_Iteration.ipynb.
+Same-budget active enrichment inside one-dimensional GP value-function iteration. The left panel compares the GP posterior means from a fixed Latin-hypercube design and an active design against a reference GP-VFI solution. The middle panel shows the posterior standard deviation and the states added by the active rule {eq}`eq-bal_vfi`, marked as triangles on the horizontal axis. The right panel reports the dense-grid Bellman residual. Unlike the previously used two-dimensional separable interpolation benchmark, every plotted training value here is generated by a Bellman maximization. Generated by notebook `lecture_14_04_GP_Value_Function_Iteration.ipynb`.
 ```
 
 ### Results: From One to 500 Dimensions

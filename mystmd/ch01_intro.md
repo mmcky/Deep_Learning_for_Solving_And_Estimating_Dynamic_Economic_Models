@@ -44,7 +44,7 @@ Given a set of *labeled* input--output pairs $\{(\x^{(i)}, y^{(i)})\}_{i=1}^{m}$
 ```{figure} figures/fig-regression.svg
 :name: fig-regression
 
-Supervised learning: regression. The model hθ(x) = θ0 + θ1x (red line) is fitted to observed house prices (blue dots).
+Supervised learning: regression. The model $h_{\bm{\theta}}(x) = \theta_0 + \theta_1 x$ (red line) is fitted to observed house prices (blue dots).
 ```
 
 **Classification.** ($y \in \{0,1,\dots,K\}$): assign an input $\x$ to one of $K$ discrete categories. A linear classifier predicts class 1 whenever $\w^\top \x + b > 0$ and class 0 otherwise. Figure {numref}`fig-classification` shows a credit-scoring example: applicants are classified as low-risk or high-risk based on income and savings, and the dashed line is the learned decision boundary.
@@ -52,7 +52,7 @@ Supervised learning: regression. The model hθ(x) = θ0 + θ1x (red line
 ```{figure} figures/fig-classification.svg
 :name: fig-classification
 
-Supervised learning: classification. A linear decision boundary separates low-risk (blue circles) from high-risk (red crosses) applicants in the income–savings feature space.
+Supervised learning: classification. A linear decision boundary separates low-risk (blue circles) from high-risk (red crosses) applicants in the income--savings feature space.
 ```
 
 ### Unsupervised Learning
@@ -68,7 +68,7 @@ Figure {numref}`fig-clustering` illustrates a clustering task: unlabeled data p
 ```{figure} figures/fig-clustering.svg
 :name: fig-clustering
 
-Unsupervised learning: clustering. Unlabeled data points are grouped into three clusters; the + markers indicate cluster centroids. No target labels are used; the algorithm discovers the grouping from the data alone.
+Unsupervised learning: clustering. Unlabeled data points are grouped into three clusters; the $+$ markers indicate cluster centroids. No target labels are used; the algorithm discovers the grouping from the data alone.
 ```
 
 ### Reinforcement Learning
@@ -78,7 +78,7 @@ In reinforcement learning, an *agent* interacts with an *environment* over a seq
 ```{figure} figures/fig-rl-loop.svg
 :name: fig-rl-loop
 
-Reinforcement learning: the agent–environment loop. The agent observes a state, takes an action, and receives a reward signal. Over time, it learns a policy π that maximizes cumulative discounted reward.
+Reinforcement learning: the agent--environment loop. The agent observes a state, takes an action, and receives a reward signal. Over time, it learns a policy $\pi$ that maximizes cumulative discounted reward.
 ```
 
 *Example:* an algorithmic trader learning an execution strategy by optimizing realized profit over sequences of order placements; or a central bank learning an interest-rate rule by maximizing a welfare criterion over simulated macroeconomic trajectories.
@@ -106,7 +106,7 @@ Every supervised learning algorithm follows the same three-step recipe, regardle
 ```{figure} figures/fig-ml_recipe.svg
 :name: fig-ml_recipe
 
-The three-step supervised-learning recipe that underpins every model in this course. Choose a parametric hypothesis $h(\x;\bm{\theta})$, measure its misfit on a labeled dataset via a loss J(θ), and minimize J over the parameter vector θ. DEQNs and PINNs modify step 2 (replacing the data-driven loss with an equilibrium or PDE residual) while keeping steps 1 and 3 identical.
+The three-step supervised-learning recipe that underpins every model in this course. Choose a parametric hypothesis $h(\x;\bm{\theta})$, measure its misfit on a labeled dataset via a loss $J(\bm{\theta})$, and minimize $J$ over the parameter vector $\bm{\theta}$. DEQNs and PINNs modify step 2 (replacing the data-driven loss with an equilibrium or PDE residual) while keeping steps 1 and 3 identical.
 ```
 
 Given a training set $\{(\x^{(i)}, y^{(i)})\}_{i=1}^{m}$ of input--output pairs, we seek a hypothesis $h:\mathcal{X}\to\mathcal{Y}$ parameterized by $\bm{\theta}$ that minimizes the empirical risk. For regression problems, the default choice is the mean squared error (MSE):
@@ -136,13 +136,13 @@ Negating and averaging this expression gives the binary cross-entropy. The $K$-c
 ```{figure} figures/fig-sigmoid_decision.svg
 :name: fig-sigmoid_decision
 
-Binary classification with a sigmoid output. A scalar score z (the model’s raw output) is mapped to a probability p = σ(z) ∈ (0, 1). The prediction rule assigns class 1 whenever p > 0.5, equivalently whenever z > 0. The dashed lines mark the decision threshold; no neural-network architecture is assumed—any model that produces a real-valued score can be combined with this mapping and the binary cross-entropy loss.
+Binary classification with a sigmoid output. A scalar score $z$ (the model's raw output) is mapped to a probability $p = \sigma(z) \in (0,1)$. The prediction rule assigns class 1 whenever $p > 0.5$, equivalently whenever $z > 0$. The dashed lines mark the decision threshold; no neural-network architecture is assumed---any model that produces a real-valued score can be combined with this mapping and the binary cross-entropy loss.
 ```
 
 ```{figure} figures/fig-classification_losses.svg
 :name: fig-classification_losses
 
-Binary cross-entropy and mean squared error as functions of the predicted class probability p. Cross-entropy rises much more sharply near confident mistakes, which is why it is usually better aligned with probabilistic classification.
+Binary cross-entropy and mean squared error as functions of the predicted class probability $p$. Cross-entropy rises much more sharply near confident mistakes, which is why it is usually better aligned with probabilistic classification.
 ```
 
 Figure {numref}`fig-classification_losses` makes the practical difference visible. If the true label is $y=1$ but the model predicts a very small $p$, then the cross-entropy loss explodes because $-\log p \to \infty$ as $p \downarrow 0$. The same holds symmetrically when $y=0$ and $p \uparrow 1$. Mean squared error does penalize mistakes, but it does so much more mildly near the boundaries. For probabilistic classification, that weaker penalty is usually undesirable because it does not strongly discourage overconfident wrong predictions.
@@ -196,7 +196,7 @@ where $\w = (w_1, \dots, w_d)^\top$ are the synaptic weights, $w_0$ is the bias,
 ```{figure} figures/fig-artificial_neuron.svg
 :name: fig-artificial_neuron
 
-An artificial neuron in the McCulloch–Pitts lineage. Inputs xi are multiplied by synaptic weights wi, summed into a pre-activation z, and passed through a nonlinear activation g(⋅) to yield the output ŷ. The original {cite:t}`mcculloch1943logical` unit used a binary threshold for g; the modern artificial neuron generalizes this to arbitrary smooth activations, and all deep networks are compositions of neurons of this form.
+An artificial neuron in the McCulloch--Pitts lineage. Inputs $x_i$ are multiplied by synaptic weights $w_i$, summed into a pre-activation $z$, and passed through a nonlinear activation $g(\cdot)$ to yield the output $\hat{y}$. The original {cite:t}`mcculloch1943logical` unit used a binary threshold for $g$; the modern artificial neuron generalizes this to arbitrary smooth activations, and all deep networks are compositions of neurons of this form.
 ```
 
 Common choices for $g$ include the sigmoid $\sigma(z) = (1+e^{-z})^{-1}$, the hyperbolic tangent $\tanh(z)$, and the rectified linear unit $\mathrm{ReLU}(z) = \max(0,z)$ {cite:p}`nair2010rectified,glorot2011deep`. Without a nonlinear activation, any composition of linear layers collapses to a single affine map, a mathematical fact of fundamental importance: $\W_2(\W_1\x + \bb_1) + \bb_2 = \W_2\W_1\x + (\W_2\bb_1 + \bb_2)$.
@@ -218,7 +218,7 @@ The architecture that implements {eq}`eq-dnn` is sketched in Figure {numref}`f
 ```{figure} figures/fig-deep_ff_net.svg
 :name: fig-deep_ff_net
 
-An L-layer deep feedforward network. Each layer applies an affine map followed by a pointwise nonlinearity; the composition realizes Eq. {eq}`eq-dnn`. Depth (rather than width) is what gives neural networks their efficient representational power for compositionally structured functions.
+An $L$-layer deep feedforward network. Each layer applies an affine map followed by a pointwise nonlinearity; the composition realizes Eq. {eq}`eq-dnn`. Depth (rather than width) is what gives neural networks their efficient representational power for compositionally structured functions.
 ```
 
 A useful geometric intuition, popularized by {cite:t}`chollet2017deeplearning`, is that each layer of the network performs a nonlinear coordinate transformation, successively "untangling" the manifold on which the data lies. In the input space, the data may be entangled in complex ways (e.g., two classes forming concentric spirals); each hidden layer warps the space so that the data become progressively more linearly separable. By the final hidden layer, a simple linear readout suffices. This perspective, formalized also by {cite:t}`goodfellow2016deep`, explains why depth is so powerful: each layer adds an additional coordinate transformation, and the composition of many simple transformations can represent very complex mappings with far fewer parameters than a single, wide layer would require.
@@ -324,7 +324,7 @@ where $T$ is the total number of training iterations. Figure {numref}`fig-lr_sc
 ```{figure} figures/fig-lr_schedules.svg
 :name: fig-lr_schedules
 
-Three common learning-rate schedules. A constant rate is simple but often converges slowly in the fine-tuning phase; exponential decay shrinks monotonically; cosine annealing [[CITEP:loshchilov2017sgdr]] provides a smooth warm-to-cold transition that empirically performs well across a wide range of problems. DEQNs and PINNs typically use exponential decay or cosine annealing to polish the solution after the initial coarse-grained phase.
+Three common learning-rate schedules. A constant rate is simple but often converges slowly in the fine-tuning phase; exponential decay shrinks monotonically; cosine annealing {cite:p}`loshchilov2017sgdr` provides a smooth warm-to-cold transition that empirically performs well across a wide range of problems. DEQNs and PINNs typically use exponential decay or cosine annealing to polish the solution after the initial coarse-grained phase.
 ```
 
 In practice, decaying schedules such as exponential decay or cosine annealing tend to refine solutions in the later stages of training, once the optimizer has found a good basin of attraction.
@@ -351,7 +351,7 @@ where $\odot$ denotes element-wise multiplication. The parameter gradients are t
 ```{figure} figures/fig-backprop_passes.svg
 :name: fig-backprop_passes
 
-Backpropagation as forward and backward passes through the network. The forward pass (blue) produces and caches every layer’s pre-activations $\z^{(l)}$ and activations $\a^{(l)}$; the backward pass (red, dashed) propagates the “delta” vectors δ(l) from the loss back to the inputs, reusing the cached quantities to compute all parameter gradients in a single sweep.
+Backpropagation as forward and backward passes through the network. The forward pass (blue) produces and caches every layer's pre-activations $\z^{(l)}$ and activations $\a^{(l)}$; the backward pass (red, dashed) propagates the "delta" vectors $\bm{\delta}^{(l)}$ from the loss back to the inputs, reusing the cached quantities to compute all parameter gradients in a single sweep.
 ```
 
 In modern deep learning frameworks such as TensorFlow and PyTorch, backpropagation is implemented automatically through computational graph tracing ("autograd"). The user only needs to define the forward computation; the framework handles the differentiation. This same automatic differentiation capability is what makes PINNs (Chapter {ref}`ch-pinn`) possible: the PDE residual requires derivatives of the network output with respect to its inputs, which autograd provides exactly and efficiently.
@@ -419,7 +419,7 @@ For PDE applications (Chapter {ref}`ch-pinn`), the choice of activation functio
 ```{figure} figures/fig-activations.svg
 :name: fig-activations
 
-Seven representative activation functions from Table {numref}`tab-activations`. Sigmoid and tanh saturate at large |z| (vanishing gradients); ReLU is non-saturating but kinked at the origin; Leaky ReLU and ELU repair the dead-neuron problem with a small negative response; Swish and Softplus are everywhere C∞, which the PINN chapter (Chapter {ref}`ch-pinn`) requires.
+Seven representative activation functions from Table {numref}`tab-activations`. Sigmoid and tanh saturate at large $|z|$ (vanishing gradients); ReLU is non-saturating but kinked at the origin; Leaky ReLU and ELU repair the dead-neuron problem with a small negative response; Swish and Softplus are everywhere $C^\infty$, which the PINN chapter (Chapter {ref}`ch-pinn`) requires.
 ```
 
 (sec-vanishing)=
@@ -481,7 +481,7 @@ At first glance the learnable shift and scale $(\gamma,\beta)$ seem to undo the 
 ```{figure} figures/fig-batchnorm_intuition.svg
 :name: fig-batchnorm_intuition
 
-Distribution of pre-activations at one hidden neuron, sampled at three points during training. Left: without BatchNorm, the distribution drifts in mean and in variance as earlier layers update, each layer chases a moving target. Right: with BatchNorm, the affine pre-normalization transformation pins the inputs to 𝒩(0, 1) at every training step, before the learned scale γ and shift β are applied. The downstream layer always operates on inputs of the same scale, and the gradient signal flowing back is well conditioned.
+Distribution of pre-activations at one hidden neuron, sampled at three points during training. *Left:* without BatchNorm, the distribution drifts in mean and in variance as earlier layers update, each layer chases a moving target. *Right:* with BatchNorm, the affine pre-normalization transformation pins the inputs to $\mathcal{N}(0,1)$ at every training step, before the learned scale $\gamma$ and shift $\beta$ are applied. The downstream layer always operates on inputs of the same scale, and the gradient signal flowing back is well conditioned.
 ```
 
 ##### Why higher learning rates work.
@@ -561,7 +561,7 @@ The key techniques for preventing overfitting in neural networks are:
 ```{figure} figures/fig-double_descent.svg
 :name: fig-double_descent
 
-Schematic of the double-descent phenomenon. In the classical regime (p < n) test error follows the standard bias–variance U-curve; around the interpolation threshold p ≈ n test error can peak sharply because the fitted function is highly sensitive to noise; in the modern overparameterized regime (p ≫ n) test error decreases again [[CITEP:belkin2019reconciling, nakkiran2020deep]]. In some linearized, kernel, max-margin, or least-norm settings, gradient methods exhibit an implicit bias toward particular low-complexity interpolants; in nonlinear finite-width networks this bias depends on architecture, data, optimizer, initialization, and training protocol. Axes are unitless; the qualitative shape, not the scale, is the point. The curve is illustrative, not a measurement.
+Schematic of the double-descent phenomenon. In the classical regime ($p < n$) test error follows the standard bias--variance U-curve; around the interpolation threshold $p \approx n$ test error can peak sharply because the fitted function is highly sensitive to noise; in the modern overparameterized regime ($p \gg n$) test error decreases again {cite:p}`belkin2019reconciling,nakkiran2020deep`. In some linearized, kernel, max-margin, or least-norm settings, gradient methods exhibit an implicit bias toward particular low-complexity interpolants; in nonlinear finite-width networks this bias depends on architecture, data, optimizer, initialization, and training protocol. Axes are unitless; the qualitative shape, not the scale, is the point. The curve is illustrative, not a measurement.
 ```
 
 Figure {numref}`fig-double_descent` illustrates why classical bias--variance intuition breaks down for modern deep networks. In the classical regime ($p < n$), increasing model capacity beyond a point leads to overfitting. At the interpolation threshold ($p \approx n$), the model has just enough parameters to perfectly fit the training data, and the resulting solution can be extremely sensitive to noise. In the modern regime ($p \gg n$), test error often decreases again because optimization and architecture bias select comparatively regular interpolating solutions rather than arbitrary ones {cite:p}`belkin2019reconciling`.
@@ -660,7 +660,7 @@ Each of $\bm{f}_t, \bm{i}_t, \bm{o}_t \in (0,1)^{d}$ acts as a soft switch appli
 ```{figure} figures/fig-lstm_cell.svg
 :name: fig-lstm_cell
 
-The LSTM cell. The green top lane is the protected memory lane: old memory can be kept, new information can be written additively, and the resulting state can later be revealed through the hidden output (visible output, blue bottom lane). This is the intuition behind the forget, input, candidate, and output components shown inside the cell.
+The LSTM cell. The green top lane is the *protected memory lane*: old memory can be kept, new information can be written additively, and the resulting state can later be revealed through the hidden output (*visible output*, blue bottom lane). This is the intuition behind the forget, input, candidate, and output components shown inside the cell.
 ```
 
 The *Gated Recurrent Unit* (GRU) of {cite:t}`cho2014gru` is a lighter sibling that merges the forget and input gates into a single *update* gate $\bm{z}_t$ and drops the separate cell state in favor of the hidden state itself:
@@ -745,7 +745,7 @@ Figure {numref}`fig-attention` renders the attention pattern of the worked "cat
 ```{figure} figures/fig-attention.svg
 :name: fig-attention
 
-How to read the arrows Blue down arrow: build the query qit from the current token “it”. Blue bent arrow: compare that query with all keys in the sequence. Numbers above tokens: 0.05 + 0.58 + 0.08 + 0.20 + 0.09 = 1.00, as softmax weights must. The weight 0.58 above “cat” is the largest one. Green arrows: the “cat” value enters oit. A worked self-attention pattern. Both qit and oit sit above the “it” position: qit is the query projection of “it” (blue), and oit is the updated representation at that same position (green). The blue arrows show how the query is built from “it” and then compared with every key. The softmax weights above each token sum to one; here the largest weight lands on “cat”, so the green aggregation arrow starts above “cat” and curves up to oit, indicating that the update at “it” is driven mainly by the value at “cat”.
+A worked self-attention pattern. Both $q_{\textit{it}}$ and $\bm{o}_{\textit{it}}$ sit above the "it" position: $q_{\textit{it}}$ is the query projection of "it" (blue), and $\bm{o}_{\textit{it}}$ is the updated representation at that same position (green). The blue arrows show how the query is built from "it" and then compared with every key. The softmax weights above each token sum to one; here the largest weight lands on "cat", so the green aggregation arrow starts above "cat" and curves up to $\bm{o}_{\textit{it}}$, indicating that the update at "it" is driven mainly by the value at "cat".
 ```
 
 (sec-mha)=
@@ -797,7 +797,11 @@ The LayerNorm steps {cite:p}`ba2016layer` standardize across feature coordinates
 ```{figure} figures/fig-transformer_block.svg
 :name: fig-transformer_block
 
-One Transformer block in pre-norm form. Self-attention first mixes information across token positions, then the pointwise MLP transforms each token separately. The red skip paths are the residual connections that let deep stacks train stably. A full Transformer stacks L such blocks; GPT-3, for instance, uses L = 96.
+tokens exchange information
+
+same MLP applied token by token
+
+One *Transformer block* in pre-norm form. Self-attention first mixes information across token positions, then the pointwise MLP transforms each token separately. The red skip paths are the residual connections that let deep stacks train stably. A full Transformer stacks $L$ such blocks; GPT-3, for instance, uses $L=96$.
 ```
 
 ##### Encoder, decoder, causal masking.

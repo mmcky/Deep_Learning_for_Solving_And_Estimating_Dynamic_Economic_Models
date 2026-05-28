@@ -52,7 +52,7 @@ Key properties include $\E{B_t} = 0$, $\mathrm{Var}(B_t) = t$, nowhere-different
 ```{figure} figures/fig-brownian_paths.svg
 :name: fig-brownian_paths
 
-Three simulated standard Brownian sample paths {Bt}t ∈ [0, 1], generated with discretization step Δt = 0.05 and Gaussian increments $B_{t+\Delta t} = B_t + \sqrt{\Delta t}\,\varepsilon_t$, εt ∼ 𝒩(0, 1). Paths are jagged at the chosen Δt; limiting Brownian paths are continuous almost surely but nowhere differentiable, with Var(Bt) = t.
+Three simulated standard Brownian sample paths $\{B_t\}_{t\in[0,1]}$, generated with discretization step $\Delta t = 0.05$ and Gaussian increments $B_{t+\Delta t} = B_t + \sqrt{\Delta t}\,\varepsilon_t$, $\varepsilon_t \sim \mathcal{N}(0,1)$. Paths are jagged at the chosen $\Delta t$; limiting Brownian paths are continuous almost surely but nowhere differentiable, with $\mathrm{Var}(B_t) = t$.
 ```
 
 ### Itô Processes and SDEs
@@ -256,7 +256,7 @@ The HJB gives individual optimal behavior for given prices; the KFE tracks the r
 ```{figure} figures/fig-hjb_kfe_market_loop.svg
 :name: fig-hjb_kfe_market_loop
 
-Stationary continuous-time heterogeneous-agent equilibrium as a coupled HJB–KFE–market-clearing loop. Given prices, the HJB determines optimal savings; the KFE maps that policy into a stationary density; aggregating the density updates capital, labor, and therefore prices.
+Stationary continuous-time heterogeneous-agent equilibrium as a coupled HJB--KFE--market-clearing loop. Given prices, the HJB determines optimal savings; the KFE maps that policy into a stationary density; aggregating the density updates capital, labor, and therefore prices.
 ```
 
 The solution method for the stationary equilibrium (no aggregate shocks) iterates: guess $r$ $\to$ solve HJB for $V, c^*$ $\to$ solve KFE for $g^*$ $\to$ compute $K = \sum_n \int a\,g^*\,da$ $\to$ update $r$ from the firm FOC. Under standard regularity conditions on preferences, technology, and the income process, aggregate capital supply $K^s(r)$ is monotone decreasing in $r$ over the relevant range, which makes the bisection (or fixed-point iteration) on $r$ well-posed; see {cite:t}`achdou2022income` [§2] for the full statement.
@@ -298,7 +298,7 @@ Figure {numref}`fig-huggett_aiyagari_densities` contrasts the two stationary de
 ```{figure} figures/fig-huggett_aiyagari_densities.svg
 :name: fig-huggett_aiyagari_densities
 
-Huggett (1993) Net supply  = 0: mean wealth  ≈ 0. Aiyagari (1994) K > 0: mean wealth is positive with a right upper tail. Stationary cross-sectional densities g* in the two benchmarks, by productivity type n ∈ {n1, n2} (low and high). In both economies, only the constrained low-productivity type n1 supports a Dirac atom at the borrowing constraint (blue spike): high-productivity households are not bound. Left: Huggett, bonds with limit $\underline{b}=-2$ and zero net supply, so the bulk of mass sits around b = 0. Right: Aiyagari, capital with limit $\underline{a}=0$ and positive aggregate K, shifting the unconstrained mass to the right with a long upper tail. The blue spikes visualize the Dirac atom $\alpha(n_1)\,\delta(a-\underline a)$ in the decomposition $g = g_{\mathrm{ac}} + \alpha(n)\,\delta(a-\underline a)$ introduced in the boundary-atom paragraph above. These curves are schematic TikZ illustrations of the qualitative contrast (zero-net-supply bonds versus positive capital), not direct exports; the exact densities depend on calibration and boundary treatment.
+Stationary cross-sectional densities $g^*$ in the two benchmarks, by productivity type $n\in\{n_1,n_2\}$ (low and high). In both economies, only the constrained low-productivity type $n_1$ supports a Dirac atom at the borrowing constraint (blue spike): high-productivity households are not bound. *Left:* Huggett, bonds with limit $\underline{b}=-2$ and zero net supply, so the bulk of mass sits around $b=0$. *Right:* Aiyagari, capital with limit $\underline{a}=0$ and positive aggregate $K$, shifting the unconstrained mass to the right with a long upper tail. The blue spikes visualize the Dirac atom $\alpha(n_1)\,\delta(a-\underline a)$ in the decomposition $g = g_{\mathrm{ac}} + \alpha(n)\,\delta(a-\underline a)$ introduced in the boundary-atom paragraph above. These curves are schematic TikZ illustrations of the qualitative contrast (zero-net-supply bonds versus positive capital), not direct exports; the exact densities depend on calibration and boundary treatment.
 ```
 
 ##### Connection to HANK.

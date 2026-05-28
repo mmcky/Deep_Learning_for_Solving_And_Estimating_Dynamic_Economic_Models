@@ -48,19 +48,27 @@ Distance itself is the second casualty of high dimensions, and it is worth flagg
 ```{figure} figures/fig-volume_paradox.svg
 :name: fig-volume_paradox
 
-(a) the unit ball inscribed in [−1, 1]d (b) ratio {eq}`eq-volume_ratio` versus d (log scale) The volume paradox behind the curse of dimensionality. (a) The largest ball that fits inside the cube [−1, 1]d touches the center of every face, at distance 1 from the center, but its surface stays $\sqrt{d}-1$ away from each of the 2d corners, which lie at distance $\sqrt{d}$. As d grows the corners recede while the ball does not, so almost all of the cube’s volume ends up in the corners (tinted), far from the center. (b) The ball-to-cube volume ratio of equation {eq}`eq-volume_ratio` on a logarithmic scale: π/4 at d = 2, about 2.5 × 10−3 at d = 10, and below 10−70 at d = 100. A grid or quadrature rule built on the bounding hypercube therefore spends an exponentially growing share of its nodes in corners that the model’s ergodic set never reaches.
+(a) the unit ball inscribed in $[-1,1]^d$
+
+(b) ratio {eq}`eq-volume_ratio` versus $d$ (log scale)
+
+The volume paradox behind the curse of dimensionality. *(a)* The largest ball that fits inside the cube $[-1,1]^d$ touches the center of every face, at distance $1$ from the center, but its surface stays $\sqrt{d}-1$ away from each of the $2^d$ corners, which lie at distance $\sqrt{d}$. As $d$ grows the corners recede while the ball does not, so almost all of the cube's volume ends up in the corners (tinted), far from the center. *(b)* The ball-to-cube volume ratio of equation {eq}`eq-volume_ratio` on a logarithmic scale: $\pi/4$ at $d=2$, about $2.5\times10^{-3}$ at $d=10$, and below $10^{-70}$ at $d=100$. A grid or quadrature rule built on the bounding hypercube therefore spends an exponentially growing share of its nodes in corners that the model's ergodic set never reaches.
 ```
 
 ```{figure} figures/fig-ergodic_vs_grid.svg
 :name: fig-ergodic_vs_grid
 
-Grid-based vs. simulation-based state sampling. A Cartesian grid (left) allocates effort uniformly over the hypercube and places most of its nd points far from the model’s ergodic set, the small subset of the state space that the economy actually visits under its own dynamics (red band). The DEQN algorithm samples states along simulated trajectories (right), concentrating training points exactly on that set. As d grows, the fraction of the cube reached by the ergodic set shrinks rapidly, so the grid’s relative waste grows exponentially.
+Grid-based vs. simulation-based state sampling. A Cartesian grid (left) allocates effort uniformly over the hypercube and places most of its $n^d$ points far from the model's *ergodic set*, the small subset of the state space that the economy actually visits under its own dynamics (red band). The DEQN algorithm samples states along simulated trajectories (right), concentrating training points exactly on that set. As $d$ grows, the fraction of the cube reached by the ergodic set shrinks rapidly, so the grid's relative waste grows exponentially.
 ```
 
 ```{figure} figures/fig-distance_concentration.svg
 :name: fig-distance_concentration
 
-(a) blue core and red shell each hold half a d-ball’s volume; the shell thins as d grows (b) the radius CDF piles up at r → 1 as d grows Why a “random” point in high dimensions lives on the shell, not in the core. (a) For each d, the blue inner disk and the red outer shell each hold half of the d-ball’s volume; the shell’s fractional thickness 1 − (1/2)1/d shrinks from  ≈ 0.29 at d = 2 to  ≈ 0.07 at d = 10 to  ≈ 0.014 at d = 50, so half of the mass crowds into an ever thinner rim near the surface. (b) Equivalently, the radius of a uniform draw has cumulative distribution rd, which for large d stays near zero until r is almost 1 and then jumps: the radius is essentially deterministic at 1. The companion fact is that pairwise Euclidean distances among random points concentrate, so a query point’s nearest and farthest neighbors become nearly indistinguishable [[CITEP:aggarwal2001surprising]]; this is why distance-based methods, including the Gaussian-process kernels of Chapter {ref}`ch-gp`, lose resolution in high dimensions.
+(a) blue core and red shell each hold half a $d$-ball's volume; the shell thins as $d$ grows
+
+(b) the radius CDF piles up at $r\to1$ as $d$ grows
+
+Why a "random" point in high dimensions lives on the shell, not in the core. *(a)* For each $d$, the blue inner disk and the red outer shell each hold half of the $d$-ball's volume; the shell's fractional thickness $1-(1/2)^{1/d}$ shrinks from $\approx0.29$ at $d=2$ to $\approx0.07$ at $d=10$ to $\approx0.014$ at $d=50$, so half of the mass crowds into an ever thinner rim near the surface. *(b)* Equivalently, the radius of a uniform draw has cumulative distribution $r^{d}$, which for large $d$ stays near zero until $r$ is almost $1$ and then jumps: the radius is essentially deterministic at $1$. The companion fact is that pairwise Euclidean distances among random points concentrate, so a query point's nearest and farthest neighbors become nearly indistinguishable {cite:p}`aggarwal2001surprising`; this is why distance-based methods, including the Gaussian-process kernels of Chapter {ref}`ch-gp`, lose resolution in high dimensions.
 ```
 
 ## From Supervised Learning to Self-Supervised Equilibrium Solving
@@ -78,7 +86,9 @@ where $G$ encodes optimality conditions (e.g., Euler equations) and $\mathbb{E}_
 ```{figure} figures/fig-supervised_vs_deqn.svg
 :name: fig-supervised_vs_deqn
 
-Supervised learning (left) versus DEQN training (right). Both paradigms train a parameter vector by minimizing a residual loss with SGD; the difference is the source of the training signal, labeled data $(\x_i, y_i)$ in the supervised case, structural equilibrium equations $G(\x, p(\x)) = 0$ in the DEQN case. No labeled solution data are required for DEQNs. For Brock–Mirman the right-hand side specializes to G(K, z) = 1 − β (C/C′) ⋅ αz′K′α − 1 with C = 𝒩ρ(K, z) and K′ = zKα − C; the network learns the policy by driving the squared mean of this residual to zero on simulated trajectories.
+self-supervised
+
+Supervised learning (left) versus DEQN training (right). Both paradigms train a parameter vector by minimizing a residual loss with SGD; the difference is the *source* of the training signal, labeled data $(\x_i, y_i)$ in the supervised case, structural equilibrium equations $G(\x, p(\x)) = 0$ in the DEQN case. No labeled solution data are required for DEQNs. For Brock--Mirman the right-hand side specializes to $G(K, z) = 1 - \beta\,(C/C') \cdot \alpha z' K'^{\alpha-1}$ with $C = \mathcal{N}_\rho(K, z)$ and $K' = z K^\alpha - C$; the network learns the policy by driving the squared mean of this residual to zero on simulated trajectories.
 ```
 
 In the standard (supervised) paradigm, one minimizes the discrepancy between the network's predictions and known target values. In the DEQN framework, the loss function is instead the squared norm of the equilibrium residual:
@@ -221,7 +231,7 @@ Both approaches recover the analytical solution {eq}`eq-bm_analytical` to high 
 ```{figure} figures/fig-bm_convergence_schematic.svg
 :name: fig-bm_convergence_schematic
 
-Schematic, not measured: the qualitative convergence behavior typical of a successful Brock–Mirman DEQN run. An early high-residual phase reflects an untrained network feeling out the state space; a mid phase descends roughly exponentially as the policy locks onto the equilibrium structure; a late phase plateaus near the irreducible quadrature/training-noise floor. The dotted line marks the analytical benchmark below which the residual cannot be driven without higher-precision quadrature. For the actual numbers on a specific seed, consult the companion notebook.
+Schematic, not measured: the qualitative convergence behavior typical of a successful Brock--Mirman DEQN run. An early high-residual phase reflects an untrained network feeling out the state space; a mid phase descends roughly exponentially as the policy locks onto the equilibrium structure; a late phase plateaus near the irreducible quadrature/training-noise floor. The dotted line marks the analytical benchmark below which the residual cannot be driven without higher-precision quadrature. For the actual numbers on a specific seed, consult the companion notebook.
 ```
 
 ##### Relative Euler equation error.
@@ -282,7 +292,7 @@ This split is pedagogically important for three reasons: (i) only the genuinely
 ```{figure} figures/fig-hard_soft.svg
 :name: fig-hard_soft
 
-Hard vs. soft constraints in the DEQN architecture for Brock–Mirman. The network 𝒩ρ reads the state (Kt, zt) and emits a savings share st ∈ (0, 1) via a sigmoid head. Both consumption Ct = (1 − st) ztKtα and next-period capital Kt + 1 = st ztKtα are then defined in closed form (green, top), guaranteeing Ct > 0 and Kt + 1 > 0 simultaneously; a softplus head on Ct alone could not, since Ct > ztKtα would push Kt + 1 < 0 and make Kt + 1α − 1 undefined. Only the relative Euler-equation residual (red, bottom) is squared, averaged over the mini-batch, and minimized by SGD. This figure matches the code listing in Section {ref}`sec-bm` above. In richer models (OLG, Chapter {ref}`ch-olg`) the same split extends to firm first-order conditions, household budget constraints, and KKT multipliers with softplus heads and Fischer–Burmeister complementarity residuals.
+Hard vs. soft constraints in the DEQN architecture for Brock--Mirman. The network $\mathcal{N}_\rho$ reads the state $(K_t,z_t)$ and emits a *savings share* $s_t \in (0,1)$ via a *sigmoid* head. Both consumption $C_t = (1-s_t)\,z_t K_t^\alpha$ and next-period capital $K_{t+1} = s_t\,z_t K_t^\alpha$ are then defined in closed form (green, top), guaranteeing $C_t>0$ *and* $K_{t+1}>0$ simultaneously; a softplus head on $C_t$ alone could not, since $C_t > z_t K_t^\alpha$ would push $K_{t+1}<0$ and make $K_{t+1}^{\alpha-1}$ undefined. Only the relative Euler-equation residual (red, bottom) is squared, averaged over the mini-batch, and minimized by SGD. This figure matches the code listing in Section {ref}`sec-bm` above. In richer models (OLG, Chapter {ref}`ch-olg`) the same split extends to firm first-order conditions, household budget constraints, and KKT multipliers with softplus heads and Fischer--Burmeister complementarity residuals.
 ```
 
 ##### How the split generalizes.
@@ -329,7 +339,7 @@ where $N_{\mathrm{in}}$ counts how many of the $N$ uniform "darts" land inside t
 ```{figure} figures/fig-integration_primer.svg
 :name: fig-integration_primer
 
-Midpoint sum, N = 8 rectangles (a) Riemann/midpoint approximation: tile the area under f by N rectangles whose heights equal f at the midpoints (red dots). Error 𝒪(N−2) in 1D; with M total Cartesian nodes in d dimensions the rate is 𝒪(M−2/d). Quarter-disc x2 + y2 ≤ 1 inside [0, 1]2 (b) Monte Carlo estimate of π: throw N uniform darts at [0, 1]2, count Nin inside the quarter-disc (shaded red), and report π̂N = 4Nin/N. Error 𝒪(N−1/2) regardless of dimension. Two paradigms for numerical integration that underlie every rule in this section. Deterministic tiling (left) is exact and highly accurate at low dimension but suffers exponential cost growth in d. Random sampling (right) is dimension-independent in its error rate but slow to converge in any single dimension. The Gauss–Hermite, monomial, and QMC rules of §{ref}`sec-gh_tensor_product`–{ref}`sec-qmc_cdf` are sophisticated descendants of the two ideas, designed to combine deterministic accuracy with manageable cost in d.
+Two paradigms for numerical integration that underlie every rule in this section. Deterministic tiling (left) is exact and highly accurate at low dimension but suffers exponential cost growth in $d$. Random sampling (right) is dimension-independent in its error rate but slow to converge in any single dimension. The Gauss--Hermite, monomial, and QMC rules of §{ref}`sec-gh_tensor_product`--{ref}`sec-qmc_cdf` are sophisticated descendants of the two ideas, designed to combine deterministic accuracy with manageable cost in $d$.
 ```
 
 ##### Where the rest of this section is going.
@@ -442,7 +452,7 @@ The geometric content of this formula is the mundane fact that the slope of a sm
 ```{figure} figures/fig-fd_geometry.svg
 :name: fig-fd_geometry
 
-Geometric meaning of a central finite difference. The derivative f′(x0) is the slope of the tangent to f at x0 (red). Finite differences replace this slope by the slope of the secant through the two nearby points (x0 − h, f(x0 − h)) and (x0 + h, f(x0 + h)) (blue, dashed). For small h, the secant approaches the tangent at rate 𝒪(h2); for h too small, the subtraction in the numerator becomes unreliable in finite-precision arithmetic and the approximation degrades. Figure {numref}`fig-fd_ucurve` plots the resulting error against h.
+Geometric meaning of a central finite difference. The derivative $f'(x_0)$ is the slope of the tangent to $f$ at $x_0$ (red). Finite differences replace this slope by the slope of the secant through the two nearby points $(x_0 - h, f(x_0-h))$ and $(x_0 + h, f(x_0+h))$ (blue, dashed). For small $h$, the secant approaches the tangent at rate $\mathcal{O}(h^2)$; for $h$ too small, the subtraction in the numerator becomes unreliable in finite-precision arithmetic and the approximation degrades. Figure {numref}`fig-fd_ucurve` plots the resulting error against $h$.
 ```
 
 Two sources of error compete as $h$ changes. The *truncation error* $\tfrac{1}{6}f'''(x_0)\,h^2$ shrinks as $h$ decreases; the *rounding error* associated with computing the near-zero subtraction $f(x_0+h)-f(x_0-h)$ in floating-point arithmetic grows as $\epsilon/h$, where $\epsilon \approx 2.2\cdot 10^{-16}$ is machine precision in double precision. The total error is minimized at the step size that balances the two,
@@ -456,7 +466,7 @@ The practical consequence is that central FD loses roughly *five digits of preci
 ```{figure} figures/fig-fd_ucurve.svg
 :name: fig-fd_ucurve
 
-The classic U-curve of central finite differences, here for f(x) = ex at x0 = 1. Truncation error (red, dashed) falls as h2; roundoff error (green, dashed) grows as ϵ/h. Their sum (blue) has a minimum at h⋆ ≈ 5 ⋅ 10−6, where the achievable precision is around 10−11, roughly five digits worse than the input precision. Autodiff, by contrast, attains machine precision at no step-size tuning.
+The classic U-curve of central finite differences, here for $f(x) = \mathrm{e}^x$ at $x_0 = 1$. Truncation error (red, dashed) falls as $h^2$; roundoff error (green, dashed) grows as $\epsilon / h$. Their sum (blue) has a minimum at $h^\star \approx 5 \cdot 10^{-6}$, where the achievable precision is around $10^{-11}$, roughly five digits worse than the input precision. Autodiff, by contrast, attains machine precision at no step-size tuning.
 ```
 
 ##### Automatic differentiation
@@ -494,7 +504,7 @@ x \;\to\; v_2 = \sin(x) \;\to\; y = v_1 + v_2.$$ The values along the graph are 
 ```{figure} figures/fig-ad_graph.svg
 :name: fig-ad_graph
 
-The two modes of autodiff on y = x2 + sin (x) at x = 2. Top: forward mode carries a derivative tag v̇ = ∂v/∂x alongside each value and reads ẏ = dy/dx at the output. Bottom: reverse mode evaluates f forward, stores the graph, then walks backwards with v̄ = ∂y/∂v and reads x̄ = dy/dx at the input. Both deliver 3.584, equal to f′(2) = 2 ⋅ 2 + cos (2) at machine precision. Forward mode scales linearly with the number of inputs; reverse mode scales linearly with the number of outputs, which is why it wins for DEQN training (scalar loss, many parameters).
+The two modes of autodiff on $y = x^2 + \sin(x)$ at $x = 2$. *Top:* forward mode carries a derivative tag $\dot v = \partial v / \partial x$ alongside each value and reads $\dot y = dy/dx$ at the output. *Bottom:* reverse mode evaluates $f$ forward, stores the graph, then walks backwards with $\bar v = \partial y / \partial v$ and reads $\bar x = dy/dx$ at the input. Both deliver $3.584$, equal to $f'(2) = 2 \cdot 2 + \cos(2)$ at machine precision. Forward mode scales linearly with the number of *inputs*; reverse mode scales linearly with the number of *outputs*, which is why it wins for DEQN training (scalar loss, many parameters).
 ```
 
 ##### Forward mode
@@ -666,7 +676,7 @@ Figure {numref}`fig-loss_kernels` shows the mean, $p_{90}$, and $p_{99}$ of the
 ```{figure} figures/loss_kernel_convergence.png
 :name: fig-loss_kernels
 
-Convergence of the relative Euler-error distribution under six different loss kernels on the stochastic Brock–Mirman model with full depreciation. Same network (2×32 swish, sigmoid head), same Adam optimizer, same CRN training stream; only the loss kernel changes. Left: mean |r|. Middle: p90 |r|. Right: p99 |r|. All on a log scale. Closed-form benchmark: s⋆ = αβ.
+Convergence of the relative Euler-error distribution under six different loss kernels on the stochastic Brock--Mirman model with full depreciation. Same network (2$\times$32 swish, sigmoid head), same Adam optimizer, same CRN training stream; only the loss kernel changes. Left: mean $|r|$. Middle: $p_{90}\,|r|$. Right: $p_{99}\,|r|$. All on a log scale. Closed-form benchmark: $s^\star = \alpha\beta$.
 ```
 
 *First*, MAE clearly stalls at a noise floor an order of magnitude above the other kernels, exactly the constant-gradient pathology described above; the curve is monotone but flattens out and refuses to drop further. *Second*, MSE and log-cosh achieve essentially the same final mean residual ($\sim 1.4\!\times\!10^{-4}$), and both pull the $p_{99}$ down with comparable efficacy. *Third*, the tail-aware kernels (Huber, Quantile, CVaR) typically produce the narrowest spread between mean and max residual but pay a small constant cost in the bulk; the practical pay-off shows up in problems where rare-but-consequential states matter.

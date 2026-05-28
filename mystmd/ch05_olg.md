@@ -20,7 +20,7 @@ An OLG economy consists of $A$ cohorts that coexist in each period: a new cohort
 ```{figure} figures/fig-olg_lifecycle.svg
 :name: fig-olg_lifecycle
 
-Stylized lifecycle profiles in an OLG economy (schematic, not a solution of the model). Labor income (blue) is hump-shaped, peaking in mid-career, while agents prefer a roughly flat consumption path (green); so they accumulate assets out of income during their high-earning years and run them down near the end of life. The asset profile (red, dashed) is therefore a hump that starts near zero for the newborn cohort, peaks toward the end of working life, and returns to zero for the oldest cohort, which consumes everything. The 6-agent analytic model of {ref}`sec-olg_analytic` is a stripped-down version of this picture (only the youngest cohort earns labor income); the 56-agent benchmark of {ref}`sec-olg_56` reproduces the full hump.
+Stylized lifecycle profiles in an OLG economy (schematic, *not* a solution of the model). Labor income (blue) is hump-shaped, peaking in mid-career, while agents prefer a roughly flat consumption path (green); so they accumulate assets out of income during their high-earning years and run them down near the end of life. The asset profile (red, dashed) is therefore a hump that starts near zero for the newborn cohort, peaks toward the end of working life, and returns to zero for the oldest cohort, which consumes everything. The 6-agent analytic model of {ref}`sec-olg_analytic` is a stripped-down version of this picture (only the youngest cohort earns labor income); the 56-agent benchmark of {ref}`sec-olg_56` reproduces the full hump.
 ```
 
 We develop the OLG framework in two stages. Section {ref}`sec-olg_analytic` works through the 6-agent model with a closed-form solution, maps it to a DEQN ({ref}`sec-olg_deqn`), and validates the trained network against the analytical savings rates; {ref}`sec-olg_fb` then explains how binding borrowing and collateral constraints are encoded, and {ref}`sec-olg_56` solves the 56-agent research benchmark with exactly the same training loop.
@@ -128,7 +128,7 @@ Young agents save more (more periods ahead); old agents save less; Figure {numr
 ```{figure} figures/fig-olg6_savings.svg
 :name: fig-olg6_savings
 
-Closed-form savings rates βh from Table {numref}`tab-olg6_savings_rates` for the 6-agent analytic OLG (β = 0.7, log utility). The monotone decline with age reflects the shrinking forward horizon: cohort h has only A − h remaining periods over which to consume future income, so the marginal incentive to save weakens as h grows. This is the validation target the trained DEQN’s average sigmoid output should match cohort by cohort.
+Closed-form savings rates $\beta_h$ from Table {numref}`tab-olg6_savings_rates` for the 6-agent analytic OLG ($\beta=0.7$, log utility). The monotone decline with age reflects the shrinking forward horizon: cohort $h$ has only $A-h$ remaining periods over which to consume future income, so the marginal incentive to save weakens as $h$ grows. This is the validation target the trained DEQN's average sigmoid output should match cohort by cohort.
 ```
 
 (sec-olg_deqn)=

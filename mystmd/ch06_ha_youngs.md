@@ -16,7 +16,7 @@ The continuum-agent framework that this chapter operationalises has three founda
 ```{figure} figures/fig-bewley_lineage.svg
 :name: fig-bewley_lineage
 
-Genealogy of the heterogeneous-agent models treated in this script. This chapter targets the Krusell–Smith branch (right) by combining a DEQN policy with Young’s histogram update; the continuous-time branch (Achdou–Han–Lasry–Lions–Moll) is taken up in Chapter {ref}`ch-ct_theory`.
+Genealogy of the heterogeneous-agent models treated in this script. This chapter targets the Krusell--Smith branch (right) by combining a DEQN policy with Young's histogram update; the continuous-time branch (Achdou--Han--Lasry--Lions--Moll) is taken up in Chapter {ref}`ch-ct_theory`.
 ```
 
 (sec-young_motivation)=
@@ -137,7 +137,7 @@ Figure {numref}`fig-young_interp` illustrates this operation. A mass $m$ sittin
 ```{figure} figures/fig-young_interp.svg
 :name: fig-young_interp
 
-Linear interpolation in Young’s method. Mass m at off-grid point k′ is redistributed to the two bracketing grid points kn and kn + 1 using weights ω and 1 − ω. Closer proximity to a grid point yields a larger share of the mass.
+Linear interpolation in Young's method. Mass $m$ at off-grid point $k'$ is redistributed to the two bracketing grid points $k_n$ and $k_{n+1}$ using weights $\omega$ and $1-\omega$. Closer proximity to a grid point yields a larger share of the mass.
 ```
 
 **Why exactly this weight?** The lottery weight $\omega$ in Eq. {eq}`eq-young_weights` is not an arbitrary choice: it is the *unique* value for which the two-point split has conditional mean equal to the off-grid policy choice $k'$. Solving the equation $\omega\cdot k_n + (1-\omega)\cdot k_{n+1} = k'$ for $\omega$ recovers Eq. {eq}`eq-young_weights` in one line:
@@ -204,7 +204,9 @@ This small example shows why the grid must extend beyond the range of the policy
 ```{figure} figures/fig-young_cascade.svg
 :name: fig-young_cascade
 
-Young’s cascade for one source bin (essentially Fig. 1 of {cite:t}`young2010`). Mass m at (k, ε = L) flows in two stages: the capital lottery (ω vs. 1 − ω) sends it to the bracketing grid points kJ and kJ + 1, and the shock fork (πLL vs. πLH) splits each piece across the reachable next-period idiosyncratic states. Each of the four leaves receives the product of its stage-1 and stage-2 weights times the source mass; the four leaf masses sum back to m. Repeating the cascade for every active source bin and accumulating the leaves yields the new histogram Gt + 1.
+Verification: $0.027 + 0.003 + 0.018 + 0.002 = 0.05 = m$ $✓$.The conditional mean of next-period capital is $\omega k_J + (1-\omega) k_{J+1} = k'$, by Eq. {eq}`eq-young_meanpreserve`.
+
+Young's cascade for one source bin (essentially Fig. 1 of {cite:t}`young2010`). Mass $m$ at $(k, \varepsilon{=}L)$ flows in two stages: the capital lottery ($\omega$ vs. $1-\omega$) sends it to the bracketing grid points $k_J$ and $k_{J+1}$, and the shock fork ($\pi_{LL}$ vs. $\pi_{LH}$) splits each piece across the reachable next-period idiosyncratic states. Each of the four leaves receives the product of its stage-1 and stage-2 weights times the source mass; the four leaf masses sum back to $m$. Repeating the cascade for every active source bin and accumulating the leaves yields the new histogram $G_{t+1}$.
 ```
 
 A reader implementing the method should recognize three properties from the figure: (i) mass is conserved bin-by-bin because $\omega + (1-\omega) = 1$ and $\sum_{\varepsilon'} \pi_{\varepsilon\varepsilon'} = 1$; (ii) the capital lottery's expected next-period $k$ equals the policy choice $k'$ by Eq. {eq}`eq-young_meanpreserve`; (iii) the entire update is *linear* in $G_t$, so it is a sparse matrix-vector product $G_{t+1} = T(\rho)\,G_t$ where the transition operator $T$ depends on the current policy. This linearity is what makes the histogram update differentiable in the policy values almost everywhere, conditional on the interpolation brackets, when we embed it inside a neural-network training loop in {ref}`sec-young_deqn`. Index changes at bin boundaries and clipping at domain edges are nondifferentiable; standard implementations either ignore these measure-zero events, smooth the assignment, or stop gradients through the index-selection step, and in practice none of these choices materially affects training in the calibrations covered in this chapter.
@@ -281,7 +283,7 @@ Figure {numref}`fig-young_forward` visualizes the five stages of a single forwa
 ```{figure} figures/fig-young_forward.svg
 :name: fig-young_forward
 
-Flow diagram for one forward step of Young’s histogram update (Algorithm {prf:ref}`alg-young`). Starting from Gt, the policy function is evaluated at every active bin, the resulting off-grid savings are interpolated back onto the grid, and idiosyncratic shock transitions redistribute mass across ε-states to produce Gt + 1.
+Flow diagram for one forward step of Young's histogram update (Algorithm {prf:ref}`alg-young`). Starting from $G_t$, the policy function is evaluated at every active bin, the resulting off-grid savings are interpolated back onto the grid, and idiosyncratic shock transitions redistribute mass across $\varepsilon$-states to produce $G_{t+1}$.
 ```
 
 **Comparison with Monte Carlo.** Young's method produces *zero sampling noise* (deterministic), preserves the mean *exactly*, requires only $\sim$100--5,000 grid points (versus $>$50,000 agents for Monte Carlo), and is fully reproducible. The trade-off is that it approximates higher moments and requires a grid that is wide enough to contain all mass. The following table summarizes the comparison:
@@ -299,7 +301,7 @@ Figure {numref}`fig-young_vs_mc` contrasts the two approaches visually: the his
 ```{figure} figures/fig-young_vs_mc.svg
 :name: fig-young_vs_mc
 
-Young’s histogram (left) versus Monte Carlo panel simulation (right). Both approximate the same underlying wealth density (dashed). The histogram method is deterministic and smooth; the Monte Carlo panel exhibits $\mathcal{O}(1/\sqrt{N})$ sampling noise that contaminates downstream OLS regressions in the Krusell–Smith algorithm. The bars in this figure are a TikZ schematic illustrating the two regimes; for the actual histograms produced by the algorithm see notebook lecture_09_10_Youngs_Method_Examples in the Lecture-09 code/ folder.
+Young's histogram (left) versus Monte Carlo panel simulation (right). Both approximate the same underlying wealth density (dashed). The histogram method is deterministic and smooth; the Monte Carlo panel exhibits $\mathcal{O}(1/\sqrt{N})$ sampling noise that contaminates downstream OLS regressions in the Krusell--Smith algorithm. *The bars in this figure are a TikZ schematic illustrating the two regimes; for the actual histograms produced by the algorithm see notebook `lecture_09_10_Youngs_Method_Examples` in the Lecture-09 `code/` folder.*
 ```
 
 The absence of sampling noise matters for the Krusell--Smith algorithm: Monte Carlo noise in the realized mean contaminates the OLS regression that updates the forecasting rule, potentially destabilizing convergence.
@@ -359,7 +361,11 @@ The companion notebook sequence mirrors this decomposition. `10_Youngs_Method_Ex
 ```{figure} figures/fig-young_encoding.svg
 :name: fig-young_encoding
 
-Histogram encoding and neural network architecture. The individual state (ηt, bt) (blue boxes / blue arrows) and the aggregate state (ztidx, inctidx, unctidx, htη = 0.8, htη = 1.2) (orange box for the three shock-index entries, red boxes for the two histograms) are concatenated as input to the policy network 𝒩pol; each input arrow is colored to match its source box and enters the policy-input layer at a distinct horizontal offset, so the five arrows are uniquely identifiable at a glance. The price network 𝒩price receives only the aggregate state. Both networks use softplus output activations.
+$5+2N_b$
+
+$3+2N_b$
+
+Histogram encoding and neural network architecture. The individual state $(\eta_t, b_t)$ (blue boxes / blue arrows) and the aggregate state $(z_t^{\mathrm{idx}},\mathrm{inc}_t^{\mathrm{idx}},\mathrm{unc}_t^{\mathrm{idx}}, h_t^{\eta=0.8}, h_t^{\eta=1.2})$ (orange box for the three shock-index entries, red boxes for the two histograms) are concatenated as input to the policy network $\mathcal{N}_{pol}$; each input arrow is colored to match its source box and enters the policy-input layer at a distinct horizontal offset, so the five arrows are uniquely identifiable at a glance. The price network $\mathcal{N}_{price}$ receives only the aggregate state. Both networks use softplus output activations.
 ```
 
 **Neural network architecture.** Two networks are trained jointly:
@@ -588,7 +594,7 @@ The histogram-based DEQN above is transparent because it feeds a direct approxim
 ```{figure} figures/fig-sequence_space_compare.svg
 :name: fig-sequence_space_compare
 
-Two ways to encode the aggregate state in deep equilibrium learning. Each pipeline reads top-to-bottom: the upper (colored) box is the input the user gives to the same neural network 𝒩ρ, the middle (colored) box is the network’s output (policy and price objects), and the green box is the equilibrium loss that consumes those outputs. Histogram DEQNs (left, blue) feed an endogenous state representation (At, μt); sequence-space DEQNs (right, red) feed a truncated exogenous shock history ztT. Crucially, the network and the residual-based training loss are identical across the two pipelines, only the input changes.
+Two ways to encode the aggregate state in deep equilibrium learning. Each pipeline reads top-to-bottom: the upper (colored) box is the *input* the user gives to the same neural network $\mathcal{N}_\rho$, the middle (colored) box is the network's *output* (policy and price objects), and the green box is the equilibrium loss that consumes those outputs. Histogram DEQNs (left, blue) feed an endogenous state representation $(A_t, \mu_t)$; sequence-space DEQNs (right, red) feed a truncated exogenous shock history $z_t^T$. Crucially, the network and the residual-based training loss are identical across the two pipelines, only the input changes.
 ```
 
 **The sequence-space representation.** Let $z_t^T := (z_{t-T+1}, \ldots, z_t) \in \R^T$ denote the last $T$ realizations of the exogenous aggregate shock. The key claim is that, in an ergodic economy, this history is an *approximate sufficient statistic* for the endogenous aggregate state. In the Brock--Mirman warm-up notebook, the network maps the shock history to a bounded savings rate, from which next-period capital follows by the resource constraint, $$s_t = \sigma\!\bigl(\mathcal{N}_\rho(z_t^T)\bigr) \in (0,1), \qquad K_{t+1} = s_t\, z_t K_t^\alpha,$$ where $\sigma$ is the logistic squashing that keeps $K_{t+1}$ feasible. In the richer heterogeneous-agent version, the network instead maps the same history to higher-level equilibrium objects such as policy-function coefficients or pricing objects. This connects the method to the MIT-shock and sequence-space Jacobian literature of {cite:t}`boppart2018exploiting` and {cite:t}`auclert2021using`, but replaces local linear approximations with a global residual-based neural approximation.
@@ -610,7 +616,7 @@ Both formulations describe the *same* equilibrium. What differs is the *domain o
 ```{figure} figures/fig-sequence_space_decay.svg
 :name: fig-sequence_space_decay
 
-Intuition for sequence space in Brock–Mirman. log Kt depends on past shocks with weights that decay like αj in the lag j (here α = 0.36, the standard capital share). Already at j = 3 the weight has fallen to ∼ 0.05, so a finite history of recent shocks summarizes the relevant aggregate information; very old shocks matter little.
+Intuition for sequence space in Brock--Mirman. $\log K_t$ depends on past shocks with weights that decay like $\alpha^j$ in the lag $j$ (here $\alpha = 0.36$, the standard capital share). Already at $j = 3$ the weight has fallen to $\sim\!0.05$, so a finite history of recent shocks summarizes the relevant aggregate information; very old shocks matter little.
 ```
 
 **Brock--Mirman: what changes relative to Chapter {ref}`ch-deqn`?** The Brock--Mirman warm-up is useful because the change can be written down exactly. In Chapter {ref}`ch-deqn`, the state-space DEQN uses the current state as input, $$x_t^{\mathrm{state}} = (K_t, z_t), \qquad C_t = \mathcal{N}_\rho(K_t, z_t), \qquad K_{t+1} = z_t K_t^\alpha - C_t.$$ In the sequence-space version, the *economic model* is unchanged, but the network sees a different input: $$x_t^{\mathrm{seq}} = z_t^T = (z_{t-T+1}, \ldots, z_t), \qquad s_t = \sigma\!\bigl(\mathcal{N}_\rho(z_t^T)\bigr), \qquad K_{t+1} = s_t\, z_t K_t^\alpha, \qquad C_t = (1-s_t)\, z_t K_t^\alpha.$$ The Euler residual is the same object as before, $$G_t = 1 - \beta \,\frac{C_t}{C_{t+1}} \,\alpha z_{t+1} K_{t+1}^{\alpha-1},$$ so the economics are unchanged. What changes is the computational representation:
