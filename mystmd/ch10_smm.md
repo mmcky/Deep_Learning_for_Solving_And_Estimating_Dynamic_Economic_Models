@@ -332,18 +332,46 @@ Climate--economy integrated assessment models (Chapter {ref}`ch-climate`) are t
 ## Exercises
 Worked solutions and guidance for these exercises appear in Appendix {ref}`app-solutions`.
 
-1.   **[Computational\] Identification.** In notebook `lecture_15_03_Structural_Estimation_BM.ipynb`, choose two candidate moments and compute the finite-difference Jacobian $\partial m/\partial\varrho$ at $\varrho_{\mathrm{true}}=0.90$. Which moment provides stronger local identification?
+```{exercise}
+:label: ex-ch10-1
 
-2.   **[Core\] Optimal weighting.** Show that under standard regularity conditions, $W^\star=\Omega^{-1}$ minimizes the asymptotic variance of $\hat\theta_{\mathrm{SMM}}$, where $\Omega$ is the covariance of the moment discrepancy. Why does identity weighting still appear in the first stage?
+**[Computational\] Identification.** In notebook `lecture_15_03_Structural_Estimation_BM.ipynb`, choose two candidate moments and compute the finite-difference Jacobian $\partial m/\partial\varrho$ at $\varrho_{\mathrm{true}}=0.90$. Which moment provides stronger local identification?
+```
 
-3.   **[Computational\] Common random numbers.** In the scalar Brock--Mirman exercise, plot the SMM objective as a function of $\varrho$ with and without common random numbers. Quantify the objective noise across repeated Monte Carlo panels under the same candidate grid.
+```{exercise}
+:label: ex-ch10-2
 
-4.   **[Core\] SMM vs. SBI.** Outline the algorithmic difference between estimating $\theta$ by SMM (one optimization per dataset) and by neural simulation-based inference (one training run plus one posterior evaluation per dataset). In which regime does SBI dominate?
+**[Core\] Optimal weighting.** Show that under standard regularity conditions, $W^\star=\Omega^{-1}$ minimizes the asymptotic variance of $\hat\theta_{\mathrm{SMM}}$, where $\Omega$ is the covariance of the moment discrepancy. Why does identity weighting still appear in the first stage?
+```
 
-5.   **[Advanced/project\] $J$-statistic and overidentification.** In notebook `lecture_15_03b_Structural_Estimation_BM_Joint.ipynb`, use the over-identified specification with $q=4$ moments and $p=2$ parameters. (i) State the asymptotic distribution of the $J$-statistic under correct specification when $W=\Omega^{-1}$. (ii) Compute $J(\hat\theta)$ on the original synthetic sample and report whether the $\chi^2_2$ test rejects at $\alpha=0.05$. (iii) Repeat across Monte Carlo samples generated at the truth and compare the empirical distribution with $\chi^2_2$. (iv) Introduce a structural break in one model parameter and verify that the $J$ distribution shifts to the right.
+```{exercise}
+:label: ex-ch10-3
 
-6.   **[Advanced/project\] Bootstrap confidence intervals.** Compare three confidence-interval procedures for $\hat\theta_\mathrm{SMM}$: (a) plug-in sandwich standard errors; (b) moving-block or stationary bootstrap of the time-series sample; (c) parametric bootstrap, drawing new samples under the simulated model at $\hat\theta$. Report the confidence intervals and coverage across repeated Monte Carlo replications.
+**[Computational\] Common random numbers.** In the scalar Brock--Mirman exercise, plot the SMM objective as a function of $\varrho$ with and without common random numbers. Quantify the objective noise across repeated Monte Carlo panels under the same candidate grid.
+```
 
-7.   **[Advanced/project\] Maximum likelihood vs. SMM efficiency.** Suppose the productivity process $\log z_t$ is observed. Implement the Gaussian AR(1) MLE for $\varrho$ and compare it with the SMM estimator based on the moments in notebook `lecture_15_03_Structural_Estimation_BM.ipynb`. On Monte Carlo replications at several sample sizes, report bias, variance, and MSE. Explain why MLE is efficient for this observed-shock likelihood, while SMM reaches the GMM efficiency bound only for the chosen moment vector. As an optional extension, repeat the beta-only MLE comparison in the full-depreciation log-utility special case where the policy has a closed form.
+```{exercise}
+:label: ex-ch10-4
+
+**[Core\] SMM vs. SBI.** Outline the algorithmic difference between estimating $\theta$ by SMM (one optimization per dataset) and by neural simulation-based inference (one training run plus one posterior evaluation per dataset). In which regime does SBI dominate?
+```
+
+```{exercise}
+:label: ex-ch10-5
+
+**[Advanced/project\] $J$-statistic and overidentification.** In notebook `lecture_15_03b_Structural_Estimation_BM_Joint.ipynb`, use the over-identified specification with $q=4$ moments and $p=2$ parameters. (i) State the asymptotic distribution of the $J$-statistic under correct specification when $W=\Omega^{-1}$. (ii) Compute $J(\hat\theta)$ on the original synthetic sample and report whether the $\chi^2_2$ test rejects at $\alpha=0.05$. (iii) Repeat across Monte Carlo samples generated at the truth and compare the empirical distribution with $\chi^2_2$. (iv) Introduce a structural break in one model parameter and verify that the $J$ distribution shifts to the right.
+```
+
+```{exercise}
+:label: ex-ch10-6
+
+**[Advanced/project\] Bootstrap confidence intervals.** Compare three confidence-interval procedures for $\hat\theta_\mathrm{SMM}$: (a) plug-in sandwich standard errors; (b) moving-block or stationary bootstrap of the time-series sample; (c) parametric bootstrap, drawing new samples under the simulated model at $\hat\theta$. Report the confidence intervals and coverage across repeated Monte Carlo replications.
+```
+
+```{exercise}
+:label: ex-ch10-7
+
+**[Advanced/project\] Maximum likelihood vs. SMM efficiency.** Suppose the productivity process $\log z_t$ is observed. Implement the Gaussian AR(1) MLE for $\varrho$ and compare it with the SMM estimator based on the moments in notebook `lecture_15_03_Structural_Estimation_BM.ipynb`. On Monte Carlo replications at several sample sizes, report bias, variance, and MSE. Explain why MLE is efficient for this observed-shock likelihood, while SMM reaches the GMM efficiency bound only for the chosen moment vector. As an optional extension, repeat the beta-only MLE comparison in the full-depreciation log-utility special case where the policy has a closed form.
+```
 
 [^1]: A resource-based variant in which the savings rate is applied to total resources $R_t = Y_t + (1-\delta)K_t$, allowing disinvestment relative to the depreciated stock, is a straightforward alternative; the SMM moments and notebook outputs in this chapter use the output-based savings rate above.

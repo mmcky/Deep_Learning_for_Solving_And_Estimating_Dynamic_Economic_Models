@@ -145,6 +145,15 @@ preprocess:
     # ("0.027 + 0.003 + 0.018 + 0.002 = 0.05 = m ✓").
     - { from: '\\checkmark(?![A-Za-z@])',
         to:   '✓' }
+    # `\,^\circ` / `\,^{\circ}` (thin-space + degree symbol, e.g.
+    # `3\,^\circ\mathrm{C}`) breaks KaTeX: the `^` has no base after `\,`,
+    # so KaTeX raises "Got group of unknown type: 'internal'". Inserting an
+    # empty group `{}` gives the superscript a base — renders identically.
+    # Covers both the brace-less and braced forms (8 instances in
+    # ch11_climate, temperatures in °C). Local stopgap for upstream
+    # claude-latex-to-myst#45 (KaTeX-compat); remove when that lands.
+    - { from: '\\,\^(\{?\\circ\}?)',
+        to:   '\\,{}^\1' }
 
 # --- Post-pandoc Markdown rewrites ------------------------------------------
 

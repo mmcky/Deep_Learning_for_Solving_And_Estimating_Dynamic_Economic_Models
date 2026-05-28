@@ -130,17 +130,15 @@ where $\ell$ is the length scale (controlling smoothness) and $\sigma_f^2$ is th
 Squared-exponential kernel as a function of distance for three length scales. Small ℓ makes correlations decay quickly and produces rougher, more local fits; large ℓ couples distant points and imposes smoother functions.
 ```
 
-Figure {numref}`fig-rbf_length_scale` shows how the RBF length scale controls the distance over which observations remain informative. Given training data $\mathcal{D} = \{(\x_i, y_i)\}_{i=1}^n$, let $\bm{\mu}_X = (\mu(\x_1),\ldots,\mu(\x_n))^\top$, $\mu_*=\mu(\x_*)$, and $K_y = K + \sigma_y^2 I$. The GP posterior at a test point $\x_*$ has a closed-form latent-function mean and variance: 
-
-(eq-gp_mean)=
-(eq-gp_var)=
+Figure {numref}`fig-rbf_length_scale` shows how the RBF length scale controls the distance over which observations remain informative. Given training data $\mathcal{D} = \{(\x_i, y_i)\}_{i=1}^n$, let $\bm{\mu}_X = (\mu(\x_1),\ldots,\mu(\x_n))^\top$, $\mu_*=\mu(\x_*)$, and $K_y = K + \sigma_y^2 I$. The GP posterior at a test point $\x_*$ has a closed-form latent-function mean and variance:
 
 $$
-\begin{aligned}
-\bar{f}_* &= \mu_* + \bm{k}_*^\top K_y^{-1}(\bm{y}-\bm{\mu}_X), \\
-\sigma_{f,*}^2 &= k(\x_*, \x_*) - \bm{k}_*^\top K_y^{-1} \bm{k}_*,
-\end{aligned}
+\bar{f}_* = \mu_* + \bm{k}_*^\top K_y^{-1}(\bm{y}-\bm{\mu}_X)
+$$ (eq-gp_mean)
+
 $$
+\sigma_{f,*}^2 = k(\x_*, \x_*) - \bm{k}_*^\top K_y^{-1} \bm{k}_*
+$$ (eq-gp_var)
 
 where $K$ is the kernel matrix, $\bm{k}_*$ is the vector of kernel evaluations between the test point and the training inputs, and $\sigma_y^2$ is the observation noise variance. For a noisy future observation $y_*$, the predictive variance is $\sigma_{y,*}^2 = \sigma_{f,*}^2 + \sigma_y^2$. The common zero-mean formulas are recovered by centering outputs or setting $\mu \equiv 0$.
 
@@ -806,18 +804,46 @@ In our experience the right method follows from the application: *(i)* plain GP
 ## Exercises
 Worked solutions and guidance for these exercises appear in Appendix {ref}`app-solutions`.
 
-1.   **[Core\] Posterior on three points.** Fit a GP with RBF kernel ($\ell=1$, $\sigma_f=1$, $\sigma_y=0.1$) to three points $(0,0), (1,0.8), (2,0.3)$. Compute the posterior mean and variance at $x^\star = 1.5$ in closed form.
+```{exercise}
+:label: ex-ch9-1
 
-2.   **[Core\] Marginal likelihood Occam.** For the same three points, plot the log marginal likelihood as a function of the length scale $\ell \in [0.1, 5]$. Identify the optimum and explain it in terms of the data-fit / complexity decomposition.
+**[Core\] Posterior on three points.** Fit a GP with RBF kernel ($\ell=1$, $\sigma_f=1$, $\sigma_y=0.1$) to three points $(0,0), (1,0.8), (2,0.3)$. Compute the posterior mean and variance at $x^\star = 1.5$ in closed form.
+```
 
-3.   **[Core\] Active subspace by hand.** For $f(\x) = (x_1 + x_2 + x_3)^2 + 0.01(x_1 - x_2)^2$ on $[-1,1]^3$, compute the gradient outer product matrix $\hat C$ on a uniform sample. Show that the leading eigenvector identifies the "aggregate" direction $(1,1,1)/\sqrt 3$.
+```{exercise}
+:label: ex-ch9-2
 
-4.   **[Computational\] Deep vs. linear active subspace on a radial ridge.** Take the target $y(\xi) = \exp\!\bigl(-[(w_1^\top\xi)^2 + (w_2^\top\xi)^2]\bigr)$ with $\xi \sim \mathcal{N}(0, I_{20})$ and $w_1, w_2 \in \R^{20}$ fixed orthonormal. (i) Compute $\hat C$ from $4\,000$ samples and confirm that it has two nonzero eigenvalues. (ii) Train the Tripathy--Bilionis surrogate {eq}`eq-deep_as_ansatz` with widths {eq}`eq-tb_widths`, Swish activation {eq}`eq-swish`, and elastic-net loss {eq}`eq-tb_loss` for $d \in \{1,2,3,4\}$; plot held-out MSE on a log scale and identify the elbow. (iii) Explain why linear AS needs $d \ge 2$ while deep AS already captures the response at $d = 1$ (cf. notebook `09_Deep_Active_Subspace_Ridge`).
+**[Core\] Marginal likelihood Occam.** For the same three points, plot the log marginal likelihood as a function of the length scale $\ell \in [0.1, 5]$. Identify the optimum and explain it in terms of the data-fit / complexity decomposition.
+```
 
-5.   **[Computational\] BAL on a 2D function.** Modify notebook `02_GP_and_BAL` so that one acquisition uses pure variance, $U_{\mathrm{var}}(\x)=\sigma^2(\x)$, and another uses the mixed log-variance score $U_{\mathrm{mix}}(\x)=w_{\mathrm{obj}}\mu(\x)+\tfrac{w_{\mathrm{var}}}{2}\log\sigma^2(\x)$ with $w_{\mathrm{obj}}>0$. Compare the resulting designs and comment on which gives smoother domain coverage. Explain why pure $\sigma^2(\x)$ and pure $\log\sigma^2(\x)$ have identical maximizers.
+```{exercise}
+:label: ex-ch9-3
 
-6.   **[Computational\] Sobol sensitivity with a GP surrogate.** Write a short script, or extend notebook `02_GP_and_BAL.ipynb`, to train a GP surrogate on the $4$-dimensional Genz product-peak function $f(\bm x) = \prod_{i=1}^{4}(c_i^{-2} + (x_i - w_i)^2)^{-1}$ on $[0,1]^4$ with $c = (1, 2, 0.5, 1.5)$, $w = (0.4, 0.6, 0.3, 0.7)$, using $N \in \{50, 100, 200\}$ training points. For each $N$, compute the Sobol first-order and total-effect indices in two ways: (i) direct on the true $f$ via $10{,}000$ Monte Carlo samples (reference), (ii) on the GP surrogate via $10^6$ samples (cheap thanks to the surrogate). Plot the relative error in each Sobol index against $N$. Verify that the surrogate-based Sobol estimates converge to the reference as $N$ grows, and identify the $N$ at which all four first-order indices match the reference within $5\%$. Discuss why surrogate-based sensitivity analysis is the workhorse for expensive simulators (climate models, structural macro models) where direct $10^6$-sample Monte Carlo is infeasible.
+**[Core\] Active subspace by hand.** For $f(\x) = (x_1 + x_2 + x_3)^2 + 0.01(x_1 - x_2)^2$ on $[-1,1]^3$, compute the gradient outer product matrix $\hat C$ on a uniform sample. Show that the leading eigenvector identifies the "aggregate" direction $(1,1,1)/\sqrt 3$.
+```
 
-7.   **[Core\] Prior-driven RBF-GP extrapolation outside the training domain.** Train a GP with RBF kernel on $20$ points sampled uniformly from $[0, 1]$ from the function $f(x) = \sin(2\pi x)\,e^{-x}$. (i) Plot the posterior mean and $\pm 2$ standard deviation band on the training interval $[0,1]$; verify the posterior tracks the true function and the band is narrow. (ii) Now extrapolate to $x \in [1.5, 3.0]$ and plot the posterior mean and band over the extended interval. Show analytically that for an RBF kernel with length scale $\ell$, the posterior at $x$ far from any training point ($|x - x_i| \gg \ell$ for all $i$) reverts to the prior: posterior mean $\to 0$, posterior variance $\to \sigma_f^2$. (iii) Verify numerically: at $x = 3$, the posterior mean is essentially zero (independent of the training data), and the posterior standard deviation has expanded back to the prior $\sigma_f$. (iv) Discuss the implication: far from the training domain the posterior reverts to the prior, so the variance band there reflects the learned hyperparameters rather than the data, and the band is overconfident only when the prior variance or the learned length scale is itself misleading. Naive Bayesian active learning that relies on posterior variance may therefore fail to acquire informative samples outside the convex hull when the prior variance is no larger than the inside-hull noise scale. Mitigations: use a Matérn-$\nu$ kernel with smaller $\nu$ (heavier-tailed), bound the analysis to the convex hull of the training data, or use a boundary-aware acquisition function.
+```{exercise}
+:label: ex-ch9-4
+
+**[Computational\] Deep vs. linear active subspace on a radial ridge.** Take the target $y(\xi) = \exp\!\bigl(-[(w_1^\top\xi)^2 + (w_2^\top\xi)^2]\bigr)$ with $\xi \sim \mathcal{N}(0, I_{20})$ and $w_1, w_2 \in \R^{20}$ fixed orthonormal. (i) Compute $\hat C$ from $4\,000$ samples and confirm that it has two nonzero eigenvalues. (ii) Train the Tripathy--Bilionis surrogate {eq}`eq-deep_as_ansatz` with widths {eq}`eq-tb_widths`, Swish activation {eq}`eq-swish`, and elastic-net loss {eq}`eq-tb_loss` for $d \in \{1,2,3,4\}$; plot held-out MSE on a log scale and identify the elbow. (iii) Explain why linear AS needs $d \ge 2$ while deep AS already captures the response at $d = 1$ (cf. notebook `09_Deep_Active_Subspace_Ridge`).
+```
+
+```{exercise}
+:label: ex-ch9-5
+
+**[Computational\] BAL on a 2D function.** Modify notebook `02_GP_and_BAL` so that one acquisition uses pure variance, $U_{\mathrm{var}}(\x)=\sigma^2(\x)$, and another uses the mixed log-variance score $U_{\mathrm{mix}}(\x)=w_{\mathrm{obj}}\mu(\x)+\tfrac{w_{\mathrm{var}}}{2}\log\sigma^2(\x)$ with $w_{\mathrm{obj}}>0$. Compare the resulting designs and comment on which gives smoother domain coverage. Explain why pure $\sigma^2(\x)$ and pure $\log\sigma^2(\x)$ have identical maximizers.
+```
+
+```{exercise}
+:label: ex-ch9-6
+
+**[Computational\] Sobol sensitivity with a GP surrogate.** Write a short script, or extend notebook `02_GP_and_BAL.ipynb`, to train a GP surrogate on the $4$-dimensional Genz product-peak function $f(\bm x) = \prod_{i=1}^{4}(c_i^{-2} + (x_i - w_i)^2)^{-1}$ on $[0,1]^4$ with $c = (1, 2, 0.5, 1.5)$, $w = (0.4, 0.6, 0.3, 0.7)$, using $N \in \{50, 100, 200\}$ training points. For each $N$, compute the Sobol first-order and total-effect indices in two ways: (i) direct on the true $f$ via $10{,}000$ Monte Carlo samples (reference), (ii) on the GP surrogate via $10^6$ samples (cheap thanks to the surrogate). Plot the relative error in each Sobol index against $N$. Verify that the surrogate-based Sobol estimates converge to the reference as $N$ grows, and identify the $N$ at which all four first-order indices match the reference within $5\%$. Discuss why surrogate-based sensitivity analysis is the workhorse for expensive simulators (climate models, structural macro models) where direct $10^6$-sample Monte Carlo is infeasible.
+```
+
+```{exercise}
+:label: ex-ch9-7
+
+**[Core\] Prior-driven RBF-GP extrapolation outside the training domain.** Train a GP with RBF kernel on $20$ points sampled uniformly from $[0, 1]$ from the function $f(x) = \sin(2\pi x)\,e^{-x}$. (i) Plot the posterior mean and $\pm 2$ standard deviation band on the training interval $[0,1]$; verify the posterior tracks the true function and the band is narrow. (ii) Now extrapolate to $x \in [1.5, 3.0]$ and plot the posterior mean and band over the extended interval. Show analytically that for an RBF kernel with length scale $\ell$, the posterior at $x$ far from any training point ($|x - x_i| \gg \ell$ for all $i$) reverts to the prior: posterior mean $\to 0$, posterior variance $\to \sigma_f^2$. (iii) Verify numerically: at $x = 3$, the posterior mean is essentially zero (independent of the training data), and the posterior standard deviation has expanded back to the prior $\sigma_f$. (iv) Discuss the implication: far from the training domain the posterior reverts to the prior, so the variance band there reflects the learned hyperparameters rather than the data, and the band is overconfident only when the prior variance or the learned length scale is itself misleading. Naive Bayesian active learning that relies on posterior variance may therefore fail to acquire informative samples outside the convex hull when the prior variance is no larger than the inside-hull noise scale. Mitigations: use a Matérn-$\nu$ kernel with smaller $\nu$ (heavier-tailed), bound the analysis to the convex hull of the training data, or use a boundary-aware acquisition function.
+```
 
 [^1]: <https://dp.quantecon.org/>

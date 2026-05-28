@@ -208,17 +208,15 @@ Business-as-usual industrial emissions in CDICE (in GtCO2/yr) under the nine com
 
 (sec-dice_temperature)=
 ### Two-layer energy balance and radiative forcing
-A two-layer energy balance model links carbon concentrations to temperature: 
-
-(eq-temp_at)=
-(eq-temp_oc)=
+A two-layer energy balance model links carbon concentrations to temperature:
 
 $$
-\begin{aligned}
-T^{\mathrm{AT}}_{t+1} &= T^{\mathrm{AT}}_t + c_1 \bigl(F_t - \lambda\, T^{\mathrm{AT}}_t - c_3(T^{\mathrm{AT}}_t - T^{\mathrm{OC}}_t)\bigr),  \\
-T^{\mathrm{OC}}_{t+1} &= T^{\mathrm{OC}}_t + c_4 \bigl(T^{\mathrm{AT}}_t - T^{\mathrm{OC}}_t\bigr),
-\end{aligned}
+T^{\mathrm{AT}}_{t+1} = T^{\mathrm{AT}}_t + c_1 \bigl(F_t - \lambda\, T^{\mathrm{AT}}_t - c_3(T^{\mathrm{AT}}_t - T^{\mathrm{OC}}_t)\bigr)
+$$ (eq-temp_at)
+
 $$
+T^{\mathrm{OC}}_{t+1} = T^{\mathrm{OC}}_t + c_4 \bigl(T^{\mathrm{AT}}_t - T^{\mathrm{OC}}_t\bigr)
+$$ (eq-temp_oc)
 
 where radiative forcing is
 
@@ -246,7 +244,7 @@ $$
 \Omega^N(T_{\mathrm{AT}}) \;=\; \pi_1\, T_{\mathrm{AT}} + \pi_2\, T_{\mathrm{AT}}^2,
 $$ (eq-damage_nordhaus)
 
-which is relatively benign for moderate warming and is what we use in the deterministic CDICE solve below. Calibrated values $(\pi_1, \pi_2)$ are listed in Table {numref}`tab-dice_calibration`. The damage function {eq}`eq-damage_nordhaus` is the most contested object in the IAM literature: at $T_{\mathrm{AT}}=3\,^\circ\mathrm{C}$ above pre-industrial, Nordhaus--quadratic damages amount to roughly $2\%$ of gross output, which several recent empirical literatures argue is far below realistic central estimates. We therefore treat the damage curvature $\pi_2$ as one of the two key uncertain parameters in the deep-UQ analysis of {ref}`sec-deep_uq` (the other being the equilibrium climate sensitivity).
+which is relatively benign for moderate warming and is what we use in the deterministic CDICE solve below. Calibrated values $(\pi_1, \pi_2)$ are listed in Table {numref}`tab-dice_calibration`. The damage function {eq}`eq-damage_nordhaus` is the most contested object in the IAM literature: at $T_{\mathrm{AT}}=3\,{}^\circ\mathrm{C}$ above pre-industrial, Nordhaus--quadratic damages amount to roughly $2\%$ of gross output, which several recent empirical literatures argue is far below realistic central estimates. We therefore treat the damage curvature $\pi_2$ as one of the two key uncertain parameters in the deep-UQ analysis of {ref}`sec-deep_uq` (the other being the equilibrium climate sensitivity).
 
 For the tipping-point branch of the literature, {cite:t}`weitzman2012ghg` argued that catastrophic thresholds require a steeper damage function,
 
@@ -313,7 +311,7 @@ CDICE baseline calibration used in the deterministic CDICE-DEQN solve. Parameter
 |  | $c_4$ (MMM) | $0.00689$/yr | Ocean heat-capacity inverse |
 |  | $F_{\mathrm{2\times CO_2}}$ (MMM) | $3.45$ W/m$^2$ | Forcing from CO$_2$ doubling |
 |  | $\lambda$ (MMM) | $1.06$ W/m$^2$/K | Climate feedback parameter |
-|  | ECS (MMM) | $\approx 3.25\,^\circ$C | Equilibrium climate sensitivity |
+|  | ECS (MMM) | $\approx 3.25\,{}^\circ$C | Equilibrium climate sensitivity |
 |  | HadGEM2-ES | $(c_1,c_3,c_4)=(0.154,0.55,0.00671)$/yr | High-end CMIP5 calibration |
 |  |  | $F_{\mathrm{2\times CO_2}}=2.95$, $\lambda=0.65$, ECS$\approx 4.55$ $^\circ$C |  |
 |  | GISS-E2-R | $(c_1,c_3,c_4)=(0.213,1.16,0.00921)$/yr | Low-end CMIP5 calibration |
@@ -322,7 +320,7 @@ CDICE baseline calibration used in the deterministic CDICE-DEQN solve. Parameter
 |  | $\pi_2$ | $0.00236$ | Quadratic damage coefficient |
 | Initial state | $K_0$ | $223$ T USD | Capital, year 2015 |
 |  | $M_0$ | $(0.851, 0.628, 1.323)$ ($10^3$ GtC) | Atm./upper/lower carbon, 2015 |
-|  | $T_0$ | $(1.10, 0.27)\,^\circ$C | Atm./ocean temp. above pre-industrial, 2015 |
+|  | $T_0$ | $(1.10, 0.27)\,{}^\circ$C | Atm./ocean temp. above pre-industrial, 2015 |
 ````
 
 (sec-dice_summary)=
@@ -510,25 +508,26 @@ Normalized Lagrange multipliers in the CDICE--DEQN. All values are divided by $A
 
 ##### Key FOCs in normalized form.
 
-After normalization, the most important first-order conditions become (see Online Appendix D of {cite:t}`Folini_2021` for the complete set of 14 equations): 
-
-(eq-iam_foc_c)=
-(eq-iam_foc_k)=
-(eq-iam_foc_mu)=
+After normalization, the most important first-order conditions become (see Online Appendix D of {cite:t}`Folini_2021` for the complete set of 14 equations):
 
 $$
-\begin{aligned}
-\frac{\partial \mathcal{L}}{\partial c_t} = 0 \;&\Leftrightarrow\;
-c_t^{-1/\psi}\,A_t^{1-1/\psi}\,L_t - \hat{\lambda}_t = 0,
-\\[4pt]
-\frac{\partial \mathcal{L}}{\partial k_{t+1}} = 0 \;&\Leftrightarrow\;
-\exp\!\bigl(g^A_t + g^L_t\bigr)\,\hat{\lambda}_t - \hat{\beta}_t\Bigl\{\hat{\lambda}_{t+1}\bigl[\bigl(1-\Omega(T_{\mathrm{AT},t+1}) - \Theta(\mu_{t+1})\bigr)\alpha k_{t+1}^{\alpha-1} + (1-\delta)\bigr] \nonumber\\
-&\quad + \hat{\nu}^{\mathrm{AT}}_{t+1}\,\sigma_{t+1}(1-\mu_{t+1})A_{t+1}L_{t+1}\alpha k_{t+1}^{\alpha-1}\Bigr\} = 0,
-\\[4pt]
-\frac{\partial \mathcal{L}}{\partial \mu_t} = 0 \;&\Leftrightarrow\;
+\frac{\partial \mathcal{L}}{\partial c_t} = 0 \; \Leftrightarrow\;
+c_t^{-1/\psi}\,A_t^{1-1/\psi}\,L_t - \hat{\lambda}_t = 0
+$$ (eq-iam_foc_c)
+
+$$
+\frac{\partial \mathcal{L}}{\partial k_{t+1}} = 0 \; \Leftrightarrow\;
+\exp\!\bigl(g^A_t + g^L_t\bigr)\,\hat{\lambda}_t - \hat{\beta}_t\Bigl\{\hat{\lambda}_{t+1}\bigl[\bigl(1-\Omega(T_{\mathrm{AT},t+1}) - \Theta(\mu_{t+1})\bigr)\alpha k_{t+1}^{\alpha-1} + (1-\delta)\bigr] \nonumber
+$$
+
+$$
+\quad + \hat{\nu}^{\mathrm{AT}}_{t+1}\,\sigma_{t+1}(1-\mu_{t+1})A_{t+1}L_{t+1}\alpha k_{t+1}^{\alpha-1}\Bigr\} = 0
+$$ (eq-iam_foc_k)
+
+$$
+\frac{\partial \mathcal{L}}{\partial \mu_t} = 0 \; \Leftrightarrow\;
 \hat{\lambda}_t\,\Theta'(\mu_t)\,k_t^\alpha + \hat{\lambda}^\mu_t + \hat{\nu}^{\mathrm{AT}}_t\,\sigma_t\,A_t\,L_t\,k_t^\alpha = 0.
-\end{aligned}
-$$
+$$ (eq-iam_foc_mu)
 
 Equation {eq}`eq-iam_foc_k` is the capital Euler equation: it equates the marginal cost of saving one additional unit today (left) to the discounted marginal benefit tomorrow (right), which now includes a term from the atmospheric carbon envelope ($\hat{\nu}^{\mathrm{AT}}_{t+1}$) because higher capital increases output and hence emissions.
 
@@ -605,38 +604,51 @@ The network architecture uses two hidden layers with 1024 units each, SELU activ
 
 ##### The 8 loss components.
 
-Each remaining equilibrium condition from {ref}`sec-dice_lagrangian` becomes a residual $l_m = 0$, and the network is asked to drive every $l_m$ to zero simultaneously along simulated paths. The mapping is one-for-one: $l_1$ is the capital-Euler FOC {eq}`eq-iam_foc_k`; $l_2$ is the budget constraint that closes {eq}`eq-capital_accumulation`; $l_3$, $l_4$, $l_5$ are the three carbon-reservoir envelope conditions, of which $l_3$ is {eq}`eq-iam_env_mat`; $l_6$ and $l_7$ are the two temperature-layer envelopes; and $l_8$ is the Fischer--Burmeister smoothing {eq}`eq-iam_fb` of the KKT slack on $\mu_t \le 1$, evaluated at the implied multiplier {eq}`eq-iam_lambdamu_implied`. The consumption FOC {eq}`eq-iam_foc_c` and the abatement FOC {eq}`eq-iam_foc_mu` are enforced *exactly* via the inversions in {eq}`eq-iam_c_recovery` and {eq}`eq-iam_lambdamu_implied`, which is why the loss list contains eight entries instead of nine. Written out, the eight components are: 
-
-(eq-iam_l1)=
-(eq-iam_l2)=
-(eq-iam_l3)=
-(eq-iam_l4)=
-(eq-iam_l5)=
-(eq-iam_l6)=
-(eq-iam_l7)=
-(eq-iam_l8)=
+Each remaining equilibrium condition from {ref}`sec-dice_lagrangian` becomes a residual $l_m = 0$, and the network is asked to drive every $l_m$ to zero simultaneously along simulated paths. The mapping is one-for-one: $l_1$ is the capital-Euler FOC {eq}`eq-iam_foc_k`; $l_2$ is the budget constraint that closes {eq}`eq-capital_accumulation`; $l_3$, $l_4$, $l_5$ are the three carbon-reservoir envelope conditions, of which $l_3$ is {eq}`eq-iam_env_mat`; $l_6$ and $l_7$ are the two temperature-layer envelopes; and $l_8$ is the Fischer--Burmeister smoothing {eq}`eq-iam_fb` of the KKT slack on $\mu_t \le 1$, evaluated at the implied multiplier {eq}`eq-iam_lambdamu_implied`. The consumption FOC {eq}`eq-iam_foc_c` and the abatement FOC {eq}`eq-iam_foc_mu` are enforced *exactly* via the inversions in {eq}`eq-iam_c_recovery` and {eq}`eq-iam_lambdamu_implied`, which is why the loss list contains eight entries instead of nine. Written out, the eight components are:
 
 $$
-\begin{aligned}
-l_1 &:= \exp\!\bigl(g^A_t + g^L_t\bigr)\,\hat{\lambda}_t - \hat{\beta}_t\Bigl\{\hat{\lambda}_{t+1}\bigl[\bigl(1-\Omega(T_{\mathrm{AT},t+1}) - \Theta(\mu_{t+1})\bigr)\alpha k_{t+1}^{\alpha-1} + (1-\delta)\bigr] \nonumber\\
-    &\quad + \hat{\nu}^{\mathrm{AT}}_{t+1}\,\sigma_{t+1}(1-\mu_{t+1})A_{t+1}L_{t+1}\alpha k_{t+1}^{\alpha-1}\Bigr\}
-    \tag*{\text{(capital Euler)}}\\[3pt]
-l_2 &:= \bigl(1-\Omega(T_{\mathrm{AT},t}) - \Theta(\mu_t)\bigr)\,k_t^\alpha + (1-\delta)\,k_t - c_t - \exp\!\bigl(g^A_t + g^L_t\bigr)\,k_{t+1}
-    \tag*{\text{(budget)}}\\[3pt]
-l_3 &:= \hat{\nu}^{\mathrm{AT}}_t - \hat{\beta}_t\!\left[\hat{\nu}^{\mathrm{AT}}_{t+1}(1-b_{12}) + \hat{\nu}^{\mathrm{UO}}_{t+1}\,b_{12} + \hat{\eta}^{\mathrm{AT}}_{t+1}\,c_1\,F_{\mathrm{2\times CO_2}}\,\tfrac{1}{\ln 2\,M_{\mathrm{AT},t+1}}\right]
-    \tag*{\text{(atm.\ carbon)}}\\[3pt]
-l_4 &:= \hat{\nu}^{\mathrm{UO}}_t - \hat{\beta}_t\!\Bigl[\hat{\nu}^{\mathrm{AT}}_{t+1}\,b_{12}\,\tfrac{M^{\mathrm{AT}}_{\mathrm{EQ}}}{M^{\mathrm{UO}}_{\mathrm{EQ}}} + \hat{\nu}^{\mathrm{UO}}_{t+1}\!\Bigl(1-b_{12}\tfrac{M^{\mathrm{AT}}_{\mathrm{EQ}}}{M^{\mathrm{UO}}_{\mathrm{EQ}}}-b_{23}\Bigr) + \hat{\nu}^{\mathrm{LO}}_{t+1}\,b_{23}\Bigr]
-    \tag*{\text{(upper ocean C)}}\\[3pt]
-l_5 &:= \hat{\nu}^{\mathrm{LO}}_t - \hat{\beta}_t\!\Bigl[\hat{\nu}^{\mathrm{UO}}_{t+1}\,b_{23}\,\tfrac{M^{\mathrm{UO}}_{\mathrm{EQ}}}{M^{\mathrm{LO}}_{\mathrm{EQ}}} + \hat{\nu}^{\mathrm{LO}}_{t+1}\!\Bigl(1-b_{23}\,\tfrac{M^{\mathrm{UO}}_{\mathrm{EQ}}}{M^{\mathrm{LO}}_{\mathrm{EQ}}}\Bigr)\Bigr]
-    \tag*{\text{(lower ocean C)}}\\[3pt]
-l_6 &:= \hat{\eta}^{\mathrm{AT}}_t - \hat{\beta}_t\!\Bigl[-\hat{\lambda}_{t+1}\,\Omega'(T_{\mathrm{AT},t+1})\,k_{t+1}^\alpha + \hat{\eta}^{\mathrm{AT}}_{t+1}\!\Bigl(1-c_1\,\tfrac{F_{\mathrm{2\times CO_2}}}{\Delta T_{\mathrm{AT},\times 2}}-c_1 c_3\Bigr) + \hat{\eta}^{\mathrm{OC}}_{t+1}\,c_4\Bigr]
-    \tag*{\text{(atm.\ temp.)}}\\[3pt]
-l_7 &:= \hat{\eta}^{\mathrm{OC}}_t - \hat{\beta}_t\!\left[\hat{\eta}^{\mathrm{AT}}_{t+1}\,c_1 c_3 + \hat{\eta}^{\mathrm{OC}}_{t+1}(1-c_4)\right]
-    \tag*{\text{(ocean temp.)}}\\[3pt]
-l_8 &:= \hat{\lambda}^{\mu,\mathrm{impl}}_t + (1-\mu_t) - \sqrt{(\hat{\lambda}^{\mu,\mathrm{impl}}_t)^2 + (1-\mu_t)^2 + \varepsilon_{\mathrm{FB}}}
+l_1 := \exp\!\bigl(g^A_t + g^L_t\bigr)\,\hat{\lambda}_t - \hat{\beta}_t\Bigl\{\hat{\lambda}_{t+1}\bigl[\bigl(1-\Omega(T_{\mathrm{AT},t+1}) - \Theta(\mu_{t+1})\bigr)\alpha k_{t+1}^{\alpha-1} + (1-\delta)\bigr] \nonumber
+$$
+
+$$
+\quad + \hat{\nu}^{\mathrm{AT}}_{t+1}\,\sigma_{t+1}(1-\mu_{t+1})A_{t+1}L_{t+1}\alpha k_{t+1}^{\alpha-1}\Bigr\}
+    \tag*{\text{(capital Euler)}}
+$$ (eq-iam_l1)
+
+$$
+l_2 := \bigl(1-\Omega(T_{\mathrm{AT},t}) - \Theta(\mu_t)\bigr)\,k_t^\alpha + (1-\delta)\,k_t - c_t - \exp\!\bigl(g^A_t + g^L_t\bigr)\,k_{t+1}
+    \tag*{\text{(budget)}}
+$$ (eq-iam_l2)
+
+$$
+l_3 := \hat{\nu}^{\mathrm{AT}}_t - \hat{\beta}_t\!\left[\hat{\nu}^{\mathrm{AT}}_{t+1}(1-b_{12}) + \hat{\nu}^{\mathrm{UO}}_{t+1}\,b_{12} + \hat{\eta}^{\mathrm{AT}}_{t+1}\,c_1\,F_{\mathrm{2\times CO_2}}\,\tfrac{1}{\ln 2\,M_{\mathrm{AT},t+1}}\right]
+    \tag*{\text{(atm.\ carbon)}}
+$$ (eq-iam_l3)
+
+$$
+l_4 := \hat{\nu}^{\mathrm{UO}}_t - \hat{\beta}_t\!\Bigl[\hat{\nu}^{\mathrm{AT}}_{t+1}\,b_{12}\,\tfrac{M^{\mathrm{AT}}_{\mathrm{EQ}}}{M^{\mathrm{UO}}_{\mathrm{EQ}}} + \hat{\nu}^{\mathrm{UO}}_{t+1}\!\Bigl(1-b_{12}\tfrac{M^{\mathrm{AT}}_{\mathrm{EQ}}}{M^{\mathrm{UO}}_{\mathrm{EQ}}}-b_{23}\Bigr) + \hat{\nu}^{\mathrm{LO}}_{t+1}\,b_{23}\Bigr]
+    \tag*{\text{(upper ocean C)}}
+$$ (eq-iam_l4)
+
+$$
+l_5 := \hat{\nu}^{\mathrm{LO}}_t - \hat{\beta}_t\!\Bigl[\hat{\nu}^{\mathrm{UO}}_{t+1}\,b_{23}\,\tfrac{M^{\mathrm{UO}}_{\mathrm{EQ}}}{M^{\mathrm{LO}}_{\mathrm{EQ}}} + \hat{\nu}^{\mathrm{LO}}_{t+1}\!\Bigl(1-b_{23}\,\tfrac{M^{\mathrm{UO}}_{\mathrm{EQ}}}{M^{\mathrm{LO}}_{\mathrm{EQ}}}\Bigr)\Bigr]
+    \tag*{\text{(lower ocean C)}}
+$$ (eq-iam_l5)
+
+$$
+l_6 := \hat{\eta}^{\mathrm{AT}}_t - \hat{\beta}_t\!\Bigl[-\hat{\lambda}_{t+1}\,\Omega'(T_{\mathrm{AT},t+1})\,k_{t+1}^\alpha + \hat{\eta}^{\mathrm{AT}}_{t+1}\!\Bigl(1-c_1\,\tfrac{F_{\mathrm{2\times CO_2}}}{\Delta T_{\mathrm{AT},\times 2}}-c_1 c_3\Bigr) + \hat{\eta}^{\mathrm{OC}}_{t+1}\,c_4\Bigr]
+    \tag*{\text{(atm.\ temp.)}}
+$$ (eq-iam_l6)
+
+$$
+l_7 := \hat{\eta}^{\mathrm{OC}}_t - \hat{\beta}_t\!\left[\hat{\eta}^{\mathrm{AT}}_{t+1}\,c_1 c_3 + \hat{\eta}^{\mathrm{OC}}_{t+1}(1-c_4)\right]
+    \tag*{\text{(ocean temp.)}}
+$$ (eq-iam_l7)
+
+$$
+l_8 := \hat{\lambda}^{\mu,\mathrm{impl}}_t + (1-\mu_t) - \sqrt{(\hat{\lambda}^{\mu,\mathrm{impl}}_t)^2 + (1-\mu_t)^2 + \varepsilon_{\mathrm{FB}}}
     \tag*{\text{(Fischer--Burmeister, implied multiplier)}}
-\end{aligned}
-$$
+$$ (eq-iam_l8)
 
 Loss components $l_1$--$l_2$ enforce intertemporal optimality and feasibility, $l_3$--$l_7$ are the envelope conditions that price the five climate state variables, and $l_8$ jointly enforces the abatement FOC (via the implied multiplier) and the upper-bound complementarity $\mu_t \le 1$.
 
@@ -781,17 +793,15 @@ $$
 y_{t+1} \;:=\; \varphi_{1C}\,T^{\mathrm{AT}}_t\,\tilde f_{t+1} \;+\; \tilde\epsilon_{T,t+1},\qquad \tilde\epsilon_{T,t+1} \sim \mathcal N(0, S_{\epsilon_T}),
 $$ (eq-bayes_signal)
 
-and conjugate Gaussian--Gaussian updating delivers the posterior 
-
-(eq-bayes_mean)=
-(eq-bayes_var)=
+and conjugate Gaussian--Gaussian updating delivers the posterior
 
 $$
-\begin{aligned}
-\mu_{f,t+1} &= \frac{S_{\epsilon_T}\,\mu_{f,t} + \varphi_{1C}\,T^{\mathrm{AT}}_t\,S_{f,t}\,y_{t+1}}{S_{\epsilon_T} + (\varphi_{1C}\,T^{\mathrm{AT}}_t)^2\,S_{f,t}}, \\
-S_{f,t+1} &= \frac{S_{\epsilon_T} \cdot S_{f,t}}{S_{\epsilon_T} + (\varphi_{1C}\,T^{\mathrm{AT}}_t)^2\,S_{f,t}},
-\end{aligned}
+\mu_{f,t+1} = \frac{S_{\epsilon_T}\,\mu_{f,t} + \varphi_{1C}\,T^{\mathrm{AT}}_t\,S_{f,t}\,y_{t+1}}{S_{\epsilon_T} + (\varphi_{1C}\,T^{\mathrm{AT}}_t)^2\,S_{f,t}}
+$$ (eq-bayes_mean)
+
 $$
+S_{f,t+1} = \frac{S_{\epsilon_T} \cdot S_{f,t}}{S_{\epsilon_T} + (\varphi_{1C}\,T^{\mathrm{AT}}_t)^2\,S_{f,t}}
+$$ (eq-bayes_var)
 
 which the planner takes as two additional laws of motion for the belief states $(\mu_{f,t}, S_{f,t})$. These two states occupy the slots already reserved in the augmented state vector {eq}`eq-iam_state`. Equations {eq}`eq-bayes_mean`--{eq}`eq-bayes_var` are the Kalman update for a scalar linear-Gaussian state-space model with observation gain $\varphi_{1C}\,T^{\mathrm{AT}}_t$ and noise variance $S_{\epsilon_T}$; cf. {cite:t}`bishop2006` [§ 13.3] for the generic derivation. The DEQN algorithm of {ref}`sec-nsdeqn_algo` is unchanged: the network simply receives two more inputs and learns a richer policy.
 
@@ -1012,7 +1022,7 @@ where $U_t$ is the business-as-usual (BAU) welfare of cohort $t$ and $\Delta^{A-
 
 ### Results: Why Transfers Matter
 
-The unconstrained welfare-maximizing cumulative-emissions tax is the natural benchmark. With a linear rule $p^{\mathrm{tax}}_t = \vartheta_0 + \vartheta_E\,E_t$ and a fixed declining transfer scheme $\omega = \bar\omega$, the policy cuts emissions aggressively, stabilizes mean warming around $2.7\,^{\circ}\mathrm C$, and raises aggregate social welfare by about $1.6\%$ in consumption-equivalent terms. But it imposes losses of up to roughly $5\%$ on initial generations: it is therefore welfare-improving in the social-welfare-function sense, but *not* Pareto improving. Figure {numref}`fig-unconstrained_linear_tax` shows the failure: the welfare-gains panel records the losses for transition generations that the social-welfare-function aggregate hides.
+The unconstrained welfare-maximizing cumulative-emissions tax is the natural benchmark. With a linear rule $p^{\mathrm{tax}}_t = \vartheta_0 + \vartheta_E\,E_t$ and a fixed declining transfer scheme $\omega = \bar\omega$, the policy cuts emissions aggressively, stabilizes mean warming around $2.7\,{}^{\circ}\mathrm C$, and raises aggregate social welfare by about $1.6\%$ in consumption-equivalent terms. But it imposes losses of up to roughly $5\%$ on initial generations: it is therefore welfare-improving in the social-welfare-function sense, but *not* Pareto improving. Figure {numref}`fig-unconstrained_linear_tax` shows the failure: the welfare-gains panel records the losses for transition generations that the social-welfare-function aggregate hides.
 
 ```{figure} figures/jpe_unconstrained_linear_tax.png
 :name: fig-unconstrained_linear_tax
@@ -1128,25 +1138,65 @@ Movement 1 established that solving an IAM by DEQN requires three modifications
 ## Exercises
 Worked solutions and guidance for these exercises appear in Appendix {ref}`app-solutions`.
 
-1.   **[Computational\] ECS sensitivity.** Holding all other DICE parameters at calibration, vary the equilibrium climate sensitivity over the {cite:t}`sherwood2020assessment` likely range (2.6--3.9°C) and report the implied SCC at $t=0$. Then repeat over the broader IPCC AR6 very-likely range (2--5°C). How much of the SCC variation is driven by the high-ECS tail? State your classical baseline (e.g., a Nordhaus-2017 grid-search SCC at the central ECS calibration) before reaching for the DEQN.
+```{exercise}
+:label: ex-ch11-1
 
-2.   **[Core\] Sobol decomposition.** For a function $q(\theta_1, \theta_2, \theta_3) = \theta_1\theta_2 + \theta_3^2$ with i.i.d. uniform inputs $\theta_i \sim \mathcal{U}[0,1]$, compute the Sobol first- and total-effect indices analytically. Verify with a $10\,000$-sample SALib estimate.
+**[Computational\] ECS sensitivity.** Holding all other DICE parameters at calibration, vary the equilibrium climate sensitivity over the {cite:t}`sherwood2020assessment` likely range (2.6--3.9°C) and report the implied SCC at $t=0$. Then repeat over the broader IPCC AR6 very-likely range (2--5°C). How much of the SCC variation is driven by the high-ECS tail? State your classical baseline (e.g., a Nordhaus-2017 grid-search SCC at the central ECS calibration) before reaching for the DEQN.
+```
 
-3.   **[Computational\] ACE benchmark.** Using the closed-form ACE expression for the optimal carbon tax, compute the SCC at calibration and compare with the DEQN-trained DICE solution. Quantify the discrepancy in % terms. State your classical baseline (the ACE closed form itself, evaluated at the chapter's calibration) before reaching for the DEQN.
+```{exercise}
+:label: ex-ch11-2
 
-4.   **\{ref}`sec-olg_iam`, search over linear tax-and-transfer rules $\vartheta = (\vartheta_{\mathrm{tax}}, \omega)$ with $\vartheta_{\mathrm{tax}} = (\vartheta_0, \vartheta_E)$ on cumulative emissions and transfer shares $\omega \in \Delta^{A-1}$, $A=12$, such that $\tilde U_t(\vartheta) \ge U_t$ for all cohorts. How tight is the Pareto frontier? Then repeat with $\omega$ held at the BAU/declining benchmark $\bar\omega$ and observe how much welfare is left on the table when transfers are not endogenous.
+**[Core\] Sobol decomposition.** For a function $q(\theta_1, \theta_2, \theta_3) = \theta_1\theta_2 + \theta_3^2$ with i.i.d. uniform inputs $\theta_i \sim \mathcal{U}[0,1]$, compute the Sobol first- and total-effect indices analytically. Verify with a $10\,000$-sample SALib estimate.
+```
 
-5.   **[Computational\] Carbon-cycle warm-up.** Run notebook `01_Climate_Exercise.ipynb` end-to-end. (a) Report the avoided warming and avoided damages at year 2100 under a 50% mitigation rule relative to BAU. (b) Inspect the carbon-cycle transition matrix and identify which reservoir (atmospheric, upper ocean, lower ocean) has the longest timescale. (c) Explain in two sentences why a quadratic damage-loss function $D(T) = \pi_2 T^2$ is insufficient for tail-risk assessment.
+```{exercise}
+:label: ex-ch11-3
 
-6.   **[Advanced/project\] Deterministic CDICE-DEQN reproduction.** Open notebook `02_DICE_DEQN_Library_Port.ipynb` and train the deterministic solver to convergence. Verify the following quantities against the reference solution, using the tolerances stated in the notebook's verification gate: $T^{\mathrm{AT}}(2100)$, $M^{\mathrm{AT}}(2100)$, $\mu(2100)$, and the SCC at 2015, 2100, and 2300.
+**[Computational\] ACE benchmark.** Using the closed-form ACE expression for the optimal carbon tax, compute the SCC at calibration and compare with the DEQN-trained DICE solution. Quantify the discrepancy in % terms. State your classical baseline (the ACE closed form itself, evaluated at the chapter's calibration) before reaching for the DEQN.
+```
 
-7.   **[Advanced/project\] Stochastic SCC fan chart.** In notebook `03_Stochastic_DICE_DEQN.ipynb`, vary the AR(1) productivity volatility $\sigma_z$ over $\{0.005, 0.01, 0.02\}$ and plot the resulting SCC fan charts. How does the right-tail of the SCC distribution at 2100 scale with $\sigma_z$? Compare your finding with the qualitative message of {cite:t}`caiSocialCostCarbon2019`. State your classical baseline (e.g., a deterministic-DICE SCC at the same calibration, or a certainty-equivalent SCC) before reaching for the DEQN.
+```{exercise}
+:label: ex-ch11-4
 
-8.   **[Advanced/project\] Tipping-point regime-switching damages.** This exercise temporarily switches from the additive damage-fraction convention $\Omega^N(T) = \pi_1 T + \pi_2 T^2$ used in the chapter body and in notebook 02 (Eq. {eq}`eq-damage_nordhaus`) to the multiplicative *retained-output* convention $\Omega^{\mathrm{ret}}(T) = 1/(1 + \pi_2 T^2)$, the form discussed in {ref}`sec-dice_damages` as an alternative, so that the regime-switching modification below has a single multiplicative knob. First make this substitution in notebook `02_DICE_DEQN_Library_Port.ipynb` (which ships with the additive form $\Omega^N$) and re-calibrate $\pi_2$ so that the retained-output form matches the additive baseline at $T = 2.5\,^\circ\mathrm{C}$, i.e. choose $\pi_2$ such that $1 - 1/(1+\pi_2 T^2) = \pi_2^{N} T^2$ at $T = 2.5\,^\circ\mathrm{C}$ with $\pi_2^N = 0.00236$ from Table {numref}`tab-dice_calibration`. Then replace the smooth retained-output factor $\Omega^{\mathrm{ret}}(T) = 1/(1 + \pi_2 T^2)$ with a regime-switching specification. At each step, with hazard rate $\lambda_\mathrm{TP}(T) = \lambda_0 + \lambda_1\max(0, T - T_\mathrm{thresh})$, an irreversible tipping event occurs. If the event has occurred, multiply the damage term in the denominator by $D_\mathrm{TP}=1.5$, so retained output becomes $\Omega^{\mathrm{TP}}(T)=1/(1+D_\mathrm{TP}\pi_2T^2)$. Calibrate $\lambda_0 = 0.001$, $\lambda_1 = 0.05$, $T_\mathrm{thresh} = 2.0\,^\circ\mathrm{C}$. Retrain the DEQN solver and report (i) SCC at $t = 0$ under the regime-switching specification vs. the smooth baseline; (ii) the time path of optimal abatement $\mu_t$ in both cases; (iii) the unconditional probability of a tipping event by 2100. Sweep $T_\mathrm{thresh}$ over $\{1.5, 2.0, 2.5\}\,^\circ\mathrm{C}$ and plot the SCC against the threshold. Discuss the policy implications: a lower threshold raises the SCC by what factor, and what does this imply for near-term tax design under deep uncertainty about $T_\mathrm{thresh}$ itself?
+**\{ref}`sec-olg_iam`, search over linear tax-and-transfer rules $\vartheta = (\vartheta_{\mathrm{tax}}, \omega)$ with $\vartheta_{\mathrm{tax}} = (\vartheta_0, \vartheta_E)$ on cumulative emissions and transfer shares $\omega \in \Delta^{A-1}$, $A=12$, such that $\tilde U_t(\vartheta) \ge U_t$ for all cohorts. How tight is the Pareto frontier? Then repeat with $\omega$ held at the BAU/declining benchmark $\bar\omega$ and observe how much welfare is left on the table when transfers are not endogenous.
+```
 
-9.   **[Advanced/project\] Real options value of waiting.** Consider a stylized two-period climate--policy decision. At $t = 0$ the planner does not know the equilibrium climate sensitivity $\mathrm{ECS}$, with prior $\mathrm{ECS} \sim \mathcal{U}([\mathrm{ECS}_L, \mathrm{ECS}_H])$ where $\mathrm{ECS}_L = 2$, $\mathrm{ECS}_H = 5$ $^\circ\mathrm{C}$. Two choices: (a) **act now**, abate at level $\mu \in [0,1]$ with cost $\Theta(\mu) = \theta\mu^2$; (b) **wait**, abate at $t=1$ after observing a noisy signal $\widehat{\mathrm{ECS}} = \mathrm{ECS} + \varepsilon$, $\varepsilon \sim \mathcal{N}(0, \sigma_\varepsilon^2)$. Damages are $D(\mu, \mathrm{ECS}) = \alpha\,\mathrm{ECS}\cdot(1 - \mu)$. The planner minimizes expected total cost. (i) Derive closed-form expressions for the optimal $\mu^\star$ and the expected total cost under each strategy. (ii) Define the *value of waiting* as the cost difference: $\mathrm{VoW} = \mathbb{E}[\mathrm{cost}_\mathrm{wait}] - \mathbb{E}[\mathrm{cost}_\mathrm{now}]$. Show that as the signal becomes informative ($\sigma_\varepsilon \to 0$), $\mathrm{VoW}$ becomes negative (waiting is preferred): more information allows better decisions. (iii) Now add an irreversibility wedge $\eta\,\mu_1^2$ paid only on the wait branch, penalizing deferred action (e.g., capital stock accumulates carbon faster while waiting, so the wait-period abatement is more costly than an equivalent abatement at $t = 0$). Show that for sufficiently large $\eta$, $\mathrm{VoW}$ is positive (act now is preferred), even with substantial learning. Connect this trade-off to the Bayesian-learning section of the chapter and to the broader literature on real options in climate policy.
+```{exercise}
+:label: ex-ch11-5
 
-10.  **\{ref}`sec-nsdeqn_algo` on a one-dimensional non-stationary problem. The toy economy: a planner picks $u_t \in \mathbb R$ to minimise $\sum_{t=0}^{T_{\max}-1} \bigl[(x_t - x^\ast_t)^2 + r u_t^2\bigr] + \lambda_T (x_{T_{\max}} - x^\ast_{T_{\max}})^2$ subject to the linear-Gaussian law of motion $x_{t+1} = \alpha\,x_t + u_t + g_t + \sigma\,\varepsilon_{t+1}$, $\varepsilon_{t+1}\sim\mathcal N(0,1)$, with deterministic drift $g_t = g_0 + g_1 t$ and a calendar-time target path $x^\ast_t = a + b t$. Set $T_{\max} = 50$, $\alpha = 0.95$, $g_0 = 0.02$, $g_1 = 0.001$, $r = 0.1$, $\sigma = 0.05$, $\lambda_T = 5$, $a = 0$, $b = 0.04$. (i) Derive the closed-form LQ-Riccati policy and state your classical baseline before reaching for the DEQN. (ii) Train a small neural network $u_t = \mathcal N_\rho(x_t, \tau_t)$ with $\tau_t = 1 - \exp(-\vartheta\,t)$, sampling initial states from a uniform prior on $[a - 1, a + 1]$, stratifying the mini-batch over ten calendar-time bins of $[0, T_{\max}]$, and adding the terminal penalty $\lambda_T (x_{T_{\max}} - x^\ast_{T_{\max}})^2$ to the loss. (iii) Verify that the trained network reproduces the LQ-Riccati baseline within 1% in the mean-squared-action metric. (iv) Ablate each of the three modifications in turn (drop $\tau_t$ from the input; remove stratification; remove the terminal penalty) and report which ablation hurts most as a function of $T_{\max}$.
+**[Computational\] Carbon-cycle warm-up.** Run notebook `01_Climate_Exercise.ipynb` end-to-end. (a) Report the avoided warming and avoided damages at year 2100 under a 50% mitigation rule relative to BAU. (b) Inspect the carbon-cycle transition matrix and identify which reservoir (atmospheric, upper ocean, lower ocean) has the longest timescale. (c) Explain in two sentences why a quadratic damage-loss function $D(T) = \pi_2 T^2$ is insufficient for tail-risk assessment.
+```
+
+```{exercise}
+:label: ex-ch11-6
+
+**[Advanced/project\] Deterministic CDICE-DEQN reproduction.** Open notebook `02_DICE_DEQN_Library_Port.ipynb` and train the deterministic solver to convergence. Verify the following quantities against the reference solution, using the tolerances stated in the notebook's verification gate: $T^{\mathrm{AT}}(2100)$, $M^{\mathrm{AT}}(2100)$, $\mu(2100)$, and the SCC at 2015, 2100, and 2300.
+```
+
+```{exercise}
+:label: ex-ch11-7
+
+**[Advanced/project\] Stochastic SCC fan chart.** In notebook `03_Stochastic_DICE_DEQN.ipynb`, vary the AR(1) productivity volatility $\sigma_z$ over $\{0.005, 0.01, 0.02\}$ and plot the resulting SCC fan charts. How does the right-tail of the SCC distribution at 2100 scale with $\sigma_z$? Compare your finding with the qualitative message of {cite:t}`caiSocialCostCarbon2019`. State your classical baseline (e.g., a deterministic-DICE SCC at the same calibration, or a certainty-equivalent SCC) before reaching for the DEQN.
+```
+
+```{exercise}
+:label: ex-ch11-8
+
+**[Advanced/project\] Tipping-point regime-switching damages.** This exercise temporarily switches from the additive damage-fraction convention $\Omega^N(T) = \pi_1 T + \pi_2 T^2$ used in the chapter body and in notebook 02 (Eq. {eq}`eq-damage_nordhaus`) to the multiplicative *retained-output* convention $\Omega^{\mathrm{ret}}(T) = 1/(1 + \pi_2 T^2)$, the form discussed in {ref}`sec-dice_damages` as an alternative, so that the regime-switching modification below has a single multiplicative knob. First make this substitution in notebook `02_DICE_DEQN_Library_Port.ipynb` (which ships with the additive form $\Omega^N$) and re-calibrate $\pi_2$ so that the retained-output form matches the additive baseline at $T = 2.5\,{}^\circ\mathrm{C}$, i.e. choose $\pi_2$ such that $1 - 1/(1+\pi_2 T^2) = \pi_2^{N} T^2$ at $T = 2.5\,{}^\circ\mathrm{C}$ with $\pi_2^N = 0.00236$ from Table {numref}`tab-dice_calibration`. Then replace the smooth retained-output factor $\Omega^{\mathrm{ret}}(T) = 1/(1 + \pi_2 T^2)$ with a regime-switching specification. At each step, with hazard rate $\lambda_\mathrm{TP}(T) = \lambda_0 + \lambda_1\max(0, T - T_\mathrm{thresh})$, an irreversible tipping event occurs. If the event has occurred, multiply the damage term in the denominator by $D_\mathrm{TP}=1.5$, so retained output becomes $\Omega^{\mathrm{TP}}(T)=1/(1+D_\mathrm{TP}\pi_2T^2)$. Calibrate $\lambda_0 = 0.001$, $\lambda_1 = 0.05$, $T_\mathrm{thresh} = 2.0\,{}^\circ\mathrm{C}$. Retrain the DEQN solver and report (i) SCC at $t = 0$ under the regime-switching specification vs. the smooth baseline; (ii) the time path of optimal abatement $\mu_t$ in both cases; (iii) the unconditional probability of a tipping event by 2100. Sweep $T_\mathrm{thresh}$ over $\{1.5, 2.0, 2.5\}\,{}^\circ\mathrm{C}$ and plot the SCC against the threshold. Discuss the policy implications: a lower threshold raises the SCC by what factor, and what does this imply for near-term tax design under deep uncertainty about $T_\mathrm{thresh}$ itself?
+```
+
+```{exercise}
+:label: ex-ch11-9
+
+**[Advanced/project\] Real options value of waiting.** Consider a stylized two-period climate--policy decision. At $t = 0$ the planner does not know the equilibrium climate sensitivity $\mathrm{ECS}$, with prior $\mathrm{ECS} \sim \mathcal{U}([\mathrm{ECS}_L, \mathrm{ECS}_H])$ where $\mathrm{ECS}_L = 2$, $\mathrm{ECS}_H = 5$ $^\circ\mathrm{C}$. Two choices: (a) **act now**, abate at level $\mu \in [0,1]$ with cost $\Theta(\mu) = \theta\mu^2$; (b) **wait**, abate at $t=1$ after observing a noisy signal $\widehat{\mathrm{ECS}} = \mathrm{ECS} + \varepsilon$, $\varepsilon \sim \mathcal{N}(0, \sigma_\varepsilon^2)$. Damages are $D(\mu, \mathrm{ECS}) = \alpha\,\mathrm{ECS}\cdot(1 - \mu)$. The planner minimizes expected total cost. (i) Derive closed-form expressions for the optimal $\mu^\star$ and the expected total cost under each strategy. (ii) Define the *value of waiting* as the cost difference: $\mathrm{VoW} = \mathbb{E}[\mathrm{cost}_\mathrm{wait}] - \mathbb{E}[\mathrm{cost}_\mathrm{now}]$. Show that as the signal becomes informative ($\sigma_\varepsilon \to 0$), $\mathrm{VoW}$ becomes negative (waiting is preferred): more information allows better decisions. (iii) Now add an irreversibility wedge $\eta\,\mu_1^2$ paid only on the wait branch, penalizing deferred action (e.g., capital stock accumulates carbon faster while waiting, so the wait-period abatement is more costly than an equivalent abatement at $t = 0$). Show that for sufficiently large $\eta$, $\mathrm{VoW}$ is positive (act now is preferred), even with substantial learning. Connect this trade-off to the Bayesian-learning section of the chapter and to the broader literature on real options in climate policy.
+```
+
+```{exercise}
+:label: ex-ch11-10
+
+**\{ref}`sec-nsdeqn_algo` on a one-dimensional non-stationary problem. The toy economy: a planner picks $u_t \in \mathbb R$ to minimise $\sum_{t=0}^{T_{\max}-1} \bigl[(x_t - x^\ast_t)^2 + r u_t^2\bigr] + \lambda_T (x_{T_{\max}} - x^\ast_{T_{\max}})^2$ subject to the linear-Gaussian law of motion $x_{t+1} = \alpha\,x_t + u_t + g_t + \sigma\,\varepsilon_{t+1}$, $\varepsilon_{t+1}\sim\mathcal N(0,1)$, with deterministic drift $g_t = g_0 + g_1 t$ and a calendar-time target path $x^\ast_t = a + b t$. Set $T_{\max} = 50$, $\alpha = 0.95$, $g_0 = 0.02$, $g_1 = 0.001$, $r = 0.1$, $\sigma = 0.05$, $\lambda_T = 5$, $a = 0$, $b = 0.04$. (i) Derive the closed-form LQ-Riccati policy and state your classical baseline before reaching for the DEQN. (ii) Train a small neural network $u_t = \mathcal N_\rho(x_t, \tau_t)$ with $\tau_t = 1 - \exp(-\vartheta\,t)$, sampling initial states from a uniform prior on $[a - 1, a + 1]$, stratifying the mini-batch over ten calendar-time bins of $[0, T_{\max}]$, and adding the terminal penalty $\lambda_T (x_{T_{\max}} - x^\ast_{T_{\max}})^2$ to the loss. (iii) Verify that the trained network reproduces the LQ-Riccati baseline within 1% in the mean-squared-action metric. (iv) Ablate each of the three modifications in turn (drop $\tau_t$ from the input; remove stratification; remove the terminal penalty) and report which ablation hurts most as a function of $T_{\max}$.
+```
 
 [^1]: The numerical claims in this paragraph quote the headline results of {cite:t}`friedlDeep2023`; consult that paper for the precise figures and the underlying calibration grid.
 

@@ -7,7 +7,8 @@
 **Round 4 update:** 2026-05-25 — drill into deferred items; 2 new bugs filed (#39 algorithm label, #40 HTML entity in math); 2 prior "gaps" resolved as counting artifacts.
 **Round 5 update:** 2026-05-25 — re-tally after upstream landed fixes for #38, #39, #40 *and* a major refactor (P3a series, 11 commits) splitting `postprocess.py` into a `transforms/` package. #38 and #40 work; #39 only partially (filed [#43](https://github.com/QuantEcon/claude-latex-to-myst/issues/43)). The P3a refactor introduced a critical regression: module double-load drops `TIKZ_FIGURE_MAP` content silently, breaking **all 88 figures** ([#42](https://github.com/QuantEcon/claude-latex-to-myst/issues/42) filed). Round 4 also under-reported KaTeX warnings — re-grep surfaces 9 pre-existing instances of `\,^\circ` and `\tag*` patterns that KaTeX can't handle (not a refactor regression).
 **Round 6 update:** 2026-05-25 — #42 closed with the `sys.modules['postprocess']` aliasing fix (option B from the proposal). Re-tally: **all 88 figures restored**, all cross-ref classes resolve cleanly, citations clean. The fix is generic — every `transforms/` module that late-imports `postprocess` for state now resolves to the same instance, closing the whole class of bugs at once.
-**Round 7 update:** 2026-05-27 — re-tally after fast-forward from `0e88cab` → `9649b0b` (six new commits, including #51/#55/#60 table unification, #49 nested-subfigure fast path, #50/#22 dropped-text-macro warner, #54 longtable extraction, and #63 `regen: false`). Headline wins: **all 41 captioned tables now render as `{table}` directives** (R6: 4 list-tables, 37 anchors-only) — issue #34 fully closed end-to-end. Headline gap: a methodology defect was discovered — **`validate.py` has been silently skipping every chapter in this book since R1**, because it looks for split-source `.tex` files in `lecture_script/` (which only ships the monolithic file; split outputs live in `mystmd/tmp/`). Building the html surfaces what `validate.py` missed: 96 unresolved `{prf:ref}\`ex-chN-M\`` exercise refs (labels inside `\item\label{ex:ch1:1}` are dropped by pandoc), 15 per-row `\label{}` collisions on `\begin{align}` blocks that MyST collapses to one anchor, and the 3rd algorithm renders as `{prf:definition}` because its source wrapper is `\begin{definitionbox}[Algorithm: …]` rather than `\begin{algorithm}`. None of these were introduced by R7 upstream — they are pre-existing, only newly visible.
+**Round 7 update:** 2026-05-27 — re-tally after fast-forward from `0e88cab` → `9649b0b` (six new commits, including #51/#55/#60 table unification, #49 nested-subfigure fast path, #50/#22 dropped-text-macro warner, #54 longtable extraction, and #63 `regen: false`). Headline wins: **all 41 captioned tables now render as `{table}` directives** (R6: 4 list-tables, 37 anchors-only) — issue #34 fully closed end-to-end. Headline gap: a methodology defect was discovered — **`validate.py` has been silently skipping every chapter in this book since R1**, because it looks for split-source `.tex` files in `lecture_script/` (which only ships the monolithic file; split outputs live in `mystmd/tmp/`). Building the html surfaces what `validate.py` missed: 96 unresolved `{prf:ref}\`ex-chN-M\`` exercise refs (labels inside `\item\label{ex:ch1:1}` are dropped by pandoc), 15 per-row `\label{}` collisions on `\begin{align}` blocks that MyST collapses to one anchor, and the 3rd algorithm renders as `{prf:definition}` because its source wrapper is `\begin{definitionbox}[Algorithm: …]` rather than `\begin{algorithm}`. None of these were introduced by R7 upstream — they are pre-existing, only newly visible. Five issues filed: upstream #68 (validate.py no-op), #69 (exercise labels), #70 (align collisions), #71 (lstlisting caption escapes); downstream book #13 (source fixes) + #14 (missing assets).
+**Round 8 update:** 2026-05-28 — re-tally after fast-forward `9649b0b` → `94baac5` (seven new commits). **All four R7-filed upstream issues landed**: #68 (`291497c` — validate.py tmp_dir fallback, now actually runs), #69 (`cd7a0f9` — `\item\label{ex:…}` → `{exercise}` directive), #70 (`4d02d3f` — per-row align split into separate `$$` blocks), #71 (`fcba7b0` — lstlisting caption escape decode). Result, measured from the **now-working** `validate.py` and the build log: **0 unresolved cross-references** (was 106), **0 empty cross-refs** (was 129), **0 label collisions** (was 15), **0 KaTeX errors** (was 10). The 96 exercise back-refs in appF all resolve — exercises now render as 87 `{exercise}` directives. The last KaTeX failures were the 8 `\,^\circ` degree-symbol instances (upstream #45, still open / "possibly KaTeX upstream"); cleared with a local `preprocess.rewrites` stopgap (`\,^\circ` → `\,{}^\circ`). Remaining non-cosmetic items are all source-side and already tracked downstream: `alg-nsdeqn` still renders as Definition (book #13 — upstream #79's `prf:algorithm` generalisation doesn't catch it because our config maps `definitionbox`→`prf:definition`), 2 citation false-positives (`unil` mailto + `@tf.function`, book #13), 2 missing `restud_fig*.pdf` assets (book #14). **The MyST build is now structurally clean.**
 **Branch:** `mystmd-conversion`
 **Sources:**
 - `lecture_script/Deep_Learning_for_Solving_And_Estimating_Dynamic_Economic_Models.tex` (24,557 source lines, 329-page PDF)
@@ -20,45 +21,54 @@
 
 ---
 
-## 1. Headline result (Round 7)
+## 1. Headline result (Round 8)
 
-Upstream pin: `9649b0b` (fast-forward from `0e88cab`, six commits). Conversion ran clean; `myst build --html` ran with the warnings tabulated below.
+Upstream pin: `94baac5` (fast-forward from `9649b0b`, seven commits — all four R7-filed issues landed). Conversion + `myst build --html` are now **structurally clean**: 0 unresolved cross-refs, 0 KaTeX errors, 0 label collisions.
 
-| Dimension | Source | MyST | Match? | R6 | R5 | R4 | R3 | R2 | R1 |
-|---|---|---|---|---|---|---|---|---|---|
-| Chapters / sections / subsections / subsubsections | 22/144/81/5 | 22/144/81/5 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Paragraph heads / footnotes | 385 / 24 | 385 / 24 | ✅ | ✅ | ✅ | ✅ | ⚠️ glob | ⚠️ same | ⚠️ same |
-| Figures rendered | 88 | 88 | ✅ | ✅ | ❌ #42 | ✅ | ✅ | ✅ | ✅ |
-| Captioned tables — `{table}` directives / anchors | 41 / 41 | **41 / 41** | ✅ | ⚠️ #34 | ⚠️ same | ⚠️ same | ⚠️ same | ⚠️ same | ⚠️ same |
-| `\label{alg:X}` → `{prf:algorithm}` round-trip | 3 labels | 2 of 3 (alg-nsdeqn → `prf:definition`, see §3.4) | ⚠️ new | ⚠️ #43 | ⚠️ #39 | n/a | n/a | n/a | n/a |
-| `{numref}` cross-ref targets | — | 168 emitted, all resolve | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `{ref}` cross-ref targets (chapter/section) | — | clean | ✅ | ✅ | ⚠️ 11 | ⚠️ same | ⚠️ 12 | ⚠️ 1 | — |
-| `{eq}` cross-ref targets | 186 src labels | 241 emitted; **15 per-row align collisions** (see §3.2) | ⚠️ new-surface | ✅ | ✅ | ✅ | ⚠️ 1 | ⚠️ 18 | — |
-| `{prf:ref}` to exercises (appF + chapter cross-refs) | 87 labels | **96 unresolved** (`ex:ch1:1` in `\item` is dropped by pandoc, see §3.1) | ❌ new-surface | (missed by validate.py — see §3.0) | (missed) | (missed) | (missed) | (missed) | (missed) |
-| Citation keys vs `references.bib` | 254 | all resolve except `unil`, `tf.function` (2; see §3.5) | ⚠️ minor | ✅ | ✅ | ✅ | ⚠️ 9 | ⚠️ 5 | — |
-| New `_warn_dropped_text_macros` warning | — | 1 (`\checkmark` 1×, ch06) | ℹ️ new | n/a | n/a | n/a | n/a | n/a | n/a |
-| KaTeX build errors (`⛔`) | — | 5 unique patterns / 10 instances in ch11+ch02 (see §3.3) | ⚠️ same as R5 | (under-counted) | (under-counted) | (under-counted) | n/a | n/a | n/a |
-| `Could not convert TeX math` (pandoc, math-macro coverage) | — | ~22 (custom `\x \z \a \E \R \Wh \h ...` macros) | ⚠️ pre-existing | (missed) | (missed) | (missed) | n/a | n/a | n/a |
-| Missing image files (`fig/restud_fig{11a,15a}.pdf`) | 2 refs | not in repo; need imagemagick to render PDF anyway | ⚠️ asset-gap | (missed) | (missed) | (missed) | n/a | n/a | n/a |
+| Dimension | Source | MyST | R8 | R7 | R6 | R5 | R1 |
+|---|---|---|---|---|---|---|---|
+| Chapters / sections / subsections / subsubsections | 22/144/81/5 | 22/144/81/5 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Paragraph heads / footnotes | 385 / 24 | 385 / 24 | ✅ | ✅ | ✅ | ✅ | ⚠️ |
+| Figures rendered | 88 | 88 | ✅ | ✅ | ✅ | ❌ #42 | ✅ |
+| Captioned tables — `{table}` directives / anchors | 41 / 41 | 41 / 41 | ✅ | ✅ | ⚠️ #34 | ⚠️ | ⚠️ |
+| Exercises → `{exercise}` directives w/ labels | 87 labels | **87 directives, all refs resolve** | ✅ | ❌ 96 broken | (masked) | (masked) | (masked) |
+| `\label{alg:X}` → `{prf:algorithm}` round-trip | 3 labels | 2 of 3 (alg-nsdeqn → `prf:definition`; book #13) | ⚠️ same | ⚠️ | ⚠️ #43 | ⚠️ #39 | n/a |
+| `{numref}` cross-ref targets | — | all resolve | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `{ref}` cross-ref targets | — | all resolve | ✅ | ✅ | ✅ | ⚠️ 11 | — |
+| `{eq}` cross-ref targets | — | **all resolve** (per-row align now split, #70) | ✅ | ⚠️ 15 collisions | ✅ | ✅ | — |
+| `{prf:ref}` to exercises | 87 | **all resolve** (#69) | ✅ | ❌ 96 broken | (masked) | (masked) | (masked) |
+| Citation keys vs `references.bib` | 254 | all resolve except `unil`, `tf.function` (book #13) | ⚠️ 2 src-side | ⚠️ 2 | ✅ | ✅ | — |
+| KaTeX build errors (`⛔`) | — | **0** (8 `\,^\circ` cleared by local stopgap, #45) | ✅ | ⚠️ 10 | ⚠️ | ⚠️ | n/a |
+| Missing image files (`fig/restud_fig{11a,15a}.pdf`) | 2 refs | still absent (book #14) | ⚠️ asset | ⚠️ | (missed) | (missed) | n/a |
+| `Could not convert TeX math` (pandoc macro coverage) | — | ~22 (render fine via `myst.yml`) | ℹ️ noise | ⚠️ | (missed) | (missed) | n/a |
 
-**Round 7 verdict — net positive, with one methodology fix and one large pre-existing gap newly visible:**
+**Round 8 verdict — clean build; all R7-filed upstream issues closed.**
 
-✅ **Closed by this round's upstream (R7):**
-- **#34 / #51 / #55 / #60 — captioned tables fully arrive as `{table}` directives.** Source has 41 `\begin{table}` floats; output now has 42 `{table}` directives (the extra is the `notation` common-symbols table, also extracted via the unified `_apply_table_markers.py` path). All 41 carry their `:name: tab-…` anchor, all per-table captions and headers survive. R6 had only 4 `{list-table}` directives + 37 anchor-only tables. This is the largest single quality bump since R1.
-- **#22 / #50 — `_warn_dropped_text_macros` runs and surfaces one usable warning** (`\checkmark` ×1 in ch06_ha_youngs). The fix is a one-line config addition — see §3.6.
-- **#54 longtable** does not apply to this book (0 `\begin{longtable}` in source) but the path is now there for any future addition.
-- **#49 nested subfigure fast path** does not apply (the book uses TikZ-rendered composites via `tikz_overrides.py`, not native `subfigure`).
-- **#63 `regen: false`** is available; not used here (preferred over silent omission once we have curated files).
+✅ **Closed by this round's upstream (R8):**
+- **#68 (`291497c`) — `validate.py` no longer no-ops.** It now falls back to `tmp_dir` for split-source per-stem `.tex` files and guards against the vacuous pass. The validator runs for real for the first time on this book (see §1.1 on the count-mismatch `!` marks it now surfaces — they're tallying artifacts, not breakage).
+- **#69 (`cd7a0f9`) — `\item\label{ex:…}` exercises promoted to `{exercise}` directives.** 87 directives emitted, each with its `:label:`. All 96 previously-dead `{prf:ref}` from appF now resolve; the Solutions appendix is fully linked.
+- **#70 (`4d02d3f`) — per-row align labels split into separate `$$` blocks.** The 15 label collisions and 10 dead `{eq}` refs are gone; the `Multiple \tag` KaTeX error went with them.
+- **#71 (`fcba7b0`) — lstlisting caption escape decode.** The ch02 `K^\\alpha` double-backslash is fixed (`K^\alpha`), clearing that KaTeX error.
 
-⚠️ **Methodology defect discovered (§3.0):** `validate.py` has been silently skipping every chapter in this book on all prior rounds. It looks for split-source `.tex` files in `source_dir: lecture_script/` and skips when `tex.exists()` is False — but `lecture_script/` only ships the monolithic source; the split per-stem `.tex` files live in `mystmd/tmp/`. So the per-chapter resolution loop never runs, no rows are printed, and the trailing "All counts match. All cross-references resolve and are well-typed" is a vacuous pass. This is why R2–R6 all reported clean cross-refs while `myst build` was actually emitting hundreds of unresolved-target warnings (most of which were also masked by the warner only firing once per unique label). This is upstream — filed in §4 as the highest-priority action item for R8.
+✅ **Cleared locally this round:**
+- **#45 (degree symbol, still open upstream)** — 8 `\,^\circ\mathrm{C}` instances broke KaTeX (`Got group of unknown type: 'internal'`). Added a `preprocess.rewrites` stopgap `\,^\circ` → `\,{}^\circ` (empty group gives the superscript a base). Build is now KaTeX-clean. Remove the stopgap when #45 lands a generic KaTeX-compat fix upstream.
 
-❌ **Largest surfaced issue (§3.1):** 96 unique broken `{prf:ref}\`ex-chN-M\`` exercise refs across the chapter bodies and appF. Root cause: source has `\item\label{ex:ch1:1} …` inside `enumerate`; pandoc drops the `\label{}` (no MyST anchor lands on the list item), so when appF references `{prf:ref}\`ex-ch1-1\`` no target exists. There are 87 such labels in source; appF has 98 `{prf:ref}` to exercises, of which 96 are unresolved (the other 2 happen to alias chapter-level anchors). Triage in §4.
+⚠️ **Remaining items — all source-side, all tracked downstream, none blocking:**
+- `alg-nsdeqn` renders as Definition not Algorithm (book #13). Upstream #79 generalised `prf:algorithm` routing but doesn't catch this case because our `config.yaml::extra_environments` maps `definitionbox`→`prf:definition`. One-line source fix (`\begin{algorithm}`) resolves it; the cross-ref already resolves, so this is cosmetic.
+- 2 citation false-positives: `unil` (a `\href{mailto:…@unil.ch}` mis-read as a cite) and `@tf.function` (Python decorator). Both in book #13.
+- 2 missing `restud_fig{11a,15a}.pdf` assets (book #14) — needs author decision.
 
-⚠️ **Other newly-surfaced issues** are detailed in §3 — they were all present in R6 but masked by the no-op validator and selective warning grep:
-- §3.2 — 15 per-row `\label{}` collisions on `\begin{align}` blocks (`eq-iam_l2..l8` collapsed to `eq-iam_l1`; `eq-temp_oc` collapsed to `eq-temp_at`, etc.). MyST treats stacked `(eq-x)=` anchors above one `$$ \begin{aligned} … $$` block as duplicates for the same target.
-- §3.3 — 5 unique KaTeX errors in ch11 (`Got group of unknown type: 'internal'`, `Multiple \tag`) plus 1 in ch02 (`Got function '\\' with no arguments as superscript`). The ch11 'internal' errors are a likely-new myst/KaTeX upstream behaviour; not previously catalogued.
-- §3.4 — `alg:nsdeqn` (3rd algorithm) renders as `{prf:definition}` because the source uses `\begin{definitionbox}[Algorithm: Non-Stationary DEQN Training]`; the algorithm marker extractor triggers on `\begin{algorithm}` only.
-- §3.5 — `Could not link citation with label "unil"` (preface) and `"tf.function"` (ch02_deqns). The `unil` lookalike is a `\cite` to a missing bib key (or a `\href` mis-parsed as a `cite`); `tf.function` looks like a `@tf.function` Python decorator that pandoc swallowed as a citation key.
+ℹ️ **Cosmetic build warnings (unchanged, not content):** 15 "missing heading depth" (source skips a heading level, e.g. `##` → `####`), 2 "Duplicate identifier" (every chapter has an `Exercises` / `Further Reading` section sharing an auto-id). Neither affects rendered content.
+
+### 1.1 On the validate.py count-mismatch (`!`) marks
+
+Now that #68 lets `validate.py` run, it prints per-chapter `latex/myst` counts and flags totals that differ with `!`. These are **tallying-heuristic differences, not broken output** — the resolution check (does every referenced anchor exist?) passes with the single exception of `unil`. Specifically:
+- **equations** `latex < myst` (e.g. ch11 59/72): #70 now splits each per-row-labelled align row into its own `$$` block, so MyST legitimately has more equation blocks than the source has `\label{eq:}` lines.
+- **citations** `latex < myst` (e.g. ch01 61/127): the MyST side counts every `{cite:*}` occurrence including multi-key `{cite:p}\`a,b,c\`` expansions and repeated cites; the LaTeX side counts `\cite*` calls. Different denominators.
+- **theorems** `0/N`: source has 0 by the validator's `\begin{theorem}`-family heuristic; MyST has `{prf:remark}` / `{prf:definition}` from the book's tcolorbox→prf mappings.
+- **cross_refs / notation** `latex < myst`: numref/eq expansion and the notation symbol-table anchors.
+
+None of these indicate missing or mis-converted content; they're a known limitation of comparing structural totals across two different markup models.
 
 ---
 
@@ -161,7 +171,9 @@ Cross-check against `myst build --html` warning log:
 
 ## 3. Findings (Round 7, by severity)
 
-### 3.0 `validate.py` has been a no-op for this book since R1 — methodology defect ❌
+> **R8 status banner.** The §3.0–§3.4 findings below are the Round 7 write-ups, preserved as history. As of Round 8 (upstream `94baac5`): §3.0 **closed** (#68), §3.1 **closed** (#69), §3.2 **closed** (#70), §3.3 **closed** — `K^\\alpha` via #71 and the 8 `\,^\circ` instances via a local stopgap (upstream #45 still open), §3.4 **still open** (book #13, source-side). §3.5 (citations) and §3.7 (assets) unchanged → book #13 / #14. See §1 for the current state.
+
+### 3.0 `validate.py` has been a no-op for this book since R1 — methodology defect ❌ → **CLOSED R8 (#68)**
 
 **Symptom:** every R2–R6 report said "All cross-references resolve." The R7 myst-build log shows 106 unique unresolved targets. Both can't be true simultaneously.
 
@@ -341,14 +353,24 @@ Verified against `mystmd/ch11_climate.md:911–944`. Result: **substantial match
 
 ## 5. Outstanding issues — routing recommendations
 
-### Round 7 — NEW items to file upstream
+### Round 7 items — all filed; R8 status
 
-| # | Item | Triage layer | Severity | Notes |
-|---|---|---|---|---|
-| R7-1 | `validate.py` silently skips every chapter when `preprocess.split:` is used (§3.0) | Layer 2 | **critical** (validator no-op) | Highest-priority R8 item. Without this, all subsequent rounds operate blind on cross-ref breakage. |
-| R7-2 | 87 `\item\label{ex:chN:M}` exercise labels dropped by pandoc → 96 broken `{prf:ref}` (§3.1) | Layer 2 | **high** (largest single-class bug) | Mirror the existing `_apply_description_markers.py` pattern for `enumerate`-of-exercises; emit either an `(ex-chN-M)=` anchor or a full `{prf:exercise}` directive. |
-| R7-3 | Per-row align `\label{}` collisions — only first label survives (§3.2) | Layer 2 | medium (10 dead `{eq}` refs) | Convert multi-row `aligned` blocks to `{math}` directive with per-row `:label:`, or split into one `$$ … $$` per row. Related to closed [#30](https://github.com/QuantEcon/claude-latex-to-myst/issues/30) but at a different layer. |
-| R7-4 | `\begin{definitionbox}[Algorithm: …]` not auto-routed to `prf:algorithm` (§3.4) | Layer 1 (local) or Layer 2 (general) | low | Easier as a one-line source fix in this book; upstream change worth a CHANGELOG note for any book that adopts the dp1/dp2 `definitionbox` convention. |
+| # | Item | Filed as | R8 status |
+|---|---|---|---|
+| R7-1 | `validate.py` silently skips every chapter when `preprocess.split:` is used (§3.0) | [QE#68](https://github.com/QuantEcon/claude-latex-to-myst/issues/68) | ✅ closed `291497c` — tmp_dir fallback + vacuous-pass guard |
+| R7-2 | 87 `\item\label{ex:chN:M}` exercise labels dropped → 96 broken `{prf:ref}` (§3.1) | [QE#69](https://github.com/QuantEcon/claude-latex-to-myst/issues/69) | ✅ closed `cd7a0f9` — enumerate exercises → `{exercise}` directives |
+| R7-3 | Per-row align `\label{}` collisions — only first label survives (§3.2) | [QE#70](https://github.com/QuantEcon/claude-latex-to-myst/issues/70) | ✅ closed `4d02d3f` — split per-row align into separate `$$` blocks |
+| R7-5 | lstlisting `[caption={…math…}]` doubles backslashes (§3.3) | [QE#71](https://github.com/QuantEcon/claude-latex-to-myst/issues/71) | ✅ closed `fcba7b0` — decode pandoc quoted-attr escapes |
+| R7-4 | `\begin{definitionbox}[Algorithm: …]` not auto-routed to `prf:algorithm` (§3.4) | [book#13](https://github.com/mmcky/Deep_Learning_for_Solving_And_Estimating_Dynamic_Economic_Models/issues/13) | ⏳ open — source-side fix; upstream #79 generalised env-div `prf:algorithm` but our `definitionbox`→`prf:definition` config mapping intercepts it |
+
+### Round 8 — remaining open items
+
+| Item | Tracker | Layer | Notes |
+|---|---|---|---|
+| `\,^\circ` degree symbol breaks KaTeX | [QE#45](https://github.com/QuantEcon/claude-latex-to-myst/issues/45) | 2 (KaTeX-compat) | ⏳ open upstream; **worked around locally** via `preprocess.rewrites` (`\,^\circ` → `\,{}^\circ`). Remove the stopgap when #45 lands. |
+| `alg-nsdeqn` renders as Definition | [book#13](https://github.com/mmcky/Deep_Learning_for_Solving_And_Estimating_Dynamic_Economic_Models/issues/13) | 1 (source) | one-line `\begin{algorithm}` swap; cross-ref already resolves |
+| `@tf.function` / `unil` citation false-positives | [book#13](https://github.com/mmcky/Deep_Learning_for_Solving_And_Estimating_Dynamic_Economic_Models/issues/13) | 1 (source) | escape `@` / mailto |
+| Missing `restud_fig{11a,15a}.pdf` | [book#14](https://github.com/mmcky/Deep_Learning_for_Solving_And_Estimating_Dynamic_Economic_Models/issues/14) | 1 (assets) | author decision |
 
 ### Status of all previously filed issues (R1–R6 closures + open R5 carryovers)
 
@@ -366,8 +388,8 @@ Verified against `mystmd/ch11_climate.md:911–944`. Result: **substantial match
 | R4 | `_apply_algorithm_markers`: `\label{alg:X}` sibling of `\caption{}` | [#39](https://github.com/QuantEcon/claude-latex-to-myst/issues/39) / [#43](https://github.com/QuantEcon/claude-latex-to-myst/issues/43) | ✅ closed (R7: 2-of-3 algorithms now correct; 3rd uses non-algorithm env → §3.4 / R7-4) |
 | R4 | HTML entities inside math break KaTeX | [#40](https://github.com/QuantEcon/claude-latex-to-myst/issues/40) | ✅ closed |
 | R5 | P3a refactor TIKZ_FIGURE_MAP empty | [#42](https://github.com/QuantEcon/claude-latex-to-myst/issues/42) | ✅ closed (was critical) |
-| R5 | Per-row `\tag*` breaks KaTeX (Multiple \tag) | [#45](https://github.com/QuantEcon/claude-latex-to-myst/issues/45) | ⏳ open (R7: same 1 instance in ch11) |
-| R5 | `\,^\circ\mathrm{C}` breaks KaTeX (`'internal'` group) | [#46](https://github.com/QuantEcon/claude-latex-to-myst/issues/46) | ⏳ open (R7: now 7 ch11 instances — broader than R5's "8 of `\,^\circ` only", but same KaTeX limitation class) |
+| R5 | `\,^\circ\mathrm{C}` breaks KaTeX (`'internal'` group) | [#45](https://github.com/QuantEcon/claude-latex-to-myst/issues/45) | ⏳ open upstream (R8: worked around locally via `preprocess.rewrites`; build now KaTeX-clean). *(R5/R7 had #45 and #46 swapped in this table — #45 is the degree-symbol issue, #46 the `\tag*` one.)* |
+| R5 | Per-row `\tag*` breaks KaTeX (Multiple \tag) | [#46](https://github.com/QuantEcon/claude-latex-to-myst/issues/46) | ✅ closed (R8: resolved by #70's per-row align split) |
 
 ### Local (book-side) items not requiring upstream
 

@@ -193,33 +193,57 @@ For further reading, we refer to the comprehensive survey by {cite:t}`fernandezv
 ## Exercises
 Worked solutions and guidance for these exercises appear in Appendix {ref}`app-solutions`.
 
-1.   **[Core\] Method-choice scenario.** You are handed (a) a 4-state monetary-policy DSGE with smooth shocks, (b) a 200-agent OLG with progressive taxation, (c) an option-pricing problem on an irregularly shaped exotic payoff, and (d) a climate-IAM where uncertainty in the SCC is the deliverable. Justify which method you would use for each, and what hybrid you would consider. For each case, state the classical baseline you would compare against before reaching for a deep-learning method.
+```{exercise}
+:label: ex-ch12-1
 
-2.   **\{ref}`sec-when_not_to_use_dl` and write a one-page note for a colleague explaining why a classical method dominates.
+**[Core\] Method-choice scenario.** You are handed (a) a 4-state monetary-policy DSGE with smooth shocks, (b) a 200-agent OLG with progressive taxation, (c) an option-pricing problem on an irregularly shaped exotic payoff, and (d) a climate-IAM where uncertainty in the SCC is the deliverable. Justify which method you would use for each, and what hybrid you would consider. For each case, state the classical baseline you would compare against before reaching for a deep-learning method.
+```
 
-3.   **[Computational\] Reproducibility audit.** Take any notebook from this script and document hardware, software versions, and seeds. Re-run end-to-end and report the maximum deviation in any reported number.
+```{exercise}
+:label: ex-ch12-2
 
-4.   **\{ref}`sec-open_challenges` (operator learning, hybrid global/local, real-time policy, large structural estimation, climate-economy IAMs, HA with aggregate shocks) and sketch a 6-month research project that combines two methods from this script.
+**\{ref}`sec-when_not_to_use_dl` and write a one-page note for a colleague explaining why a classical method dominates.
+```
 
-5.   **[Advanced/project\] Hybrid pipeline: DEQN $+$ GP $+$ SMM end-to-end.** Build a complete estimation pipeline on the Brock--Mirman model with two parameters $(\beta, \varrho)$, matching the parameter pair worked in the companion notebook `lecture_15_03b_Structural_Estimation_BM_Joint.ipynb`. As that notebook documents, $\beta$ is only *partially* identified by macro moments (a visible ridge along the $\beta$ axis); $\varrho$ has the cleaner identification map. The exercise below is a controlled-difficulty version of that pipeline.
+```{exercise}
+:label: ex-ch12-3
 
-    1.  Train a DEQN with *pseudo-state augmentation*: extend the network input from $(K_t, z_t)$ to $(K_t, z_t, \beta, \varrho)$.
+**[Computational\] Reproducibility audit.** Take any notebook from this script and document hardware, software versions, and seeds. Re-run end-to-end and report the maximum deviation in any reported number.
+```
 
-    2.  On a $20\times 20$ grid of $(\beta, \varrho) \in [0.92, 0.99] \times [0.50, 0.99]$, simulate the model and compute four moments: mean savings rate, mean consumption growth, $\mathrm{Var}(\log C_t)$, and $\mathrm{Var}(K_t)$.
+```{exercise}
+:label: ex-ch12-4
 
-    3.  Fit a GP surrogate $(\beta, \varrho) \mapsto \bm m$ on the resulting $400$-point dataset.
+**\{ref}`sec-open_challenges` (operator learning, hybrid global/local, real-time policy, large structural estimation, climate-economy IAMs, HA with aggregate shocks) and sketch a 6-month research project that combines two methods from this script.
+```
 
-    4.  Generate observed moments at $(\beta^\star,\varrho^\star)=(0.96,0.90)$ from one $T=200$ simulation and solve the GP-based SMM problem.
+```{exercise}
+:label: ex-ch12-5
 
-    Report the wall-clock time of each step, total pipeline time, estimation errors, a comparison to a naive SMM that re-solves the DEQN at each candidate $(\beta,\varrho)$, the hold-out surrogate error on $(\beta,\varrho)$ pairs outside the $20\times 20$ grid, a contour plot of the GP-based SMM criterion that exposes the $\beta$ ridge, and a direct DEQN re-evaluation at the GP optimum to test surrogate bias. Evaluate whether the surrogate-based optimization is faster after accounting for the one-time GP fitting overhead and whether its accuracy is comparable. Bonus: bootstrap confidence intervals for $(\hat\beta,\hat\varrho)$ using the parametric bootstrap of {prf:ref}`ex-ch10-6`.
+**[Advanced/project\] Hybrid pipeline: DEQN $+$ GP $+$ SMM end-to-end.** Build a complete estimation pipeline on the Brock--Mirman model with two parameters $(\beta, \varrho)$, matching the parameter pair worked in the companion notebook `lecture_15_03b_Structural_Estimation_BM_Joint.ipynb`. As that notebook documents, $\beta$ is only *partially* identified by macro moments (a visible ridge along the $\beta$ axis); $\varrho$ has the cleaner identification map. The exercise below is a controlled-difficulty version of that pipeline.
 
-6.   **[Advanced/project\] DeepONet for a parameterized HJB.** Consider the cake-eating HJB $$\rho V(a; \gamma) = \max_c \left[\frac{c^{1-\gamma}}{1-\gamma} + V'(a; \gamma)(ra - c)\right],
-    \qquad \gamma \in [1.5,5],$$ This is deliberately a low-dimensional operator-learning toy: since the branch input is the scalar $\gamma$, a parameter-conditioned PINN would be an equally natural baseline. The purpose of the exercise is to expose the DeepONet branch--trunk decomposition before moving to function-valued branch inputs (e.g., a state-dependent drift $r(a)$ or discount rate $\rho(a)$ observed at sensor points).
+1.  Train a DEQN with *pseudo-state augmentation*: extend the network input from $(K_t, z_t)$ to $(K_t, z_t, \beta, \varrho)$.
 
-    1.  Sketch the DeepONet architecture for learning the operator $\mathcal{G}: \gamma \mapsto V(\cdot;\gamma)$: identify the branch-net input and the trunk-net input, and write the predicted output as the inner product of branch and trunk outputs.
+2.  On a $20\times 20$ grid of $(\beta, \varrho) \in [0.92, 0.99] \times [0.50, 0.99]$, simulate the model and compute four moments: mean savings rate, mean consumption growth, $\mathrm{Var}(\log C_t)$, and $\mathrm{Var}(K_t)$.
 
-    2.  State the operator-learning universal approximation theorem of {cite:t}`lu2021learning` and explain why a DeepONet of moderate width can approximate any continuous operator on a compact set.
+3.  Fit a GP surrogate $(\beta, \varrho) \mapsto \bm m$ on the resulting $400$-point dataset.
 
-    3.  Suppose you want $V(\cdot;\gamma)$ for $N=50$ values of $\gamma$. Compare $N$ independent PINN runs at cost $C_\mathrm{PINN}$ each with one DeepONet run at cost $C_\mathrm{DON}$. At what ratio $C_\mathrm{DON}/C_\mathrm{PINN}$ does operator learning win, and how does the break-even ratio scale with $N$?
+4.  Generate observed moments at $(\beta^\star,\varrho^\star)=(0.96,0.90)$ from one $T=200$ simulation and solve the GP-based SMM problem.
 
-    4.  Discuss two limitations: extrapolation outside $[1.5,5]$ and preservation of structural properties such as concavity of $V$ in $a$.
+Report the wall-clock time of each step, total pipeline time, estimation errors, a comparison to a naive SMM that re-solves the DEQN at each candidate $(\beta,\varrho)$, the hold-out surrogate error on $(\beta,\varrho)$ pairs outside the $20\times 20$ grid, a contour plot of the GP-based SMM criterion that exposes the $\beta$ ridge, and a direct DEQN re-evaluation at the GP optimum to test surrogate bias. Evaluate whether the surrogate-based optimization is faster after accounting for the one-time GP fitting overhead and whether its accuracy is comparable. Bonus: bootstrap confidence intervals for $(\hat\beta,\hat\varrho)$ using the parametric bootstrap of {prf:ref}`ex-ch10-6`.
+```
+
+```{exercise}
+:label: ex-ch12-6
+
+**[Advanced/project\] DeepONet for a parameterized HJB.** Consider the cake-eating HJB $$\rho V(a; \gamma) = \max_c \left[\frac{c^{1-\gamma}}{1-\gamma} + V'(a; \gamma)(ra - c)\right],
+\qquad \gamma \in [1.5,5],$$ This is deliberately a low-dimensional operator-learning toy: since the branch input is the scalar $\gamma$, a parameter-conditioned PINN would be an equally natural baseline. The purpose of the exercise is to expose the DeepONet branch--trunk decomposition before moving to function-valued branch inputs (e.g., a state-dependent drift $r(a)$ or discount rate $\rho(a)$ observed at sensor points).
+
+1.  Sketch the DeepONet architecture for learning the operator $\mathcal{G}: \gamma \mapsto V(\cdot;\gamma)$: identify the branch-net input and the trunk-net input, and write the predicted output as the inner product of branch and trunk outputs.
+
+2.  State the operator-learning universal approximation theorem of {cite:t}`lu2021learning` and explain why a DeepONet of moderate width can approximate any continuous operator on a compact set.
+
+3.  Suppose you want $V(\cdot;\gamma)$ for $N=50$ values of $\gamma$. Compare $N$ independent PINN runs at cost $C_\mathrm{PINN}$ each with one DeepONet run at cost $C_\mathrm{DON}$. At what ratio $C_\mathrm{DON}/C_\mathrm{PINN}$ does operator learning win, and how does the break-even ratio scale with $N$?
+
+4.  Discuss two limitations: extrapolation outside $[1.5,5]$ and preservation of structural properties such as concavity of $V$ in $a$.
+```

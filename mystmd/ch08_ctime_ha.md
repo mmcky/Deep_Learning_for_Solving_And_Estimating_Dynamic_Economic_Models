@@ -533,18 +533,46 @@ For stationary, low-dimensional problems, finite differences remain fast and rel
 ## Exercises
 Worked solutions and guidance for these exercises appear in Appendix {ref}`app-solutions`.
 
-1.   **[Core\] Itô on GBM.** Apply Itô's lemma to $f(x) = \ln x$ with $X_t$ following geometric Brownian motion to derive $X_t = X_0 \exp[(\mu - \tfrac{1}{2}\sigma^2)t + \sigma B_t]$. Discuss why "volatility drag" lowers the expected log return below the expected return.
+```{exercise}
+:label: ex-ch8-1
 
-2.   **[Core\] KFE for an OU process.** Write the Kolmogorov forward equation for the Ornstein--Uhlenbeck process $dX_t = \eta(\bar X - X_t)\,dt + \sigma\,dB_t$ and derive the stationary density $\mathcal{N}(\bar X, \sigma^2/(2\eta))$ by setting $\partial_t g = 0$.
+**[Core\] Itô on GBM.** Apply Itô's lemma to $f(x) = \ln x$ with $X_t$ following geometric Brownian motion to derive $X_t = X_0 \exp[(\mu - \tfrac{1}{2}\sigma^2)t + \sigma B_t]$. Discuss why "volatility drag" lowers the expected log return below the expected return.
+```
 
-3.   **[Core\] Functional derivative.** For the master-equation value function $V(a, g)$, compute $\delta V/\delta g$ for the toy specification $V(a,g) = \int u(c(a, y))\,g(y)\,dy$ where $c$ is a fixed consumption rule. Interpret the result.
+```{exercise}
+:label: ex-ch8-2
 
-4.   **[Computational\] HJB residual.** In notebook `lecture_13_08_Aiyagari_Continuous_Time_FD_and_PINN_PyTorch.ipynb`, compute the maximum HJB residual on a 50-point test grid after a fixed PINN training budget. Repeat with a larger collocation batch and report the actual scaling you observe.
+**[Core\] KFE for an OU process.** Write the Kolmogorov forward equation for the Ornstein--Uhlenbeck process $dX_t = \eta(\bar X - X_t)\,dt + \sigma\,dB_t$ and derive the stationary density $\mathcal{N}(\bar X, \sigma^2/(2\eta))$ by setting $\partial_t g = 0$.
+```
 
-5.   **\{eq}`eq-hjb_full` for $V(a,n)$ and the KFE {eq}`eq-kfe_econ` for $g(a,n)$ into the closed Aiyagari general-equilibrium system. (i) Add the firm's first-order conditions: with Cobb--Douglas production $Y = A K^\alpha L^{1-\alpha}$, write $r = \alpha A K^{\alpha-1} L^{1-\alpha} - \delta$ and $w = (1-\alpha) A K^\alpha L^{-\alpha}$. (ii) Add the market-clearing conditions $K = \sum_n\int_{\underline a}^{\infty} a\,g(a,n)\,da$ and $L = \sum_n n\int_{\underline a}^{\infty}g(a,n)\,da$. (iii) Show that the coupled system pins down $(V,g,K,L,r,w)$, with $L$ often fixed by the stationary income shares and $w$ implied by $(K,L)$. (iv) Briefly explain why solving this system for the stationary equilibrium is commonly reduced to a fixed point in $r$, and why the inner HJB and KFE problems must be solved consistently at each candidate $r$.
+```{exercise}
+:label: ex-ch8-3
 
-6.   **[Advanced/project\] Stationary-distribution convergence.** In notebook `lecture_13_08_Aiyagari_Continuous_Time_FD_and_PINN_PyTorch.ipynb`, take the optimal policy $s^\star(a,n)$ from the converged HJB solver (i.e., fix the policy) and run the KFE {eq}`eq-kfe_econ` forward in time starting from a non-stationary initial density (e.g., uniform on $[\underline a, a_\mathrm{max}]$). Plot snapshots of $g_t(a, n)$ at $t \in \{1, 5, 25, 100, 500\}$ years and the running $L^2$ distance $\|g_t - g^\star\|_{L^2}$ to the stationary distribution $g^\star$. Check whether convergence is approximately exponential by fitting a line to $\log\|g_t - g^\star\|$ over the linear region, and relate the fitted rate to the spectral gap of the KFE operator.
+**[Core\] Functional derivative.** For the master-equation value function $V(a, g)$, compute $\delta V/\delta g$ for the toy specification $V(a,g) = \int u(c(a, y))\,g(y)\,dy$ where $c$ is a fixed consumption rule. Interpret the result.
+```
 
-7.   **[Advanced/project\] FD upwind vs. PINN benchmark.** In the same notebook, the chapter ships both a finite-difference upwind solver (deterministic, grid-based) and a PINN trained on HJB and KFE residuals. Run both on the same $1$-asset Aiyagari calibration and report (i) wall-clock time for your chosen residual target, (ii) the final residual on a fine $200$-point test grid, and (iii) peak memory, including GPU memory if you run the PINN on a GPU. As an extension, sweep the discount rate $\rho$ over $\{0.04, 0.05, 0.06\}$ and compare cold-start FD runs with warm-started PINN runs. Discuss when each is preferred: FD for low-dimensional, fixed-parameter computations; PINN for parametric sweeps and higher-dimensional extensions.
+```{exercise}
+:label: ex-ch8-4
+
+**[Computational\] HJB residual.** In notebook `lecture_13_08_Aiyagari_Continuous_Time_FD_and_PINN_PyTorch.ipynb`, compute the maximum HJB residual on a 50-point test grid after a fixed PINN training budget. Repeat with a larger collocation batch and report the actual scaling you observe.
+```
+
+```{exercise}
+:label: ex-ch8-5
+
+**\{eq}`eq-hjb_full` for $V(a,n)$ and the KFE {eq}`eq-kfe_econ` for $g(a,n)$ into the closed Aiyagari general-equilibrium system. (i) Add the firm's first-order conditions: with Cobb--Douglas production $Y = A K^\alpha L^{1-\alpha}$, write $r = \alpha A K^{\alpha-1} L^{1-\alpha} - \delta$ and $w = (1-\alpha) A K^\alpha L^{-\alpha}$. (ii) Add the market-clearing conditions $K = \sum_n\int_{\underline a}^{\infty} a\,g(a,n)\,da$ and $L = \sum_n n\int_{\underline a}^{\infty}g(a,n)\,da$. (iii) Show that the coupled system pins down $(V,g,K,L,r,w)$, with $L$ often fixed by the stationary income shares and $w$ implied by $(K,L)$. (iv) Briefly explain why solving this system for the stationary equilibrium is commonly reduced to a fixed point in $r$, and why the inner HJB and KFE problems must be solved consistently at each candidate $r$.
+```
+
+```{exercise}
+:label: ex-ch8-6
+
+**[Advanced/project\] Stationary-distribution convergence.** In notebook `lecture_13_08_Aiyagari_Continuous_Time_FD_and_PINN_PyTorch.ipynb`, take the optimal policy $s^\star(a,n)$ from the converged HJB solver (i.e., fix the policy) and run the KFE {eq}`eq-kfe_econ` forward in time starting from a non-stationary initial density (e.g., uniform on $[\underline a, a_\mathrm{max}]$). Plot snapshots of $g_t(a, n)$ at $t \in \{1, 5, 25, 100, 500\}$ years and the running $L^2$ distance $\|g_t - g^\star\|_{L^2}$ to the stationary distribution $g^\star$. Check whether convergence is approximately exponential by fitting a line to $\log\|g_t - g^\star\|$ over the linear region, and relate the fitted rate to the spectral gap of the KFE operator.
+```
+
+```{exercise}
+:label: ex-ch8-7
+
+**[Advanced/project\] FD upwind vs. PINN benchmark.** In the same notebook, the chapter ships both a finite-difference upwind solver (deterministic, grid-based) and a PINN trained on HJB and KFE residuals. Run both on the same $1$-asset Aiyagari calibration and report (i) wall-clock time for your chosen residual target, (ii) the final residual on a fine $200$-point test grid, and (iii) peak memory, including GPU memory if you run the PINN on a GPU. As an extension, sweep the discount rate $\rho$ over $\{0.04, 0.05, 0.06\}$ and compare cold-start FD runs with warm-started PINN runs. Discuss when each is preferred: FD for low-dimensional, fixed-parameter computations; PINN for parametric sweeps and higher-dimensional extensions.
+```
 
 [^1]: <https://benjaminmoll.com/lectures/>

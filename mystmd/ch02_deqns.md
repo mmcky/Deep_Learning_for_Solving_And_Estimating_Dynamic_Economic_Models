@@ -246,7 +246,7 @@ The success of the DEQN approach rests on three pillars. First, neural networks 
 
 
 ```{code-block} text
-:caption: Representative DEQN loss for Brock--Mirman with path averaging. The network outputs a savings share $s \\in (0,1)$ via a sigmoid, which jointly enforces $C > 0$ \\emph{and} $K' > 0$; softplus on $C$ alone would not, since $C > z K^\\alpha$ would yield $K' < 0$ and an undefined $K'^{\\,\\alpha-1}$.
+:caption: Representative DEQN loss for Brock--Mirman with path averaging. The network outputs a savings share $s \in (0,1)$ via a sigmoid, which jointly enforces $C > 0$ \emph{and} $K' > 0$; softplus on $C$ alone would not, since $C > z K^\alpha$ would yield $K' < 0$ and an undefined $K'^{\,\alpha-1}$.
 
 def deqn_loss(model, K, z, beta, alpha, z_next):
     Y       = z * K**alpha                   # output today
@@ -558,7 +558,7 @@ Here $K_{t+2}=g(K_{t+1},z_{t+1})$. Both terms in {eq}`eq-ad_euler` are derivati
 
 ```{code-block} text
 :name: lst-autodiff_euler
-:caption: Autodiff Euler residual for Brock--Mirman. The function \\texttt{Pi} is the only model-specific code; the rest is generic. A full implementation lives in the autodiff chapter's code folder, notebook \\protect\\texttt{02_Brock_Mirman_AutoDiff_DEQN.ipynb}.
+:caption: Autodiff Euler residual for Brock--Mirman. The function \texttt{Pi} is the only model-specific code; the rest is generic. A full implementation lives in the autodiff chapter's code folder, notebook \protect\texttt{02_Brock_Mirman_AutoDiff_DEQN.ipynb}.
 
 def Pi(K_in, K_out, z_in):
     Y = z_in * K_in ** alpha
@@ -729,20 +729,52 @@ The following Jupyter notebooks implement and extend the material in this chapte
 ## Exercises
 Worked solutions and guidance for these exercises appear in Appendix {ref}`app-solutions`.
 
-1.   **[Core\] Closed-form Brock--Mirman.** Verify that for log utility, $\delta = 1$, and AR(1) productivity $\ln z_{t+1} = \varrho \ln z_t + \sigma_z \varepsilon_{t+1}$, the optimal savings share is the constant $s^\star = \alpha\beta$. Use this to check that a converged DEQN's average sigmoid output should equal $\alpha\beta$.
+```{exercise}
+:label: ex-ch2-1
 
-2.   **[Core\] Hard vs. soft constraints.** Consider a softplus head on $C_t$ alone (so $C_t > 0$ but $K_{t+1}$ unconstrained). Construct an explicit input $(K_t, z_t)$ for which a randomly initialized network would predict $K_{t+1} < 0$. Explain why the sigmoid-savings parameterization eliminates this failure mode.
+**[Core\] Closed-form Brock--Mirman.** Verify that for log utility, $\delta = 1$, and AR(1) productivity $\ln z_{t+1} = \varrho \ln z_t + \sigma_z \varepsilon_{t+1}$, the optimal savings share is the constant $s^\star = \alpha\beta$. Use this to check that a converged DEQN's average sigmoid output should equal $\alpha\beta$.
+```
 
-3.   **[Core\] Path averaging vs. conditional expectation.** Let $G_\rho(x_t,\varepsilon_{t+1})$ denote the one-shock Euler residual under network parameters $\rho$. Show that, under ergodicity, the path average of $G_\rho^2$ converges almost surely to $\mathbb{E}_{\mu,\varepsilon}[G_\rho(x,\varepsilon)^2]$ as $T_{\text{sim}} \to \infty$. Compare this target with the conditional residual objective $\mathbb{E}_{\mu}[(\mathbb{E}[G_\rho(x,\varepsilon)\mid x])^2]$. Use Jensen's inequality to explain why the pathwise squared objective is generally stronger, and discuss the finite-sample variance trade-off.
+```{exercise}
+:label: ex-ch2-2
 
-4.   **\{eq}`eq-bm_euler`, replace the single-shock pathwise residual by a $Q=5$ Gauss--Hermite expectation ({ref}`sec-gh_tensor_product`). Write out the resulting deterministic loss in closed form, and check on a few representative $(K_t, z_t)$ that the value matches a Monte Carlo estimate with $10^4$ shock draws to four significant digits.
+**[Core\] Hard vs. soft constraints.** Consider a softplus head on $C_t$ alone (so $C_t > 0$ but $K_{t+1}$ unconstrained). Construct an explicit input $(K_t, z_t)$ for which a randomly initialized network would predict $K_{t+1} < 0$. Explain why the sigmoid-savings parameterization eliminates this failure mode.
+```
 
-5.   **\{eq}`eq-stroud3` for shock dimension $d=4$ (so $8$ nodes). Verify by direct computation that the rule reproduces $\E{\varepsilon_i'}=0$, $\E{\varepsilon_i'^{\,2}}=1$, $\E{\varepsilon_i'\varepsilon_j'}=0$ for $i\neq j$, and $\E{\varepsilon_i'^{\,3}}=0$ exactly, but gives $\E{\varepsilon_i'^{\,4}} = d = 4$ instead of the true value $3$. Show that the relative bias on the fourth moment grows linearly in $d$, and discuss when this matters for an Euler-equation residual.
+```{exercise}
+:label: ex-ch2-3
 
-6.   **[Core\] Loss-kernel selection.** Three application scenarios are described below; match each to the most appropriate loss kernel from the menu {MSE, MAE, Huber($\delta$), pinball loss at $\tau$, CVaR at $\alpha$, log-cosh} and justify the choice in two or three sentences. (a) "Quadrature noise occasionally produces a few large Euler residuals; we want a smooth loss that behaves quadratically near zero so gradients vanish at the optimum, but only linearly in the tails so that a single noisy point cannot dominate the gradient." (b) "A regulator will inspect the worst $1\%$ of residuals; we want the optimizer to drive the conditional mean above the $99$th percentile down to tolerance, not the average." (c) "We care that the *median* Euler residual is small. Tails are an artefact of badly conditioned states near the borrowing constraint and should not pull the gradient."
+**[Core\] Path averaging vs. conditional expectation.** Let $G_\rho(x_t,\varepsilon_{t+1})$ denote the one-shock Euler residual under network parameters $\rho$. Show that, under ergodicity, the path average of $G_\rho^2$ converges almost surely to $\mathbb{E}_{\mu,\varepsilon}[G_\rho(x,\varepsilon)^2]$ as $T_{\text{sim}} \to \infty$. Compare this target with the conditional residual objective $\mathbb{E}_{\mu}[(\mathbb{E}[G_\rho(x,\varepsilon)\mid x])^2]$. Use Jensen's inequality to explain why the pathwise squared objective is generally stronger, and discuss the finite-sample variance trade-off.
+```
 
-7.   **[Computational\] Multivariate shock scaling.** Extend notebook `lecture_03_02_Brock_Mirman_Uncertainty_DEQN.ipynb` to $d$ independent productivity shocks, $d \in \{1, 2, 4, 8\}$ (e.g., add country-level TFP terms to the production technology, all i.i.d. standard normal). For each $d$, train the network twice: once with tensor-product Gauss--Hermite at $Q=3$ ($3^d$ nodes per residual), once with the Stroud-3 rule of {eq}`eq-stroud3` ($2d$ nodes). Plot training time per epoch and final relative Euler error against $d$ on the same axes. Confirm that the Stroud-3 cost grows linearly while Gauss--Hermite is exponential, and identify the $d$ at which Gauss--Hermite becomes impractical on a single GPU.
+```{exercise}
+:label: ex-ch2-4
 
-8.   **[Computational\] Implementation.** Modify notebook `lecture_03_02_Brock_Mirman_Uncertainty_DEQN.ipynb` to use a tanh activation instead of Swish. Does training still converge? How does the time-to-converge change?
+**\{eq}`eq-bm_euler`, replace the single-shock pathwise residual by a $Q=5$ Gauss--Hermite expectation ({ref}`sec-gh_tensor_product`). Write out the resulting deterministic loss in closed form, and check on a few representative $(K_t, z_t)$ that the value matches a Monte Carlo estimate with $10^4$ shock draws to four significant digits.
+```
+
+```{exercise}
+:label: ex-ch2-5
+
+**\{eq}`eq-stroud3` for shock dimension $d=4$ (so $8$ nodes). Verify by direct computation that the rule reproduces $\E{\varepsilon_i'}=0$, $\E{\varepsilon_i'^{\,2}}=1$, $\E{\varepsilon_i'\varepsilon_j'}=0$ for $i\neq j$, and $\E{\varepsilon_i'^{\,3}}=0$ exactly, but gives $\E{\varepsilon_i'^{\,4}} = d = 4$ instead of the true value $3$. Show that the relative bias on the fourth moment grows linearly in $d$, and discuss when this matters for an Euler-equation residual.
+```
+
+```{exercise}
+:label: ex-ch2-6
+
+**[Core\] Loss-kernel selection.** Three application scenarios are described below; match each to the most appropriate loss kernel from the menu {MSE, MAE, Huber($\delta$), pinball loss at $\tau$, CVaR at $\alpha$, log-cosh} and justify the choice in two or three sentences. (a) "Quadrature noise occasionally produces a few large Euler residuals; we want a smooth loss that behaves quadratically near zero so gradients vanish at the optimum, but only linearly in the tails so that a single noisy point cannot dominate the gradient." (b) "A regulator will inspect the worst $1\%$ of residuals; we want the optimizer to drive the conditional mean above the $99$th percentile down to tolerance, not the average." (c) "We care that the *median* Euler residual is small. Tails are an artefact of badly conditioned states near the borrowing constraint and should not pull the gradient."
+```
+
+```{exercise}
+:label: ex-ch2-7
+
+**[Computational\] Multivariate shock scaling.** Extend notebook `lecture_03_02_Brock_Mirman_Uncertainty_DEQN.ipynb` to $d$ independent productivity shocks, $d \in \{1, 2, 4, 8\}$ (e.g., add country-level TFP terms to the production technology, all i.i.d. standard normal). For each $d$, train the network twice: once with tensor-product Gauss--Hermite at $Q=3$ ($3^d$ nodes per residual), once with the Stroud-3 rule of {eq}`eq-stroud3` ($2d$ nodes). Plot training time per epoch and final relative Euler error against $d$ on the same axes. Confirm that the Stroud-3 cost grows linearly while Gauss--Hermite is exponential, and identify the $d$ at which Gauss--Hermite becomes impractical on a single GPU.
+```
+
+```{exercise}
+:label: ex-ch2-8
+
+**[Computational\] Implementation.** Modify notebook `lecture_03_02_Brock_Mirman_Uncertainty_DEQN.ipynb` to use a tanh activation instead of Swish. Does training still converge? How does the time-to-converge change?
+```
 
 [^1]: In the sense of {cite:t}`ECTA:ECTA1716`: an approximation of the equilibrium policy (or value) functions over the entire economically relevant region of the state space, in particular over the model's ergodic set, as opposed to a *local* (perturbation) solution that is accurate only in a neighborhood of the deterministic steady state.

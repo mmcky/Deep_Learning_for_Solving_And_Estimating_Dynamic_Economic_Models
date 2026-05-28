@@ -724,7 +724,7 @@ Four operational rules of thumb, distilled from {cite:t}`azinovicyangzemlicka202
 
 A third notebook, `KrusellSmith_Tutorial_CPU.ipynb`, is a JAX/optax port of the upstream pedagogical tutorial released by the paper's authors. It exposes the same shape-preserving I-spline MPC parameterization, the same Young step inside the simulator, and the same Fischer--Burmeister KKT loss as the TensorFlow notebook, but in the original JAX form. It is adapted from the upstream tutorial `01_KrusellSmith_Tutorial_CPU.ipynb` in the companion code repository {cite:p}`azinovicyangzemlicka2025sequencespacecode`, available at <https://github.com/azinoma/DeepLearningInTheSequenceSpace>; the local adaptation adds an explicit shape-guarantee diagnostic and additional inline commentary, leaving the algorithm unchanged.
 
-```{prf:definition}
+````{prf:definition}
 
 ```{list-table}
 :header-rows: 1
@@ -775,7 +775,7 @@ A third notebook, `KrusellSmith_Tutorial_CPU.ipynb`, is a JAX/optax port of the 
   - Replay buffer of $(z^H, \mu)$ pairs
   - `buffer_z`, `buffer_mu`
 ```
-```
+````
 
 
 ```{prf:remark}
@@ -800,16 +800,44 @@ Continuum-agent equilibria require explicit distribution tracking; Young's (2010
 ## Exercises
 Worked solutions and guidance for these exercises appear in Appendix {ref}`app-solutions`.
 
-1.   **[Core\] Mean-preserving lottery.** Show that the unique two-point split that places probability $\omega$ at $k_n$ and $1-\omega$ at $k_{n+1}$ such that $\omega k_n + (1-\omega) k_{n+1} = k'$ is given by $\omega = (k_{n+1} - k')/(k_{n+1} - k_n)$. Verify mass conservation.
+```{exercise}
+:label: ex-ch6-1
 
-2.   **[Computational\] Closed-form bracketing on log-spaced grids.** Implement the $\mathcal{O}(1)$ bracketing index for a log-spaced grid $k_n = e^{x_0 + n\Delta x} - c$ in five lines of NumPy. Verify against `numpy.searchsorted` on a random batch of queries; measure the relative speed-up.
+**[Core\] Mean-preserving lottery.** Show that the unique two-point split that places probability $\omega$ at $k_n$ and $1-\omega$ at $k_{n+1}$ such that $\omega k_n + (1-\omega) k_{n+1} = k'$ is given by $\omega = (k_{n+1} - k')/(k_{n+1} - k_n)$. Verify mass conservation.
+```
 
-3.   **[Core\] Approximate aggregation, scope.** Construct an example economy in which the KS log-linear forecasting rule fails (e.g. multiple assets with switching liquidity). Why does adding higher moments not always rescue the rule?
+```{exercise}
+:label: ex-ch6-2
 
-4.   **[Computational\] Sequence-space vs. histogram DEQN.** Use Notebook 11 as the histogram-state baseline and compare it with the sequence-space implementation in Notebook 06 or the JAX tutorial. In the sequence-space notebook, vary the history length $T$ (or $H$ in the code) and compare the residual after training. Comment on which formulation generalizes better to a much longer test horizon and why.
+**[Computational\] Closed-form bracketing on log-spaced grids.** Implement the $\mathcal{O}(1)$ bracketing index for a log-spaced grid $k_n = e^{x_0 + n\Delta x} - c$ in five lines of NumPy. Verify against `numpy.searchsorted` on a random batch of queries; measure the relative speed-up.
+```
 
-5.   **\{eq}`eq-deepham_moments`, $\bm{m}_t = \bigl(\sum_i g_\theta^1(s_t^i), \ldots, \sum_i g_\theta^M(s_t^i)\bigr)$. (i) Show that for any permutation $\pi$ of the agents, $\bm{m}_t(\pi \cdot s) = \bm{m}_t(s)$, so the encoder is permutation-invariant by construction. (ii) Show that the policy $\pi_\rho(s_t^i; \bm{m}_t, a_t)$ is consequently equivariant in the agent index $i$: if we permute the agents, each agent's policy moves with its own index but the dependence on the population through $\bm{m}_t$ is unchanged. (iii) State the converse ({cite:t}`zaheer2017deep`): any continuous permutation-invariant function on $\mathbb{R}^d$-valued sets of fixed cardinality can be written in the form $\rho(\sum_i g(s^i))$. Use this to argue why the DeepHAM architecture can in principle replace tracking the entire histogram with a finite vector $\bm{m}_t$ of learned moments, provided the dimension $M$ is large enough.
+```{exercise}
+:label: ex-ch6-3
 
-6.   **[Computational\] Histogram noise vs. Monte Carlo sampling.** In the Krusell--Smith tutorial notebook `KrusellSmith_Tutorial_CPU.ipynb`, fix one aggregate shock path and one initial distribution. Run Young's histogram with $N_\mathrm{grid} = 100$ wealth grid points once, and run $R$ repeated Monte Carlo panels under the same aggregate path for $N \in \{100, 1000, 10\,000\}$ agents. At each $t = 1, \dots, 200$, record aggregate capital $K_t^{(r)}$ for every Monte Carlo replication $r$ and the corresponding Young aggregate $K_t^Y$. Plot the cross-replication standard deviation $\mathrm{sd}_r(K_t^{(r)})$ over time, or its time average, rather than the time-series standard deviation of $K_t$. Verify (i) Young's method has zero sampling variance conditional on the aggregate path, (ii) MC sampling variance scales as $1/\sqrt{N}$, (iii) at $N \approx N_\mathrm{grid}^2 = 10^4$, MC's stochastic noise becomes comparable to Young's discretization error on a smooth statistic like $K_t$. Comment on why the discretization-error-vs-MC-error trade-off depends on which functional of $\mu_t$ is targeted (mean, variance, tail mass).
+**[Core\] Approximate aggregation, scope.** Construct an example economy in which the KS log-linear forecasting rule fails (e.g. multiple assets with switching liquidity). Why does adding higher moments not always rescue the rule?
+```
 
-7.   **[Computational\] Two-moment forecasting rule.** In the same notebook, replace the Krusell--Smith log-linear forecasting rule $\log K_{t+1} = a_0 + a_1 \log K_t + a_2 \mathbb{1}[z_t = z_g]$ with a two-moment extension that also conditions on cross-sectional dispersion: $\log K_{t+1} = a_0 + a_1 \log K_t + a_2 \mathbb{1}[z_t = z_g] + a_3 \log V_t$, where $V_t = \mathrm{Var}_{\mu_t}(k)$. Re-fit the rule and the network jointly. Report (i) the forecasting $R^2$ for $\log K_{t+1}$ before and after, (ii) the maximum Euler residual after training, (iii) by how much the second moment "buys" you in absolute residual terms. Connect the result to the chapter's discussion of *approximate aggregation*: in the standard Krusell--Smith calibration the marginal information in the second moment is small, but it becomes material once you introduce features (e.g., binding borrowing constraints in a non-trivial fraction of the population, multiple assets) that break aggregation.
+```{exercise}
+:label: ex-ch6-4
+
+**[Computational\] Sequence-space vs. histogram DEQN.** Use Notebook 11 as the histogram-state baseline and compare it with the sequence-space implementation in Notebook 06 or the JAX tutorial. In the sequence-space notebook, vary the history length $T$ (or $H$ in the code) and compare the residual after training. Comment on which formulation generalizes better to a much longer test horizon and why.
+```
+
+```{exercise}
+:label: ex-ch6-5
+
+**\{eq}`eq-deepham_moments`, $\bm{m}_t = \bigl(\sum_i g_\theta^1(s_t^i), \ldots, \sum_i g_\theta^M(s_t^i)\bigr)$. (i) Show that for any permutation $\pi$ of the agents, $\bm{m}_t(\pi \cdot s) = \bm{m}_t(s)$, so the encoder is permutation-invariant by construction. (ii) Show that the policy $\pi_\rho(s_t^i; \bm{m}_t, a_t)$ is consequently equivariant in the agent index $i$: if we permute the agents, each agent's policy moves with its own index but the dependence on the population through $\bm{m}_t$ is unchanged. (iii) State the converse ({cite:t}`zaheer2017deep`): any continuous permutation-invariant function on $\mathbb{R}^d$-valued sets of fixed cardinality can be written in the form $\rho(\sum_i g(s^i))$. Use this to argue why the DeepHAM architecture can in principle replace tracking the entire histogram with a finite vector $\bm{m}_t$ of learned moments, provided the dimension $M$ is large enough.
+```
+
+```{exercise}
+:label: ex-ch6-6
+
+**[Computational\] Histogram noise vs. Monte Carlo sampling.** In the Krusell--Smith tutorial notebook `KrusellSmith_Tutorial_CPU.ipynb`, fix one aggregate shock path and one initial distribution. Run Young's histogram with $N_\mathrm{grid} = 100$ wealth grid points once, and run $R$ repeated Monte Carlo panels under the same aggregate path for $N \in \{100, 1000, 10\,000\}$ agents. At each $t = 1, \dots, 200$, record aggregate capital $K_t^{(r)}$ for every Monte Carlo replication $r$ and the corresponding Young aggregate $K_t^Y$. Plot the cross-replication standard deviation $\mathrm{sd}_r(K_t^{(r)})$ over time, or its time average, rather than the time-series standard deviation of $K_t$. Verify (i) Young's method has zero sampling variance conditional on the aggregate path, (ii) MC sampling variance scales as $1/\sqrt{N}$, (iii) at $N \approx N_\mathrm{grid}^2 = 10^4$, MC's stochastic noise becomes comparable to Young's discretization error on a smooth statistic like $K_t$. Comment on why the discretization-error-vs-MC-error trade-off depends on which functional of $\mu_t$ is targeted (mean, variance, tail mass).
+```
+
+```{exercise}
+:label: ex-ch6-7
+
+**[Computational\] Two-moment forecasting rule.** In the same notebook, replace the Krusell--Smith log-linear forecasting rule $\log K_{t+1} = a_0 + a_1 \log K_t + a_2 \mathbb{1}[z_t = z_g]$ with a two-moment extension that also conditions on cross-sectional dispersion: $\log K_{t+1} = a_0 + a_1 \log K_t + a_2 \mathbb{1}[z_t = z_g] + a_3 \log V_t$, where $V_t = \mathrm{Var}_{\mu_t}(k)$. Re-fit the rule and the network jointly. Report (i) the forecasting $R^2$ for $\log K_{t+1}$ before and after, (ii) the maximum Euler residual after training, (iii) by how much the second moment "buys" you in absolute residual terms. Connect the result to the chapter's discussion of *approximate aggregation*: in the standard Krusell--Smith calibration the marginal information in the second moment is small, but it becomes material once you introduce features (e.g., binding borrowing constraints in a non-trivial fraction of the population, multiple assets) that break aggregation.
+```

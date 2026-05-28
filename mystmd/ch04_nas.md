@@ -297,19 +297,47 @@ When implementing ReLoBRaLo:
 ## Exercises
 Worked solutions and guidance for these exercises appear in Appendix {ref}`app-solutions`.
 
-1.   **[Core\] Random vs. grid.** Reproduce the random-vs-grid figure of {cite:t}`bergstra2012random`. With $9$ evaluations and only one "important" axis out of two, suppose the near-optimal region occupies a fraction $p$ of that axis and its location relative to the grid is unknown. What is the hit probability for a $3\times 3$ grid, and what is the hit probability for random search?
+```{exercise}
+:label: ex-ch4-1
 
-2.   **[Computational\] Bayesian optimization toy problem.** Implement a Gaussian-process-based BO loop on the 1D function $f(x) = -\sin(3x) - x^2 + 0.7x$ over $x \in [-1,2]$. How many BO evaluations are typically needed before it matches the best value found by a grid with step size $0.01$?
+**[Core\] Random vs. grid.** Reproduce the random-vs-grid figure of {cite:t}`bergstra2012random`. With $9$ evaluations and only one "important" axis out of two, suppose the near-optimal region occupies a fraction $p$ of that axis and its location relative to the grid is unknown. What is the hit probability for a $3\times 3$ grid, and what is the hit probability for random search?
+```
 
-3.   **[Core\] Hyperband budget allocation.** For a Hyperband run with maximum resource $R=81$ and $\eta=3$, list the brackets $(n_i, r_i)$ used and the total resource consumed. Compare with a naive "train each candidate to $R$" strategy at fixed candidate count $n_0 = 27$.
+```{exercise}
+:label: ex-ch4-2
 
-4.   **[Core\] Loss balancing.** In a multi-component PINN loss with three terms of magnitude $10^0$, $10^{-2}$, $10^{-4}$, write down what fixed weights $\lambda_i$ would be needed to equalise their gradient contributions. Why does this become impractical when the gradients are correlated?
+**[Computational\] Bayesian optimization toy problem.** Implement a Gaussian-process-based BO loop on the 1D function $f(x) = -\sin(3x) - x^2 + 0.7x$ over $x \in [-1,2]$. How many BO evaluations are typically needed before it matches the best value found by a grid with step size $0.01$?
+```
 
-5.   **[Core\] Pareto front geometry.** Consider the toy two-component loss $\mathcal{L}(\theta;\lambda) = \lambda\,(\theta - a)^2 + (1-\lambda)(\theta - b)^2$ with $\theta \in \mathbb{R}$, $a < b$, and $\lambda \in [0,1]$. (i) Solve for the minimizer $\theta^\star(\lambda)$ in closed form. (ii) Compute the per-component residuals $\ell_1^\star(\lambda) = (\theta^\star - a)^2$ and $\ell_2^\star(\lambda) = (\theta^\star - b)^2$. (iii) Eliminate $\lambda$ to express the Pareto frontier in the $(\ell_1, \ell_2)$ plane and show it is the curve $\sqrt{\ell_1} + \sqrt{\ell_2} = b - a$ for $\ell_1, \ell_2 \ge 0$, hence convex. (iv) Sketch the front and identify which point on it corresponds to the equal-weight choice $\lambda = 1/2$. (v) In higher-dimensional parameter spaces, explain why nonzero gradient inner products $\langle\nabla \ell_1, \nabla \ell_2\rangle$ make fixed scalar weights fragile. Contrast ReLoBRaLo's relative-loss progress rule with GradNorm's direct gradient-norm balancing.
+```{exercise}
+:label: ex-ch4-3
 
-6.   **[Computational\] ReLoBRaLo vs. GradNorm.** In notebook `04_Loss_Normalization`, swap the ReLoBRaLo balancer for a GradNorm balancer ({cite:t}`chen2018gradnorm`; see the chapter for the per-component gradient-norm equalization rule). Run both on the same multi-scale regression target with components of magnitude $10^0, 10^{-2}, 10^{-4}$. Report (i) wall-clock training time per epoch, (ii) final residual on each component, (iii) the gradient-balance ratio $\|\nabla\ell_k\|/\sum_j \|\nabla\ell_j\|$ at convergence. Comment on the cost--benefit trade-off: under what circumstances is the extra per-step cost of GradNorm worth it?
+**[Core\] Hyperband budget allocation.** For a Hyperband run with maximum resource $R=81$ and $\eta=3$, list the brackets $(n_i, r_i)$ used and the total resource consumed. Compare with a naive "train each candidate to $R$" strategy at fixed candidate count $n_0 = 27$.
+```
 
-7.   **[Core\] HPO vs. full NAS decision.** You have access to either (a) a single consumer GPU (RTX 3060, $\sim 12$ GB) or (b) one A100 ($80$ GB), for one week of compute. Your search problem is either (i) a fixed-topology MLP with unknown depth $\in \{1,\ldots,5\}$, width $\in \{32,\ldots,512\}$, activation $\in \{\mathrm{ReLU}, \mathrm{Swish}, \tanh\}$, learning rate (log-uniform), or (ii) a flexible network that can be MLP / RNN / shallow Transformer with unknown layer connectivity (graph-level NAS). For each of the four (hardware $\times$ problem) cells, recommend in three to five sentences whether to use Random Search with Successive Halving, Bayesian Optimization, or full graph-level NAS. Justify by referencing the per-method overhead and search-space size.
+```{exercise}
+:label: ex-ch4-4
+
+**[Core\] Loss balancing.** In a multi-component PINN loss with three terms of magnitude $10^0$, $10^{-2}$, $10^{-4}$, write down what fixed weights $\lambda_i$ would be needed to equalise their gradient contributions. Why does this become impractical when the gradients are correlated?
+```
+
+```{exercise}
+:label: ex-ch4-5
+
+**[Core\] Pareto front geometry.** Consider the toy two-component loss $\mathcal{L}(\theta;\lambda) = \lambda\,(\theta - a)^2 + (1-\lambda)(\theta - b)^2$ with $\theta \in \mathbb{R}$, $a < b$, and $\lambda \in [0,1]$. (i) Solve for the minimizer $\theta^\star(\lambda)$ in closed form. (ii) Compute the per-component residuals $\ell_1^\star(\lambda) = (\theta^\star - a)^2$ and $\ell_2^\star(\lambda) = (\theta^\star - b)^2$. (iii) Eliminate $\lambda$ to express the Pareto frontier in the $(\ell_1, \ell_2)$ plane and show it is the curve $\sqrt{\ell_1} + \sqrt{\ell_2} = b - a$ for $\ell_1, \ell_2 \ge 0$, hence convex. (iv) Sketch the front and identify which point on it corresponds to the equal-weight choice $\lambda = 1/2$. (v) In higher-dimensional parameter spaces, explain why nonzero gradient inner products $\langle\nabla \ell_1, \nabla \ell_2\rangle$ make fixed scalar weights fragile. Contrast ReLoBRaLo's relative-loss progress rule with GradNorm's direct gradient-norm balancing.
+```
+
+```{exercise}
+:label: ex-ch4-6
+
+**[Computational\] ReLoBRaLo vs. GradNorm.** In notebook `04_Loss_Normalization`, swap the ReLoBRaLo balancer for a GradNorm balancer ({cite:t}`chen2018gradnorm`; see the chapter for the per-component gradient-norm equalization rule). Run both on the same multi-scale regression target with components of magnitude $10^0, 10^{-2}, 10^{-4}$. Report (i) wall-clock training time per epoch, (ii) final residual on each component, (iii) the gradient-balance ratio $\|\nabla\ell_k\|/\sum_j \|\nabla\ell_j\|$ at convergence. Comment on the cost--benefit trade-off: under what circumstances is the extra per-step cost of GradNorm worth it?
+```
+
+```{exercise}
+:label: ex-ch4-7
+
+**[Core\] HPO vs. full NAS decision.** You have access to either (a) a single consumer GPU (RTX 3060, $\sim 12$ GB) or (b) one A100 ($80$ GB), for one week of compute. Your search problem is either (i) a fixed-topology MLP with unknown depth $\in \{1,\ldots,5\}$, width $\in \{32,\ldots,512\}$, activation $\in \{\mathrm{ReLU}, \mathrm{Swish}, \tanh\}$, learning rate (log-uniform), or (ii) a flexible network that can be MLP / RNN / shallow Transformer with unknown layer connectivity (graph-level NAS). For each of the four (hardware $\times$ problem) cells, recommend in three to five sentences whether to use Random Search with Successive Halving, Bayesian Optimization, or full graph-level NAS. Justify by referencing the per-method overhead and search-space size.
+```
 
 [^1]: <https://keras.io/keras_tuner/>
 

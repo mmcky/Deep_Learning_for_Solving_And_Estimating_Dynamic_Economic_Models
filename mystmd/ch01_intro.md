@@ -629,20 +629,30 @@ Three practical remedies partially alleviate the pathology without changing the 
 ### Long Short-Term Memory (LSTM) and GRUs
 Before writing equations, it helps to keep a plain-language picture in mind. A vanilla RNN asks one hidden state $\h_t$ to do three jobs at once: retain useful old information, absorb new information, and expose the relevant part to the next layer. This is a fragile design. The LSTM separates these tasks. It keeps a dedicated *memory lane* $\bm{C}_t$ flowing through time and at each date makes three soft decisions: what to keep, what to write, and what to reveal. That is the intuition behind the gate equations below.
 
-The LSTM cell {cite:p}`hochreiter1997long` replaces the single-state recurrence $\h_t = \sigma(\Wh\h_{t-1} + \Wx\x_t)$ by a pair of states: a *cell state* $\bm{C}_t$ that flows along the top of the cell with *additive* updates, and a *hidden state* $\h_t$ that is read off it. Three learned sigmoid gates, each depending on the concatenation $[\h_{t-1}, \x_t]$, control what information flows through: 
-
-(eq-lstm_f)=
-(eq-lstm_C)=
+The LSTM cell {cite:p}`hochreiter1997long` replaces the single-state recurrence $\h_t = \sigma(\Wh\h_{t-1} + \Wx\x_t)$ by a pair of states: a *cell state* $\bm{C}_t$ that flows along the top of the cell with *additive* updates, and a *hidden state* $\h_t$ that is read off it. Three learned sigmoid gates, each depending on the concatenation $[\h_{t-1}, \x_t]$, control what information flows through:
 
 $$
-\begin{aligned}
-\bm{f}_t       &= \sigma\!\big(\W_f\,[\h_{t-1}, \x_t] + \bb_f\big) && \text{(forget gate)} \\
-\bm{i}_t       &= \sigma\!\big(\W_i\,[\h_{t-1}, \x_t] + \bb_i\big) && \text{(input gate)}  \\
-\tilde{\bm{C}}_t &= \tanh\!\big(\W_C\,[\h_{t-1}, \x_t] + \bb_C\big) && \text{(candidate cell)} \\
-\bm{C}_t       &= \bm{f}_t \odot \bm{C}_{t-1} + \bm{i}_t \odot \tilde{\bm{C}}_t && \text{(cell state update)} \\
-\bm{o}_t       &= \sigma\!\big(\W_o\,[\h_{t-1}, \x_t] + \bb_o\big) && \text{(output gate)} \\
-\h_t           &= \bm{o}_t \odot \tanh(\bm{C}_t)                   && \text{(hidden state).}
-\end{aligned}
+\bm{f}_t = \sigma\!\big(\W_f\,[\h_{t-1}, \x_t] + \bb_f\big)  \text{(forget gate)}
+$$ (eq-lstm_f)
+
+$$
+\bm{i}_t = \sigma\!\big(\W_i\,[\h_{t-1}, \x_t] + \bb_i\big)  \text{(input gate)}
+$$
+
+$$
+\tilde{\bm{C}}_t = \tanh\!\big(\W_C\,[\h_{t-1}, \x_t] + \bb_C\big)  \text{(candidate cell)}
+$$
+
+$$
+\bm{C}_t = \bm{f}_t \odot \bm{C}_{t-1} + \bm{i}_t \odot \tilde{\bm{C}}_t  \text{(cell state update)}
+$$ (eq-lstm_C)
+
+$$
+\bm{o}_t = \sigma\!\big(\W_o\,[\h_{t-1}, \x_t] + \bb_o\big)  \text{(output gate)}
+$$
+
+$$
+\h_t = \bm{o}_t \odot \tanh(\bm{C}_t)  \text{(hidden state).}
 $$
 
 Each of $\bm{f}_t, \bm{i}_t, \bm{o}_t \in (0,1)^{d}$ acts as a soft switch applied element-wise. The crucial structural change is in equation {eq}`eq-lstm_C`: the cell state is *additively* corrected rather than multiplicatively overwritten. Along the direct memory path, differentiating $\bm{C}_t$ with respect to $\bm{C}_{t-1}$ contributes $\mathrm{diag}(\bm{f}_t)$ in place of a full recurrent matrix product. The full derivative also contains indirect terms because the gates depend on $\h_{t-1}$ and hence on earlier cell states, but the direct path is the constant-error-carousel intuition: when the cell judges information worth keeping, it can open the forget gate ($\bm{f}_t \approx \bm{1}$) and allow gradients to flow through *as if* the sequence were shorter. Figure {numref}`fig-lstm_cell` sketches the resulting cell.
@@ -772,17 +782,15 @@ Three properties make this choice useful. First, each coordinate $2k$ is a sine 
 
 (sec-transformer_block)=
 #### The Transformer Block
-Single attention layers, even multi-headed, are not yet expressive enough: they are essentially linear in the values, with a nonlinear mixing pattern. A full *Transformer block* wraps one MHA layer and one pointwise MLP with residual connections and LayerNorm: 
-
-(eq-tblock1)=
-(eq-tblock2)=
+Single attention layers, even multi-headed, are not yet expressive enough: they are essentially linear in the values, with a nonlinear mixing pattern. A full *Transformer block* wraps one MHA layer and one pointwise MLP with residual connections and LayerNorm:
 
 $$
-\begin{aligned}
-\x^{+} &= \x + \mathrm{MHA}\!\big(\mathrm{LN}(\x)\big), \\
-\x^{\mathrm{out}}  &= \x^{+} + \mathrm{MLP}\!\big(\mathrm{LN}(\x^{+})\big).
-\end{aligned}
+\x^{+} = \x + \mathrm{MHA}\!\big(\mathrm{LN}(\x)\big)
+$$ (eq-tblock1)
+
 $$
+\x^{\mathrm{out}} = \x^{+} + \mathrm{MLP}\!\big(\mathrm{LN}(\x^{+})\big).
+$$ (eq-tblock2)
 
 The LayerNorm steps {cite:p}`ba2016layer` standardize across feature coordinates; together with the residual additions they stabilize training of very deep stacks. Equations {eq}`eq-tblock1`--{eq}`eq-tblock2` describe the modern *pre-norm* variant (LN before each sub-block), which is easier to train than the original *post-norm* variant of {cite:t}`vaswani2017attention`. Figure {numref}`fig-transformer_block` shows the architecture schematically.
 
@@ -917,18 +925,46 @@ Worked solutions and guidance for these exercises appear in Appendix {ref}`app-
 
 **Workload labels.** Throughout the script, every exercise carries one of three workload tags inside its title. *[Core\]* marks short analytical or pencil-and-paper questions suitable for a weekly problem set. *[Computational\]* marks notebook-based exercises that involve running or modifying companion code; allow yourself a long evening or a weekend with verification gates and starter code in hand. *[Advanced/project\]* marks longer, research-style assignments that may require a multi-day investment, a proper compute budget, or a small term-project plan. The labels are advisory rather than prescriptive: students with prior exposure can promote a [Computational\] exercise to a quick warm-up, while those new to the material can treat several [Advanced/project\] entries as inspiration for term work.
 
-1.   **[Core\] Backprop on a 2-layer net.** Take a single hidden layer with ReLU activation: $\hat y = w_2\,\sigma(w_1 x + b_1)$ and squared loss $\ell = (\hat y - y)^2$. Derive $\partial \ell / \partial w_1$ and $\partial \ell / \partial w_2$ by hand and compare with what `torch.autograd` returns on a worked numerical example ($x=2$, $y=1$, all weights $0.5$).
+```{exercise}
+:label: ex-ch1-1
 
-2.   **[Core\] MSE vs. MLE.** Show that the maximum-likelihood estimator of the slope of $y_i = \beta x_i + \varepsilon_i$, $\varepsilon_i \sim \mathcal{N}(0,\sigma^2)$, coincides with the OLS estimator and with the minimizer of $\sum_i (y_i - \beta x_i)^2$. Then repeat with $\varepsilon_i$ Laplace-distributed and discuss why the squared loss is no longer optimal.
+**[Core\] Backprop on a 2-layer net.** Take a single hidden layer with ReLU activation: $\hat y = w_2\,\sigma(w_1 x + b_1)$ and squared loss $\ell = (\hat y - y)^2$. Derive $\partial \ell / \partial w_1$ and $\partial \ell / \partial w_2$ by hand and compare with what `torch.autograd` returns on a worked numerical example ($x=2$, $y=1$, all weights $0.5$).
+```
 
-3.   **[Core\] Activation choice for a PINN.** Argue carefully why ReLU networks cannot be used to solve a second-order PDE in strong form. Construct an explicit example where the second derivative of the network output is identically zero except on a measure-zero set.
+```{exercise}
+:label: ex-ch1-2
 
-4.   **[Core\] Adam vs. AdamW.** In a regression with $L_2$ regularization, write down the per-parameter update rule for Adam (with $L_2$ added to the loss) and for AdamW (decoupled). Show that the two updates do *not* coincide and explain which one preserves the intuition that "weight decay shrinks weights uniformly."
+**[Core\] MSE vs. MLE.** Show that the maximum-likelihood estimator of the slope of $y_i = \beta x_i + \varepsilon_i$, $\varepsilon_i \sim \mathcal{N}(0,\sigma^2)$, coincides with the OLS estimator and with the minimizer of $\sum_i (y_i - \beta x_i)^2$. Then repeat with $\varepsilon_i$ Laplace-distributed and discuss why the squared loss is no longer optimal.
+```
 
-5.   **[Core\] RNN forward pass by hand.** Take a vanilla recurrent unit with hidden dimension $H=2$, scalar input, and update $h_t = \tanh(W_h h_{t-1} + W_x x_t + b)$, scalar readout $\hat y_t = W_y h_t$. Use $W_h = 0.5\,I_2$, $W_x = (1,0)^\top$, $b = (0,0)^\top$, $W_y = (1,1)$, $h_0 = (0,0)^\top$, and the input sequence $x_{1:3} = (1, 0, 1)$. (i) Compute $h_t$ and $\hat y_t$ for $t = 1, 2, 3$. (ii) Derive a closed-form expression for $\partial \hat y_3 / \partial x_1$. (iii) Show that with $\|W_h\|_2 < 1$ this gradient decays exponentially in the sequence length, and explain how this connects to the vanishing-gradient problem ({ref}`sec-sequence_models`).
+```{exercise}
+:label: ex-ch1-3
 
-6.   **[Core\] Attention by hand.** Consider a single attention head on a 3-token scalar sequence $x_{1:3} = (0.0,\, 1.0,\, 0.5)$ with identity projections $W_Q = W_K = W_V = 1$ (so $q_i = k_i = v_i = x_i$) and scaling $\sqrt{d_k} = 1$. Compute the attention weights $a_{ij} = \mathrm{softmax}_j(q_i k_j)$ and the output $o_i = \sum_j a_{ij} v_j$ for $i = 1, 2, 3$. Verify that each $o_i$ is a convex combination of $\{v_1, v_2, v_3\}$ and identify which token attends most to which.
+**[Core\] Activation choice for a PINN.** Argue carefully why ReLU networks cannot be used to solve a second-order PDE in strong form. Construct an explicit example where the second derivative of the network output is identically zero except on a measure-zero set.
+```
 
-7.   **[Computational\] Notebook.** In `05_Tensorboard`, plot the train and validation loss for three optimizer choices (SGD, Adam, AdamW) on a small classification task. Comment on which converges fastest, which generalizes best, and where the curves diverge.
+```{exercise}
+:label: ex-ch1-4
+
+**[Core\] Adam vs. AdamW.** In a regression with $L_2$ regularization, write down the per-parameter update rule for Adam (with $L_2$ added to the loss) and for AdamW (decoupled). Show that the two updates do *not* coincide and explain which one preserves the intuition that "weight decay shrinks weights uniformly."
+```
+
+```{exercise}
+:label: ex-ch1-5
+
+**[Core\] RNN forward pass by hand.** Take a vanilla recurrent unit with hidden dimension $H=2$, scalar input, and update $h_t = \tanh(W_h h_{t-1} + W_x x_t + b)$, scalar readout $\hat y_t = W_y h_t$. Use $W_h = 0.5\,I_2$, $W_x = (1,0)^\top$, $b = (0,0)^\top$, $W_y = (1,1)$, $h_0 = (0,0)^\top$, and the input sequence $x_{1:3} = (1, 0, 1)$. (i) Compute $h_t$ and $\hat y_t$ for $t = 1, 2, 3$. (ii) Derive a closed-form expression for $\partial \hat y_3 / \partial x_1$. (iii) Show that with $\|W_h\|_2 < 1$ this gradient decays exponentially in the sequence length, and explain how this connects to the vanishing-gradient problem ({ref}`sec-sequence_models`).
+```
+
+```{exercise}
+:label: ex-ch1-6
+
+**[Core\] Attention by hand.** Consider a single attention head on a 3-token scalar sequence $x_{1:3} = (0.0,\, 1.0,\, 0.5)$ with identity projections $W_Q = W_K = W_V = 1$ (so $q_i = k_i = v_i = x_i$) and scaling $\sqrt{d_k} = 1$. Compute the attention weights $a_{ij} = \mathrm{softmax}_j(q_i k_j)$ and the output $o_i = \sum_j a_{ij} v_j$ for $i = 1, 2, 3$. Verify that each $o_i$ is a convex combination of $\{v_1, v_2, v_3\}$ and identify which token attends most to which.
+```
+
+```{exercise}
+:label: ex-ch1-7
+
+**[Computational\] Notebook.** In `05_Tensorboard`, plot the train and validation loss for three optimizer choices (SGD, Adam, AdamW) on a small classification task. Comment on which converges fastest, which generalizes best, and where the curves diverge.
+```
 
 [^1]: The idea that a network can compute its own weights from its inputs has a long history: the *Fast Weight Programmers* of {cite:t}`schmidhuber1992learning` use one network to write the weights of another from context, which is widely viewed as a conceptual precursor of attention. {cite:t}`schlag2021linear` make the formal equivalence explicit, showing that linear-attention Transformers *are* Fast Weight Programmers.

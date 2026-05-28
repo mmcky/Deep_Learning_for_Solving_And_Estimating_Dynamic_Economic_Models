@@ -287,17 +287,15 @@ $$
 V(a) = \max_c \left\{\frac{c^{1-\gamma}}{1-\gamma}\,\Delta t + e^{-\rho\,\Delta t}\,V\!\bigl(a + (ra - c)\,\Delta t\bigr)\right\} + \mathcal{O}(\Delta t^2).
 $$ (eq-cake_bellman_dt)
 
-Now expand both the discount factor and the value function to first order in $\Delta t$: 
-
-(eq-cake_expand_disc)=
-(eq-cake_expand_V)=
+Now expand both the discount factor and the value function to first order in $\Delta t$:
 
 $$
-\begin{aligned}
-e^{-\rho\,\Delta t} &\approx 1 - \rho\,\Delta t,  \\
-V\!\bigl(a + (ra - c)\,\Delta t\bigr) &\approx V(a) + V'(a)\,(ra - c)\,\Delta t.
-\end{aligned}
+e^{-\rho\,\Delta t} \approx 1 - \rho\,\Delta t
+$$ (eq-cake_expand_disc)
+
 $$
+V\!\bigl(a + (ra - c)\,\Delta t\bigr) \approx V(a) + V'(a)\,(ra - c)\,\Delta t.
+$$ (eq-cake_expand_V)
 
 ```{prf:remark}
 
@@ -483,23 +481,51 @@ PINNs approximate PDE solutions by minimizing the residual at collocation points
 ## Exercises
 Worked solutions and guidance for these exercises appear in Appendix {ref}`app-solutions`.
 
-1.   **[Core\] Trial-function BC enforcement.** For the BVP $y'' + y = 0$ on $[0,\pi/2]$ with $y(0)=0$, $y(\pi/2)=1$, verify that $\hat y(x) = 2x/\pi + x(\pi/2-x)\,\mathcal{N}_\theta(x)$ satisfies both BCs for any network output. Why is this preferable to a soft penalty?
+```{exercise}
+:label: ex-ch7-1
 
-2.   **[Core\] ReLU pathology.** Explain why a ReLU network is unsuitable for the strong-form Black--Scholes residual. Then sketch a weak-form formulation that would work with ReLU activations.
+**[Core\] Trial-function BC enforcement.** For the BVP $y'' + y = 0$ on $[0,\pi/2]$ with $y(0)=0$, $y(\pi/2)=1$, verify that $\hat y(x) = 2x/\pi + x(\pi/2-x)\,\mathcal{N}_\theta(x)$ satisfies both BCs for any network output. Why is this preferable to a soft penalty?
+```
 
-3.   **[Core\] Discrete $\to$ continuous bridge.** Take the discrete-time Bellman operator $$V(a) = \max_c \bigl[u(c)\,\Delta t + \beta_{\Delta t}\,\E V(a')\bigr],
-    \qquad
-    a' = a - c\,\Delta t,
-    \qquad
-    \beta_{\Delta t}=e^{-\rho\Delta t}.$$ Show that as $\Delta t \to 0$ it formally yields the HJB $\rho V = \max_c [u(c) - V'(a)\,c]$. (This is the pure cake-eating problem with $r=0$; including a return $r$ on wealth, $\dot a = ra - c$, recovers {eq}`eq-cake_hjb`.)
+```{exercise}
+:label: ex-ch7-2
 
-4.   **[Computational\] BC penalty weight $\lambda$ tuning.** In notebook `lecture_11_02_ODE_PINN_SoftVsHardBCs`, run the soft-BC variant with PDE residual $\ell_\mathrm{int}$ and BC residual $\ell_\mathrm{BC}$ combined as $\mathcal{L} = \ell_\mathrm{int} + \lambda\,\ell_\mathrm{BC}$ (the notebook exposes $\lambda$ as the `bc_weight` hyperparameter dispatched from `RUN_MODE`) for $\lambda \in \{10^{-1}, 10^0, 10^1, 10^2, 10^3,10^4\}$. For each, train to a fixed budget of $5{,}000$ iterations and record (i) the BC violation $|\hat y(0) - y_0|$ at convergence, (ii) the maximum interior residual, and (iii) training wall time. Plot all three on log--log axes against $\lambda$, identify the elbow at which boundary fit stops improving cheaply, and compare against the hard-BC variant.
+**[Core\] ReLU pathology.** Explain why a ReLU network is unsuitable for the strong-form Black--Scholes residual. Then sketch a weak-form formulation that would work with ReLU activations.
+```
 
-5.   **[Advanced/project\] Collocation strategy comparison.** In notebook `lecture_11_03_PDE_PINN_Poisson2D` solving $\Delta u = f$ on $[0,1]^2$ with Dirichlet BCs, replace the default uniform-random collocation with (a) Latin Hypercube sampling, (b) a Sobol low-discrepancy sequence, (c) residual-based adaptive sampling that draws each batch of collocation points proportional to the residual magnitude at the current iterate. Train each variant to the same residual tolerance ($10^{-4}$) and report (i) the number of collocation points needed, (ii) the wall time, (iii) the spatial distribution of final residuals (compute $\sup_x |\Delta u_\theta - f|$ on a fine $200\times 200$ test grid). Discuss when each strategy is preferred: uniform for smooth problems, low-discrepancy for moderately rough, adaptive for problems with localized features (e.g., near boundary layers).
+```{exercise}
+:label: ex-ch7-3
 
-6.   **[Advanced/project\] Strong vs. weak forms.** Extend the Black--Scholes notebook. First compare the current strong-form $\tanh$ PINN with a ReLU version and explain why the second derivative term is problematic for ReLU. Then derive a weak-form variant: multiply the residual by a smooth test function $\varphi$ supported inside $[0,S_\mathrm{max}]$, integrate by parts to move the second derivative onto $\varphi$, and state which derivatives of $V$ remain. If you implement the weak-form ReLU variant, compare its held-out pricing error with the strong-form $\tanh$ baseline. Connect the result to {prf:ref}`ex-ch7-2`.
+**[Core\] Discrete $\to$ continuous bridge.** Take the discrete-time Bellman operator $$V(a) = \max_c \bigl[u(c)\,\Delta t + \beta_{\Delta t}\,\E V(a')\bigr],
+\qquad
+a' = a - c\,\Delta t,
+\qquad
+\beta_{\Delta t}=e^{-\rho\Delta t}.$$ Show that as $\Delta t \to 0$ it formally yields the HJB $\rho V = \max_c [u(c) - V'(a)\,c]$. (This is the pure cake-eating problem with $r=0$; including a return $r$ on wealth, $\dot a = ra - c$, recovers {eq}`eq-cake_hjb`.)
+```
 
-7.   **[Core\] Operator learning vs. PINN.** For an option pricing problem where the strike $K$ varies across $\{45,46,\ldots,55\}$, count the training cost of (a) eleven independent PINN runs vs. (b) one operator-learning or parametric-PINN run that takes $K$ as an input; see Section {ref}`sec-operator_learning_bridge` and Chapter {ref}`ch-outlook`. At what cost ratio does amortized training win?
+```{exercise}
+:label: ex-ch7-4
+
+**[Computational\] BC penalty weight $\lambda$ tuning.** In notebook `lecture_11_02_ODE_PINN_SoftVsHardBCs`, run the soft-BC variant with PDE residual $\ell_\mathrm{int}$ and BC residual $\ell_\mathrm{BC}$ combined as $\mathcal{L} = \ell_\mathrm{int} + \lambda\,\ell_\mathrm{BC}$ (the notebook exposes $\lambda$ as the `bc_weight` hyperparameter dispatched from `RUN_MODE`) for $\lambda \in \{10^{-1}, 10^0, 10^1, 10^2, 10^3,10^4\}$. For each, train to a fixed budget of $5{,}000$ iterations and record (i) the BC violation $|\hat y(0) - y_0|$ at convergence, (ii) the maximum interior residual, and (iii) training wall time. Plot all three on log--log axes against $\lambda$, identify the elbow at which boundary fit stops improving cheaply, and compare against the hard-BC variant.
+```
+
+```{exercise}
+:label: ex-ch7-5
+
+**[Advanced/project\] Collocation strategy comparison.** In notebook `lecture_11_03_PDE_PINN_Poisson2D` solving $\Delta u = f$ on $[0,1]^2$ with Dirichlet BCs, replace the default uniform-random collocation with (a) Latin Hypercube sampling, (b) a Sobol low-discrepancy sequence, (c) residual-based adaptive sampling that draws each batch of collocation points proportional to the residual magnitude at the current iterate. Train each variant to the same residual tolerance ($10^{-4}$) and report (i) the number of collocation points needed, (ii) the wall time, (iii) the spatial distribution of final residuals (compute $\sup_x |\Delta u_\theta - f|$ on a fine $200\times 200$ test grid). Discuss when each strategy is preferred: uniform for smooth problems, low-discrepancy for moderately rough, adaptive for problems with localized features (e.g., near boundary layers).
+```
+
+```{exercise}
+:label: ex-ch7-6
+
+**[Advanced/project\] Strong vs. weak forms.** Extend the Black--Scholes notebook. First compare the current strong-form $\tanh$ PINN with a ReLU version and explain why the second derivative term is problematic for ReLU. Then derive a weak-form variant: multiply the residual by a smooth test function $\varphi$ supported inside $[0,S_\mathrm{max}]$, integrate by parts to move the second derivative onto $\varphi$, and state which derivatives of $V$ remain. If you implement the weak-form ReLU variant, compare its held-out pricing error with the strong-form $\tanh$ baseline. Connect the result to {prf:ref}`ex-ch7-2`.
+```
+
+```{exercise}
+:label: ex-ch7-7
+
+**[Core\] Operator learning vs. PINN.** For an option pricing problem where the strike $K$ varies across $\{45,46,\ldots,55\}$, count the training cost of (a) eleven independent PINN runs vs. (b) one operator-learning or parametric-PINN run that takes $K$ as an input; see Section {ref}`sec-operator_learning_bridge` and Chapter {ref}`ch-outlook`. At what cost ratio does amortized training win?
+```
 
 [^1]: Automatic differentiation is the algorithmic backbone of every deep-learning framework discussed in this script; {cite:t}`baydin2018automatic` survey forward- and reverse-mode AD, the dual-number and tape-based implementations, and the practical trade-offs that determine why reverse mode is the standard for neural-network training (one backward pass costs roughly the same as one forward pass, irrespective of the parameter count).
 
