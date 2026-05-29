@@ -76,3 +76,12 @@ htmlcov/
 _build/
 site/
 _dev/
+
+# claude-latex-to-myst: vendored tool checkout (managed by mystmd/convert.sh)
+_tools/
+
+# claude-latex-to-myst: per-chapter preprocessed .tex artifacts
+mystmd/tmp/
+
+# MyST build output (deployed via GitHub Actions)
+mystmd/_build/

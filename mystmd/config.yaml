@@ -1,0 +1,222 @@
+# Deep Learning for Solving And Estimating Dynamic Economic Models
+# LaTeX → MyST config
+#
+# Drives the shared claude-latex-to-myst pipeline against the single
+# consolidated LaTeX source in ../lecture_script/. The single .tex is
+# carved into 22 per-chapter pieces via preprocess.split below.
+
+source_dir: "../lecture_script"
+output_dir: "."
+tmp_dir: "./tmp"
+
+# Numbered chapters 1–12, in source order. Stems use chXX_<topic>.
+chapters:
+  - { stem: ch01_intro,           title: "Introduction to Machine Learning and Deep Learning" }
+  - { stem: ch02_deqns,           title: "Deep Equilibrium Nets" }
+  - { stem: ch03_irbc,            title: "The International Real Business Cycle Model" }
+  - { stem: ch04_nas,             title: "Neural Architecture Search and Loss Normalization" }
+  - { stem: ch05_olg,             title: "Overlapping Generations Models with DEQNs" }
+  - { stem: ch06_ha_youngs,       title: "Heterogeneous Agents and Young's Method" }
+  - { stem: ch07_pinns,           title: "Physics-Informed Neural Networks" }
+  - { stem: ch08_ctime_ha,        title: "Heterogeneous Agent Models in Continuous Time" }
+  - { stem: ch09_surrogates_gps,  title: "Deep Surrogate Models and Gaussian Processes" }
+  - { stem: ch10_smm,             title: "Structural Estimation via SMM" }
+  - { stem: ch11_climate,         title: "Climate Economics and Deep Uncertainty Quantification" }
+  - { stem: ch12_synthesis,       title: "Synthesis and Outlook" }
+
+# Front matter + appendices live outside the numbered sequence.
+# Appendices A–F retain the published PDF lettering in their stems.
+extra_files:
+  - { stem: preface,                 title: "Preface" }
+  - { stem: how_to_read,             title: "How to Read This Script" }
+  - { stem: notation,                title: "Notation and Symbols" }
+  - { stem: execution_map,           title: "Execution Map" }
+  - { stem: appA_glossary,           title: "Glossary" }
+  - { stem: appB_matrix_calc,        title: "Matrix Calculus and Automatic Differentiation" }
+  - { stem: appC_ito,                title: "Itô Calculus, Brownian Motion, and Ergodicity" }
+  - { stem: appD_fixed_points,       title: "Fixed Points, Contraction Mappings, and the Bellman Operator" }
+  - { stem: appE_reproducibility,    title: "Reproducibility Information" }
+  - { stem: appF_solutions,          title: "Solutions and Guidance for Exercises" }
+
+# Project-specific tcolorbox wrappers from the LaTeX preamble (lines 150–169
+# of the source). Mapped to the closest sphinx-proof directives so they
+# render as styled callouts in MyST. `definitionbox` is overloaded in the
+# source (definitions, theorems, algorithm wrappers); the algorithm case
+# will surface incorrectly until upstream issue #20 (`algorithmic` support)
+# lands — those blocks can then be re-mapped individually.
+extra_environments:
+  remarkbox:      prf:remark
+  keyinsightbox:  prf:remark
+  definitionbox:  prf:definition
+
+# Bibliography sits outside the LaTeX source tree (at ../readings/).
+# convert.sh resolves the path relative to source_dir, so ../readings/...
+# from lecture_script/ lands on the right file.
+bibliography: "../readings/bibliography.bib"
+
+# Pre-rendered figures live under lecture_script/fig/.
+figures_dir: "fig"
+
+# Inline TikZ figures are rendered by mystmd/scripts/render_tikz.py
+# (auto-discovers \begin{figure} blocks containing \begin{tikzpicture},
+# compiles via pdflatex+pdf2svg to mystmd/figures/<label>.svg) and the
+# resulting TIKZ_FIGURE_MAP is written to mystmd/tikz_overrides.py for
+# the upstream postprocess to consume.
+tikz_overrides: tikz_overrides.py
+
+# --- LaTeX pre-processing ---------------------------------------------------
+
+preprocess:
+  # The book ships as one consolidated .tex with 22 \chapter*?{...} blocks
+  # (4 starred front matter + 12 numbered chapters + 6 lettered appendices).
+  # Order in `into:` must match the order the blocks appear in the source —
+  # the splitter writes the Nth block to into[N-1].
+  split:
+    - source: Deep_Learning_for_Solving_And_Estimating_Dynamic_Economic_Models
+      into:
+        - preface
+        - how_to_read
+        - notation
+        - execution_map
+        - ch01_intro
+        - ch02_deqns
+        - ch03_irbc
+        - ch04_nas
+        - ch05_olg
+        - ch06_ha_youngs
+        - ch07_pinns
+        - ch08_ctime_ha
+        - ch09_surrogates_gps
+        - ch10_smm
+        - ch11_climate
+        - ch12_synthesis
+        - appA_glossary
+        - appB_matrix_calc
+        - appC_ito
+        - appD_fixed_points
+        - appE_reproducibility
+        - appF_solutions
+
+  strip:
+    - '\\index\{[^}]*\}'
+    - '\\clearpage'
+    - '\\newpage'
+    - '\\noindent'
+    - '\\vspace\{[^}]*\}'
+    # Strip trailing document-level commands carried into the final
+    # split-chapter file (the splitter takes content to EOF).
+    - '\\bibliography\{[^}]*\}'
+    - '\\end\{document\}'
+
+  rewrites:
+    # Unwrap \scalebox{N}{\includegraphics{...}} (with optional [opts])
+    - { from: '\\scalebox\{[0-9.]+\}\s*\{\s*(\\includegraphics(?:\[[^\]]*\])?\s*\{[^{}]*\})\s*\}',
+        to: '\1' }
+    # tabularx-style column types L{<width>} confuse pandoc's tabular reader,
+    # so it bails on the whole block and we lose the table. Standard p{<width>}
+    # is semantically equivalent (left-aligned, fixed-width with line-wrap) and
+    # pandoc handles it natively. Workaround tracked at
+    # https://github.com/mmcky/Deep_Learning_for_Solving_And_Estimating_Dynamic_Economic_Models/issues/1
+    # — remove this rewrite when/if the LaTeX source migrates to p{...}.
+    - { from: '\bL\{([0-9.]+\s*(?:cm|mm|in|pt|em|ex))\}',
+        to:   'p{\1}' }
+    # \tpath{...} is defined via \DeclareUrlCommand (preamble line 143) so the
+    # source can render filenames/identifiers in monospace with breakable
+    # `_ . /`. Pandoc does not recognize it and silently drops both the macro
+    # and its argument, producing visibly broken sentences ("the variable name
+    # ;", "In notebook ,"). Rewriting to \texttt{...} restores the content
+    # cleanly — pandoc emits inline code spans. The argument pattern allows
+    # \{ \} escape sequences so the one occurrence with literal braces
+    # (\tpath{\{smoke, teaching, production\}}) round-trips. Tracked at
+    # https://github.com/mmcky/Deep_Learning_for_Solving_And_Estimating_Dynamic_Economic_Models/issues/9
+    - { from: '\\tpath\{((?:\\.|[^{}])*)\}',
+        to:   '\\texttt{\1}' }
+    # \emphc{...} is defined in the preamble (line 142) as
+    # \textcolor{harvardcrimson}{\textbf{...}} for the "bold crimson" emphasis
+    # style. Pandoc drops the whole construct when it can't resolve the custom
+    # color, taking the argument with it. Rewrite to \textbf{...}: the HTML
+    # output loses the crimson hue but keeps the emphasis. Same root cause as
+    # the \tpath rewrite above; tracked under the same issue.
+    - { from: '\\emphc\{((?:\\.|[^{}])*)\}',
+        to:   '\\textbf{\1}' }
+    # \checkmark (from amssymb) is dropped by pandoc — flagged by upstream
+    # _warn_dropped_text_macros (claude-latex-to-myst #50). Rewrite to the
+    # unicode ✓ glyph; one occurrence in ch06_ha_youngs §6.x verification
+    # ("0.027 + 0.003 + 0.018 + 0.002 = 0.05 = m ✓").
+    - { from: '\\checkmark(?![A-Za-z@])',
+        to:   '✓' }
+
+# --- Post-pandoc Markdown rewrites ------------------------------------------
+
+postprocess:
+  rewrites:
+    # The Glossary's source uses ``\item[\textbf{Term.}]`` (bold inside the
+    # description label). Upstream PR #19 preserves the label content
+    # verbatim, so the literal ``\textbf{...}`` survives into the term line.
+    # Convert it to MyST bold so def-list terms render cleanly.
+    - { stems: [appA_glossary],
+        from:  '^\\textbf\{([^}]*)\}$',
+        to:    '**\1**' }
+
+    # === R12: Hidden-text-loss cleanup (post-fidelity walkthrough) ============
+    # The five rewrites below clear ~95 visible artifacts found by reading
+    # source/MD in parallel across all 22 chapters. Each artifact is a case
+    # where pandoc drops a LaTeX construct but leaves the surrounding prose
+    # intact, producing visibly broken sentences in the rendered HTML.
+
+    # Class A.1 — \pageref{ex:X:N} drops leave dangling "(statement: p.<NBSP>):"
+    # in appF solution headings (79 instances, one per solution).
+    #   Source : \paragraph{Exercise~\ref{ex:X:N} (statement: p.~\pageref{ex:X:N}): Title.}
+    #   Before : ##### {prf:ref}`ex-X-N` (statement: p.<NBSP>): Title.
+    #   After  : ##### {prf:ref}`ex-X-N`: Title.
+    # The {prf:ref} is already the back-link to the exercise statement, so the
+    # "(statement: p. X)" parenthetical is redundant in HTML (no page numbers
+    # in flowing layout).
+    - { from: ' \(statement: p\.\xa0\):',
+        to:   ':' }
+
+    # Class A.2 — \pageref{} drops leave "on page<NBSP>." in body prose. The
+    # NBSP comes from the source's `~` tie ("page~\pageref{X}") so it sits
+    # directly between "page" and the period — no whitespace inside.
+    #   Source : "...the Chapter Summary on page~\pageref{sec:ch1_summary}. ..."
+    #   Before : "...the Chapter Summary on page<NBSP>. ..."
+    #   After  : "...the Chapter Summary. ..."
+    # 2 instances in ch01 (both pointing at the same Chapter Summary label).
+    - { from: ' on page\xa0\.',
+        to:   '.' }
+
+    # Class D — \textcolor{COLOR}{TEXT} leaks: the macro is invisible in HTML
+    # but its syntax shows up as literal text. 5 instances in ch11_climate's
+    # alg-nsdeqn block use \textcolor{uzhgreydark!70}{...} as a "grayed-out"
+    # hint. Keep the TEXT; drop the color wrapper. Non-greedy with a lookahead
+    # for end-of-line OR trailing `\\` so balanced math braces inside the TEXT
+    # don't fool the regex.
+    - { from: '\\textcolor\{[^}]+\}\{(.*?)\}(?=\s*(?:\\\\|$))',
+        to:   '\1' }
+
+    # Class E.1 — \hspace{...} layout commands leak from the alg-nsdeqn body
+    # (1 instance in ch11_climate). Horizontal spacing has no meaning in HTML
+    # flow; drop. The 1 other \hspace in source is inside a tabular column
+    # spec, consumed by pandoc — never reaches postprocess.
+    - { from: '\\hspace\{[^}]*\}',
+        to:   '' }
+
+    # Class E.2 — \protect\texttt{X} compound leak (1 instance, ch02_deqns'
+    # lstlisting caption). \protect prevents fragile commands from breaking
+    # in moving args; meaningless in HTML. The inner \texttt{X} should be
+    # backtick-code. Narrow rewrite: only when \protect immediately precedes
+    # \texttt to avoid touching the bare \texttt{} cases that live inside
+    # math (e.g. ch04: $\{\texttt{relu}, \texttt{tanh}, ...\}$) which KaTeX
+    # renders correctly as-is.
+    - { from: '\\protect\\texttt\{([^}]+)\}',
+        to:   '`\1`' }
+
+# --- Validation -------------------------------------------------------------
+
+validate:
+  equations: true
+  cross_references: true
+  theorems: true
+  figures: true
+  citations: true
+  broken_inline_math: true

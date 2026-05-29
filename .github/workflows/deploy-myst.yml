@@ -1,0 +1,67 @@
+# Build the MyST Markdown version of the script and deploy to GitHub Pages.
+#
+# Triggers on pushes to the mystmd-conversion branch (and main once merged);
+# manual runs via workflow_dispatch.
+
+name: MyST GitHub Pages Deploy
+on:
+  push:
+    branches: [mystmd-conversion, main]
+    paths:
+      - 'mystmd/**'
+      - '.github/workflows/deploy-myst.yml'
+  workflow_dispatch:
+
+env:
+  # BASE_URL tells MyST where the site is served from (asset paths)
+  BASE_URL: /${{ github.event.repository.name }}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: 'pages'
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mystmd
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+      - name: Install ImageMagick
+        run: sudo apt-get update && sudo apt-get install -y imagemagick webp
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+      - uses: oven-sh/setup-bun@v2
+      - name: Install MyST Markdown (QuantEcon fork, qe-v6)
+        # Builds from source — the QuantEcon fork is not on npm.
+        # qe-v6 includes book-mode parts, section-scoped proof numbering,
+        # the title→heading chain, and shared proof:* counters.
+        working-directory: /tmp
+        run: |
+          git clone https://github.com/QuantEcon/mystmd.git qe-mystmd
+          cd qe-mystmd
+          git checkout qe-v6
+          bun install
+          bun run build
+          npm install -g /tmp/qe-mystmd/packages/mystmd
+      - name: Build HTML Assets
+        run: myst build --html
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'mystmd/_build/html'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
