@@ -43,46 +43,92 @@ Why random search beats grid search when only one hyperparameter matters. Both d
 
 ## Bayesian Optimization
 
-Bayesian optimization treats the validation loss $\ell(\bm{h})$ as an expensive black-box function of the hyperparameter vector $\bm{h}$, and uses a probabilistic surrogate model, typically a Gaussian process (see Chapter {ref}`ch-gp`) {cite:p}`snoek2012practical,garnett2023bayesian`, to guide the search. After evaluating $n$ configurations $\{(\bm{h}_i, \ell_i)\}_{i=1}^n$, the GP posterior provides both a prediction $\mu(\bm{h})$ and an uncertainty estimate $\sigma(\bm{h})$ at any untried configuration.
+Bayesian optimization (BO) treats the validation loss $\ell(\bm{h})$ as an expensive black-box function of the hyperparameter vector $\bm{h}$, and uses a probabilistic surrogate, fitted to the configurations evaluated so far, to decide where to evaluate next {cite:p}`snoek2012practical`. The standard surrogate is a Gaussian process (GP). The next subsection gives a self-contained primer in the notation that Chapter {ref}`ch-gp` will reuse, so the reader can follow the BO logic without flipping ahead; the full kernel zoo, marginal-likelihood hyperparameter learning, and Bayesian active learning are developed there. Throughout this section the GP input is the hyperparameter vector itself, $\x \equiv \bm{h}$, and the kernel length-scale symbol $\ell$ that appears in {eq}`eq-nas_kse` below is the standard GP notation of Chapter {ref}`ch-gp`; it is distinct from the validation-loss symbol $\ell(\bm{h})$ and the two are always clear from context.
 
-The next configuration to evaluate is selected by maximizing an *acquisition function*. The most common choice is Expected Improvement (EI):
-
-$$
-\mathrm{EI}(\bm{h}) = \E{\max\bigl(\ell^\star - \ell(\bm{h}),\; 0\bigr)},
-$$
-
-where $\ell^\star = \min_i \ell_i$ is the best loss observed so far. Under the GP posterior, this has a closed-form expression:
+(sec-nas_gp_primer)=
+### A Brief Introduction to Gaussian Processes
+A Gaussian process is a probability distribution over real-valued functions, equivalently, a random function $f$ whose values at any finite collection of inputs $\x_1, \ldots, \x_n$ are jointly Gaussian {cite:p}`Rasmussen:2005:GPM:1162254`. It is fully specified by a mean function $\mu(\x)$ and a covariance (kernel) function $k(\x, \x')$ that says how correlated the function's values at two inputs are:
 
 $$
-\mathrm{EI}(\bm{h}) = (\ell^\star - \mu(\bm{h}))\,\Phi(Z) + \sigma(\bm{h})\,\phi(Z),
-\qquad Z = \frac{\ell^\star - \mu(\bm{h})}{\sigma(\bm{h})},
+f(\x) \sim \mathcal{GP}\bigl(\mu(\x),\; k(\x, \x')\bigr).
 $$
 
-where $\Phi$ and $\phi$ are the standard normal CDF and PDF, respectively. For the closed-form derivation under the GP posterior, see {cite:t}`garnett2023bayesian` [§5]. EI naturally balances exploitation ($\mu(\bm{h})$ is small, i.e., predicted to be good) and exploration ($\sigma(\bm{h})$ is large, i.e., uncertain). Bayesian optimization is particularly effective when the number of hyperparameters is moderate ($d \leq 20$) and each evaluation is expensive, which describes many economic applications well. Figure {numref}`fig-bayesopt` illustrates the GP posterior and EI acquisition rule in one dimension.
+This means that, for any finite test set $\x_1, \ldots, \x_n$, the vector $\bm{f} = (f(\x_1), \ldots, f(\x_n))^\top$ is distributed as $\bm{f} \sim \mathcal{N}(\bm{\mu}, K)$ with kernel matrix $K_{ij} = k(\x_i, \x_j)$. For concreteness, we use the squared-exponential (RBF) kernel throughout this section:
+
+$$
+k_\mathrm{SE}(\x, \x') = \sigma_f^2\,\exp\!\left(-\frac{\|\x - \x'\|^2}{2\ell^2}\right),
+$$ (eq-nas_kse)
+
+where $\ell$ is the kernel length scale (the distance in input space over which two function values remain correlated) and $\sigma_f^2$ is the signal variance (the typical squared amplitude of the function). Both are kernel hyperparameters that one would normally fit by marginal-likelihood maximization; here we treat them as fixed at sensible values, since BO calls the GP once per outer iteration and modest mis-tuning only changes the candidate ranking marginally.
+
+##### Posterior conditioning, in two formulas.
+
+Given $n$ training configurations $\mathcal{D} = \{(\x_i, y_i)\}_{i=1}^n$ with possibly noisy outputs $y_i = f(\x_i) + \varepsilon_i$ and $\varepsilon_i \sim \mathcal{N}(0, \sigma_y^2)$, write $\bm{y} = (y_1, \ldots, y_n)^\top$. Three matrices and one vector enter the posterior: the kernel matrix $K \in \mathbb{R}^{n \times n}$ with $K_{ij} = k(\x_i, \x_j)$; its noise-augmented version $K_y = K + \sigma_y^2 I$; the prior-mean vector $\bm{\mu}_X$ whose $i$-th entry is $\mu(\x_i)$; and the cross-covariance $\bm{k}_* \in \mathbb{R}^n$ whose $i$-th entry is $k(\x_*, \x_i)$, where $\x_*$ is any query point. Conditioning the joint Gaussian $(\bm{y}, f(\x_*))$ on the observations yields a Gaussian posterior over the latent value $f(\x_*)$, with closed-form mean and variance:
+
+$$
+\bar{f}_* = \mu(\x_*) + \bm{k}_*^\top K_y^{-1}\bigl(\bm{y} - \bm{\mu}_X\bigr)
+$$ (eq-nas_gp_mean)
+
+$$
+\sigma_{f,*}^2 = k(\x_*, \x_*) - \bm{k}_*^\top K_y^{-1} \bm{k}_*.
+$$ (eq-nas_gp_var)
+
+These two equations carry all of the GP intuition we will use below. In the noiseless limit $\sigma_y^2 \to 0$, the posterior mean $\bar{f}_*$ passes exactly through every observation, so the GP is an interpolator, and the posterior variance $\sigma_{f,*}^2$ collapses to zero at observation points and grows in the gaps between them. The pair $\bar{f}_* \pm 2\sigma_{f,*}$ therefore traces an honest error bar: tight where the data are dense and loose where they are sparse. Chapter {ref}`ch-gp` derives {eq}`eq-nas_gp_mean`--{eq}`eq-nas_gp_var` step by step, works a hand-traceable 1D example, and explains the marginal-likelihood Occam's razor that selects $(\ell, \sigma_f, \sigma_y)$ from data; for the BO logic that follows, {eq}`eq-nas_gp_mean`--{eq}`eq-nas_gp_var` are sufficient.
+
+(sec-nas_ei)=
+### Expected Improvement
+We now plug the GP posterior into a decision rule for choosing the next configuration to evaluate. Specialize the GP input to the hyperparameter vector, $\x = \bm{h}$, and treat each observation $y_i = \ell_i = \ell(\bm{h}_i)$ as the validation loss at the $i$-th evaluated configuration. At any untried $\bm{h}$ the GP returns a posterior mean $\bar{f}(\bm{h})$ and posterior standard deviation $\sigma_f(\bm{h})$, where we drop the $*$ subscript when $\bm{h}$ is understood as the query point. We score each candidate $\bm{h}$ by how much, in expectation under the GP, its loss would beat the best loss seen so far, $\ell^\star = \min_i \ell_i$:
+
+$$
+\mathrm{EI}(\bm{h}) = \E{\max\bigl(\ell^\star - \ell(\bm{h}),\; 0\bigr)}.
+$$
+
+Reading this as "the GP believes the loss at $\bm{h}$ is roughly $\bar{f}(\bm{h})$ plus a Gaussian fluctuation of size $\sigma_f(\bm{h})$, and we credit only the improvement, not the deterioration," gives the intuition. Under the GP posterior the expectation evaluates in closed form:
+
+$$
+\mathrm{EI}(\bm{h}) = \bigl(\ell^\star - \bar{f}(\bm{h})\bigr)\,\Phi(Z) + \sigma_f(\bm{h})\,\phi(Z),
+\qquad Z = \frac{\ell^\star - \bar{f}(\bm{h})}{\sigma_f(\bm{h})},
+$$
+
+where $\Phi$ and $\phi$ are the standard normal CDF and PDF, respectively {cite:p}`garnett2023bayesian`. The first term rewards *exploitation* (the predicted mean $\bar{f}$ lies below the current best $\ell^\star$); the second rewards *exploration* ($\sigma_f$ is large where no data constrain the loss). EI peaks where the two conspire, which is exactly the place a sensible researcher would probe by hand. Figure {numref}`fig-bayesopt` illustrates one iteration of this rule in one dimension, and the algorithmic box below collects it into a four-step recipe. Bayesian optimization is particularly effective when the number of hyperparameters is moderate ($d \leq 20$) and each evaluation is expensive, which describes many economic applications well.
 
 ```{figure} figures/fig-bayesopt.svg
 :name: fig-bayesopt
 
-Bayesian optimization in one dimension. All curves come from a genuine Gaussian-process fit (RBF kernel, length scale $\ell = 1.2$, signal variance $\sigma_f^2 = 0.25$); the same setup is reproduced in the companion notebook. *Top:* the validation loss $\ell(h)$ is treated as an expensive black box. After five evaluations (black dots) the GP posterior is summarized by its mean $\mu(h)$ (solid blue), which *interpolates* every observation exactly, and by a $\pm 2$ s.d. credible band (shaded), which pinches to nearly zero at each observation and balloons in the wide gaps where no data constrain it. The dashed red curve is the (in practice unknown) true loss; it has a pronounced minimum near $h \approx 4$ that these five points completely miss, and there it even slips below the $\pm 2$ s.d. band, an honest reminder that a Gaussian process with a long length scale can be over-confident between observations. The horizontal grey line marks $\ell^\star$, the best loss observed so far (the point near $h \approx 2.3$). *Bottom:* the Expected-Improvement acquisition function $\mathrm{EI}(h) = \E{\max\!\bigl(\ell^\star - \ell(h),\, 0\bigr)}$ scores each untried $h$ by how much it is expected to beat $\ell^\star$ under the posterior. It is essentially zero at the existing observations, where there is nothing to learn, rises in the unexplored gaps, and peaks at $h \approx 3.75$, the place that combines a predicted mean already below $\ell^\star$ with substantial residual uncertainty; that maximizer is selected as the next configuration to evaluate (red arrow). EI therefore balances *exploitation* (low predicted mean) against *exploration* (high predicted variance), and here it steers the search straight at the neighborhood of the hidden true minimum.
+Bayesian optimization in one dimension; the same setup is reproduced in the companion notebook. *Top:* after five evaluations (black dots), the GP posterior mean $\bar f(h)$ (solid blue) interpolates the observations and the $\bar f(h) \pm 2\sigma_f(h)$ credible band (shaded) pinches to zero at each observation and widens in the gaps; this is the picture predicted by {eq}`eq-nas_gp_mean`--{eq}`eq-nas_gp_var`. The dashed red curve is the (in practice unknown) true loss; the horizontal grey line marks $\ell^\star$, the best observation so far (near $h\approx 2.3$). *Bottom:* Expected Improvement $\mathrm{EI}(h)$ is essentially zero at the existing data, where there is nothing to learn, rises in the unexplored gaps, and peaks at $h \approx 3.75$, which combines a predicted mean already below $\ell^\star$ with substantial residual uncertainty. The maximizer (red arrow) is selected as the next configuration to evaluate; EI thus balances exploitation against exploration automatically, and here it steers the search at the neighborhood of the hidden true minimum.
 ```
-
-(sec-hyperband)=
-## Hyperband and Successive Halving
-{cite:t}`li2018hyperband` proposed an entirely different approach based on *adaptive resource allocation*, building on the Successive Halving Algorithm popularized by {cite:t}`jamieson2016nonstochastic`. The key observation is that poor configurations can often be identified early in training, without running them to completion. The Successive Halving Algorithm (SHA) formalizes this:
 
 ```{prf:definition}
 
-- **Input:** Budget $B$, initial candidates $n$, reduction factor $\eta = 3$
-- Allocate each candidate a budget of $r = B/(n \lceil\log_\eta n\rceil)$
-- for round $s = 0, 1, \ldots, \lceil\log_\eta n\rceil - 1$:
-  - Train all remaining candidates for $r$ additional resources (epochs)
-  - Keep the top $1/\eta$ fraction; discard the rest
-  - $r \leftarrow r \cdot \eta$
-- **Output:** Best surviving configuration
+- **Input:** initial design $\mathcal{D}_{n_0} = \{(\bm{h}_i, \ell_i)\}_{i=1}^{n_0}$, total budget $N$
+- for $n = n_0, n_0+1, \ldots, N-1$:
+  - Fit the GP posterior $(\bar{f}, \sigma_f)$ to $\mathcal{D}_n$ using \eqref{eq:nas_gp_mean}--\eqref{eq:nas_gp_var}
+  - Evaluate $\mathrm{EI}(\bm{h})$ on a fine candidate grid (or via a local optimizer) over the search space
+  - Select $\bm{h}_{n+1} = \arg\max_{\bm{h}} \mathrm{EI}(\bm{h})$
+  - Evaluate the validation loss $\ell_{n+1} = \ell(\bm{h}_{n+1})$ and append to $\mathcal{D}_{n+1} = \mathcal{D}_n \cup \{(\bm{h}_{n+1}, \ell_{n+1})\}$
+- **Output:** best observed configuration $\arg\min_i \ell_i$
 ```
 
 
-For example, with $n = 81$ initial candidates and $\eta = 3$: round 0 trains all 81 for $r$ epochs and keeps the top 27; round 1 trains these 27 for $3r$ epochs and keeps the top 9; round 2 trains 9 for $9r$ epochs and keeps 3; round 3 trains 3 for $27r$ and selects the winner. The total budget is $81r + 27\cdot 3r + 9\cdot 9r + 3\cdot 27r = 4 \cdot 81 r = 324\,r$, equivalent to about a dozen full $R = 27r$ trainings rather than the $81$ that naive parallel evaluation would require. Figure {numref}`fig-hyperband` visualizes this resource-allocation cascade.
+(sec-hyperband)=
+## Hyperband and Successive Halving
+{cite:t}`li2018hyperband` proposed an entirely different approach based on *adaptive resource allocation*, building on the Successive Halving Algorithm popularized by {cite:t}`jamieson2016nonstochastic`. The key observation is that poor configurations can often be identified early in training, without running them to completion.
+
+The Successive Halving Algorithm (SHA) turns this observation into a concrete schedule. Start with $n_0$ configurations, give each a small initial budget of $r_0$ epochs, train, then keep only the top $1/\eta$ fraction of survivors and multiply the per-candidate budget by $\eta$ for the next round. Two facts about this schedule do most of the explanatory work below. First, the per-round compute is approximately constant: round $s$ runs $n_s$ survivors for $r_s$ epochs each, and the rule "$\eta\times$ fewer candidates at $\eta\times$ the budget" keeps the product $n_s r_s$ fixed. Second, the cumulative cost across the cascade therefore scales with the *number of rounds* rather than with the worst-case "train every candidate to the final budget" benchmark. Both points are made concrete in the worked example that follows the pseudocode.
+
+```{prf:definition}
+
+- **Input:** initial candidates $n_0$, initial per-candidate budget $r_0$ (epochs), reduction factor $\eta = 3$
+- Draw a set $S_0$ of $n_0$ configurations from the search space
+- for round $s = 0, 1, \ldots, \lceil\log_\eta n_0\rceil - 1$:
+  - Train each of the $n_s$ survivors in $S_s$ for $r_s$ epochs and record their validation losses
+  - Keep the top $1/\eta$ fraction of $S_s$ to form $S_{s+1}$
+  - Set $n_{s+1} = \lceil n_s / \eta \rceil$ and $r_{s+1} = \eta\, r_s$
+- **Output:** best surviving configuration
+```
+
+
+To see the per-round invariant on a concrete schedule, take $n_0 = 81$, $r_0 = r$, and $\eta = 3$. Round 0 trains all 81 candidates for $r$ epochs and keeps the top 27; round 1 trains those 27 for $3r$ epochs and keeps the top 9; round 2 trains the 9 for $9r$ and keeps 3; round 3 trains those 3 for $27r$ and selects the winner. At each round the round-level compute is $n_s\, r_s = 81\,r$ (the $1/3$ shrink in survivors is exactly offset by the $3\times$ growth in budget), so the four rounds together cost $4 \cdot 81\,r = 324\,r$, equivalent to four full $R = 81r$-epoch training runs rather than the $81$ that naive parallel evaluation would require. Figure {numref}`fig-hyperband` visualizes this resource-allocation cascade.
 
 ```{figure} figures/fig-hyperband.svg
 :name: fig-hyperband
@@ -90,7 +136,23 @@ For example, with $n = 81$ initial candidates and $\eta = 3$: round 0 trains al
 Successive Halving with 81 initial candidates and reduction factor $\eta = 3$. Each round trains the surviving configurations for $\eta$ times the previous budget, then discards the bottom $(1-1/\eta)$ fraction. Total compute per bracket is only $\mathcal{O}(B)$ rather than $\mathcal{O}(nB)$ for training every candidate to completion. Hyperband runs several such brackets in parallel with different $(n,r)$ trade-offs to hedge against unknown early-vs-late performance correlations {cite:p}`li2018hyperband`.
 ```
 
-Hyperband extends SHA by running multiple SHA brackets with different trade-offs between the number of candidates $n$ and the per-candidate budget $r$, ensuring robustness to the unknown early-stopping behavior of different hyperparameter configurations. The displayed sequence $(81,1) \to (27,3) \to (9,9) \to (3,27) \to (1,81)$ used in Algorithm {numref}`fig-hyperband` is the *stage schedule* of the most exploratory SHA bracket, $s = s_{\max} = 4$, not Hyperband's full bracket set. With maximum resource $R = 81$, reduction factor $\eta = 3$, and budget $B = (s_{\max}+1)R = 405$, Hyperband itself cycles through five SHA brackets indexed by $s = 0,\ldots,4$: each bracket starts with $n_s = \lceil (B/R)\,\eta^s/(s+1) \rceil$ configurations at initial resource $r_s = R\,\eta^{-s}$, then runs the SHA halving rule to convergence, so more aggressive brackets (large $s$) start with many cheap configurations while more conservative brackets (small $s$) start with fewer, longer-trained configurations. The companion notebook implements the SHA inner loop only; running the full Hyperband schedule is a straightforward outer loop that iterates the inner loop across these five $(n_s, r_s)$ starting points.
+Hyperband extends SHA by running not one but several SHA cascades, each starting from a different trade-off between the number of candidates and the per-candidate initial budget; the intuition is hedging. A bracket that starts with many cheap candidates (large $s$) is well suited to problems where the eventual winner reveals itself early, while a bracket that starts with fewer well-trained candidates (small $s$) is better when ranks shuffle late in training, and Hyperband simply runs both kinds. The cascade shown in Figure {numref}`fig-hyperband`, $(81,1) \to (27,3) \to (9,9) \to (3,27) \to (1,81)$, is the most exploratory of the brackets ($s = s_{\max} = 4$); Table {numref}`tab-hyperband_brackets` unrolls the full canonical schedule for maximum resource $R = 81$ and reduction factor $\eta = 3$.
+
+````{table}
+:name: tab-hyperband_brackets
+
+Hyperband bracket schedule for $R = 81$, $\eta = 3$, following Table 1 of {cite:t}`li2018hyperband`. Each bracket $s$ is a standalone SHA cascade with $n_s$ initial candidates and per-candidate initial budget $r_s$ epochs; the survivors are then halved according to the rule of Algorithm {numref}`fig-hyperband`. Large $s$ probes many cheap candidates and halves them aggressively (exploration); small $s$ trains a handful of candidates to the full $R$-epoch budget from the start (exploitation). Per-bracket totals $B_s$ are reported in units of $R$ and are not monotone in $s$ because $n_s$ is integer-rounded. Hyperband runs all five brackets and returns the best surviving configuration across them.
+
+| **Bracket $s$** | **$(n_s, r_s)$** | **Unrolled schedule (candidates @ epochs)** | **Total cost $B_s$** |
+|:---:|:---:|---|:---:|
+| $4$ | $(81, 1)$ | $81$@$1 \to 27$@$3 \to 9$@$9 \to 3$@$27 \to 1$@$81$ | $5R$ |
+| $3$ | $(27, 3)$ | $27$@$3 \to 9$@$9 \to 3$@$27 \to 1$@$81$ | $4R$ |
+| $2$ | $(9, 9)$ | $9$@$9 \to 3$@$27 \to 1$@$81$ | $3R$ |
+| $1$ | $(6, 27)$ | $6$@$27 \to 2$@$81$ | $4R$ |
+| $0$ | $(5, 81)$ | $5$@$81$ | $5R$ |
+````
+
+The companion notebook `03_NAS_RandomSearch_Hyperband.ipynb` implements the SHA inner loop only; the full Hyperband schedule is a straightforward outer loop that iterates this inner loop across the five $(n_s, r_s)$ starting points in Table {numref}`tab-hyperband_brackets`.
 
 ## Method Comparison
 
@@ -124,10 +186,12 @@ Real projects rarely hand-roll the search loop. Several established libraries wr
 In many applications, including DEQNs and PINNs, the loss function is a weighted sum of several components:
 
 $$
-\ell = \sum_{k=1}^{K} w_k \, \ell_k.
+\ell = \sum_{k=1}^{K} w_k \, \ell_k,
 $$
 
-From a multi-objective-optimization standpoint, the vector $(\ell_1, \dots, \ell_K)$ is the object of interest: the equilibrium is defined by all $K$ residuals being zero, and any nonzero weight vector $\bm{w}$ picks a particular scalarization of the same underlying Pareto problem. When the components are on comparable scales, uniform weights work; when they are not, the scalarized problem is dominated by a single component and the optimizer effectively ignores the others. Adaptive weighting methods (discussed below) can be seen as online strategies for traversing the Pareto front rather than committing to a single scalarization up front. If the individual components $\ell_k$ differ in magnitude by several orders of magnitude, training can become unstable or converge slowly. Consider a concrete example from the IRBC model with $N=10$ countries: at initialization, the Euler equation residual for country 1 might be $\ell_1 \approx 50$, while for country 10 it might be $\ell_{10} \approx 0.05$, a ratio of $10^3$. With uniform weights, the gradient is dominated by $\nabla \ell_1$, and the optimizer essentially ignores $\ell_{10}$ until $\ell_1$ is nearly converged. This sequential convergence pattern can be $5$--$10\times$ slower than balanced convergence.
+where $\ell_k \ge 0$ is the $k$-th *loss component* (one individual residual, e.g. a per-country Euler equation, a market-clearing identity, a complementarity-condition residual in an OLG model, or a boundary or initial-condition penalty in a PINN), $w_k \ge 0$ is its scalar weight, and $K$ is the total number of components. In the DEQN setting of this script, each $\ell_k$ is typically the mean-squared residual of a particular equilibrium equation evaluated on the training mini-batch, so $\ell_k = 0$ at a solution and $\ell$ is jointly minimized over the network parameters.
+
+From a multi-objective-optimization standpoint, the vector $(\ell_1, \dots, \ell_K)$ is the object of interest: the equilibrium is defined by all $K$ residuals being zero, and any nonzero weight vector $\bm{w}$ picks a particular scalarization of the same underlying Pareto problem. When the components are on comparable scales, uniform weights work; when they are not, the scalarized problem is dominated by a single component and the optimizer effectively ignores the others. Adaptive weighting methods (discussed below) can be seen as online strategies for traversing the Pareto frontier rather than committing to a single scalarization up front. If the individual components $\ell_k$ differ in magnitude by several orders of magnitude, training can become unstable or converge slowly. Consider a concrete example from the IRBC model with $N=10$ countries: at initialization, the Euler equation residual for country 1 might be $\ell_1 \approx 50$, while for country 10 it might be $\ell_{10} \approx 0.05$, a ratio of $10^3$. With uniform weights, the gradient is dominated by $\nabla \ell_1$, and the optimizer essentially ignores $\ell_{10}$ until $\ell_1$ is nearly converged. This sequential convergence pattern can be $5$--$10\times$ slower than balanced convergence.
 
 The fundamental difficulty is that the gradient of the total loss $\nabla \ell = \sum_k w_k \nabla \ell_k$ is dominated by the components with the largest $|w_k \nabla \ell_k|$. Even if all components are equally important for the economic solution, the optimizer cannot "see" the small components through the noise of the large ones.
 
@@ -324,7 +388,7 @@ Worked solutions and guidance for these exercises appear in Appendix {ref}`app-
 ```{exercise}
 :label: ex-ch4-5
 
-**[Core\] Pareto front geometry.** Consider the toy two-component loss $\mathcal{L}(\theta;\lambda) = \lambda\,(\theta - a)^2 + (1-\lambda)(\theta - b)^2$ with $\theta \in \mathbb{R}$, $a < b$, and $\lambda \in [0,1]$. (i) Solve for the minimizer $\theta^\star(\lambda)$ in closed form. (ii) Compute the per-component residuals $\ell_1^\star(\lambda) = (\theta^\star - a)^2$ and $\ell_2^\star(\lambda) = (\theta^\star - b)^2$. (iii) Eliminate $\lambda$ to express the Pareto frontier in the $(\ell_1, \ell_2)$ plane and show it is the curve $\sqrt{\ell_1} + \sqrt{\ell_2} = b - a$ for $\ell_1, \ell_2 \ge 0$, hence convex. (iv) Sketch the front and identify which point on it corresponds to the equal-weight choice $\lambda = 1/2$. (v) In higher-dimensional parameter spaces, explain why nonzero gradient inner products $\langle\nabla \ell_1, \nabla \ell_2\rangle$ make fixed scalar weights fragile. Contrast ReLoBRaLo's relative-loss progress rule with GradNorm's direct gradient-norm balancing.
+**[Core\] Pareto frontier geometry.** Consider the toy two-component loss $\mathcal{L}(\theta;\lambda) = \lambda\,(\theta - a)^2 + (1-\lambda)(\theta - b)^2$ with $\theta \in \mathbb{R}$, $a < b$, and $\lambda \in [0,1]$. (i) Solve for the minimizer $\theta^\star(\lambda)$ in closed form. (ii) Compute the per-component residuals $\ell_1^\star(\lambda) = (\theta^\star - a)^2$ and $\ell_2^\star(\lambda) = (\theta^\star - b)^2$. (iii) Eliminate $\lambda$ to express the Pareto frontier in the $(\ell_1, \ell_2)$ plane and show it is the curve $\sqrt{\ell_1} + \sqrt{\ell_2} = b - a$ for $\ell_1, \ell_2 \ge 0$, hence convex. (iv) Sketch the frontier and identify which point on it corresponds to the equal-weight choice $\lambda = 1/2$. (v) In higher-dimensional parameter spaces, explain why nonzero gradient inner products $\langle\nabla \ell_1, \nabla \ell_2\rangle$ make fixed scalar weights fragile. Contrast ReLoBRaLo's relative-loss progress rule with GradNorm's direct gradient-norm balancing.
 ```
 
 ```{exercise}

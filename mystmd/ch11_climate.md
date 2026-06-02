@@ -200,7 +200,7 @@ encodes the two atmosphere--upper-ocean exchange rates ($b_{12}$ in either direc
 
 Equation {eq}`eq-carbon_cycle` is a pulse-and-decay system: a unit pulse of emissions raises atmospheric carbon by one unit instantaneously, and that anomaly then bleeds into the upper ocean over decades and into the deep ocean over centuries. Figure {numref}`fig-restud_bau_emissions` shows the implied BAU emissions trajectory under nine alternative climate-module calibrations; the spread is mostly driven by the equilibrium climate sensitivity (developed in {ref}`sec-dice_temperature`), not by the carbon cycle, which is tightly disciplined by the pulse and step tests of {ref}`sec-cdice_recalibration`.
 
-```{figure} fig/restud_fig11a.pdf
+```{figure} figures/restud_fig11a.png
 :name: fig-restud_bau_emissions
 
 Business-as-usual industrial emissions in CDICE (in GtCO$_2$/yr) under the nine combinations of three carbon-cycle calibrations (MMM, MESMO, LOVECLIM) and three temperature calibrations (MMM, HadGEM2-ES, GISS-E2-R); the thin CDICE curves overlap visually, confirming that the BAU emissions path is essentially insensitive to the climate-module calibration because $\sigma_t$ and $A_t$ are exogenous. The thick red and orange curves are the RCP 8.5 and RCP 6.0 scenarios, included as climate-policy reference paths. Reproduced from {cite:t}`Folini_2021`, Figure 11(a).
@@ -273,7 +273,7 @@ CDICE climate-module calibration protocol. The first two tests discipline the ca
 
 This calibration ensures that the reduced-form climate module is consistent with state-of-the-art earth system models. CDICE also introduces a transparent time-step formulation, $X_{t+\Delta t} = X_t + \Delta t \cdot f(X_t, u_t; \theta)$, that allows coherent implementation at annual, 5-year, or 10-year resolution within a single generic framework. Figure {numref}`fig-restud_bau_mat` illustrates how much the climate-cycle calibration matters even before the planner makes any decision: under business-as-usual, DICE-2016 and CDICE produce visibly different atmospheric carbon trajectories, and the gap propagates into temperature, damages, and ultimately the SCC.
 
-```{figure} fig/restud_fig15a.pdf
+```{figure} figures/restud_fig15a.png
 :name: fig-restud_bau_mat
 
 Atmospheric carbon $M^{\mathrm{AT}}_t$ along the BAU path (in GtC, over 200 years from 2015) under the three CDICE carbon-cycle calibrations (CDICE = MMM, CDICE-MESMO, CDICE-LOVECLIM) and the legacy DICE-2016 carbon cycle. Only the carbon-cycle block is varied here; the temperature block is held at the CDICE MMM calibration, since the BAU carbon-stock path does not depend on the temperature calibration to first order. The DICE-2016 path lies systematically above the CMIP-disciplined paths, reflecting that the original DICE carbon cycle overstates atmospheric retention; CDICE-MESMO and CDICE-LOVECLIM bracket the CDICE baseline on the slow-removal and fast-removal sides, respectively. Reproduced from {cite:t}`Folini_2021`, Figure 15(a).
@@ -373,7 +373,7 @@ Calendar time itself enters as a state. Because neural networks prefer bounded i
 ## The Non-Stationary DEQN Algorithm
 The design choice of {ref}`sec-nsdeqn_setup` translates into a single training algorithm. The body below is a literal diff against the stationary DEQN of {ref}`sec-deqn_algo`: unchanged lines are grayed, new or modified lines are bolded.
 
-```{prf:definition}
+```{prf:algorithm} Non-Stationary DEQN Training
 :label: alg-nsdeqn
 
 - **Input:** Network $\mathcal{N}_\rho$, learning rate $\eta$, episodes $E$, training steps $T_{\mathrm{train}}$; \\ **[NEW]** calibrated initial state $\bm x_0$ (e.g., the 2015 state) and a planning horizon $T_{\max}$
@@ -385,7 +385,6 @@ The design choice of {ref}`sec-nsdeqn_setup` translates into a single training a
     - Update:~$\rho \leftarrow \rho - \eta \cdot \nabla_\rho \ell_\rho$
 - **Output:** Trained network $\mathcal{N}_{\rho^\star}$ approximating the policy function
 ```
-
 
 One delta against the stationary DEQN box. The simulation step starts from a calibrated initial state $\bm x_0$ and integrates $K$ trajectories forward through calendar time, so the pool $\mathcal D$ contains time-stamped states $(\tau_t, \bm x_t)$ along finite-horizon trajectories rather than draws from an ergodic distribution. With $\tau_t$ in the input the network learns a time-dependent policy; every other line of the box is the stationary DEQN of {ref}`sec-deqn_algo` unchanged.
 

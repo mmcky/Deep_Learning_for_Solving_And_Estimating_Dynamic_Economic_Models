@@ -1,9 +1,9 @@
 ---
-title: "Structural Estimation via SMM"
+title: "Deep Surrogate Models and Structural Estimation"
 label: ch-estimation
 ---
 
-With the surrogate machinery of Chapter {ref}`ch-gp` in hand, we now turn to one of its most important applications: *structural estimation*. The chapter's companion notebooks use the Brock--Mirman growth model to estimate first the productivity persistence parameter $\varrho$, and then the pair $\theta=(\beta,\varrho)$, by Simulated Method of Moments (SMM). The key computational idea is the same in both cases: train one policy surrogate with the structural parameter as an additional input, then reuse that trained network inside the estimator instead of re-solving the dynamic program at every candidate parameter value. The econometric foundations are {cite:t}`mcfadden1989method`, {cite:t}`pakes1989simulation`, {cite:t}`lee1991simulation`, {cite:t}`duffie1993simulated`, and {cite:t}`gourieroux1993indirect`; the surrogate logic follows the deep-surrogate and GP-surrogate pipelines in {cite:t}`chen2026Deep` and {cite:t}`SCHEIDEGGER201968`. Recent applications of the same surrogate-then-estimate move include heterogeneous-agent estimation {cite:p}`kase2022estimating`, search-and-matching {cite:p}`payne2025deepsam`, and climate-economy policy design and uncertainty quantification {cite:p}`kubler2025using,friedlDeep2023`.
+With the GP machinery of Chapter {ref}`ch-gp` in hand, this chapter builds the practical surrogate-driven workflows that make structural estimation tractable at research scale. We start with the *deep-surrogate pseudo-state pattern*, in which the structural parameter $\theta$ is concatenated into the network input so that a single trained policy net replaces one full model re-solve per $\theta$ with one forward pass. We illustrate the pattern on a Black--Scholes example, then put it to work for Simulated Method of Moments (SMM) on the Brock--Mirman growth model, layer a Gaussian-process surrogate on top of the moment map for high-throughput bootstrap and Bayesian post-processing, and close with the natural extensions to indirect inference and simulation-based inference. The econometric foundations are {cite:t}`mcfadden1989method`, {cite:t}`pakes1989simulation`, {cite:t}`lee1991simulation`, {cite:t}`duffie1993simulated`, and {cite:t}`gourieroux1993indirect`; the surrogate logic follows the deep-surrogate and GP-surrogate pipelines in {cite:t}`chen2026Deep` and {cite:t}`SCHEIDEGGER201968`. Recent applications of the same surrogate-then-estimate move include heterogeneous-agent estimation {cite:p}`kase2022estimating`, search-and-matching {cite:p}`payne2025deepsam`, and climate-economy policy design and uncertainty quantification {cite:p}`kubler2025using,friedlDeep2023`.
 
 Before the current deep-learning boom, neural networks were already studied as nonlinear *sieve* estimators in econometrics, with a rigorous asymptotic theory developed in parallel with the approximation-theory results of Chapter {ref}`ch-intro`. {cite:t}`chenwhite1999improved` establish convergence rates and asymptotic normality for single-hidden-layer network estimators, and {cite:t}`chen2007sieve` integrates that line into the broader sieve treatment of semi-nonparametric models defined by conditional moment restrictions, which is precisely the structural-estimation setting of this chapter. The modern continuation of this program uses deep architectures for efficient estimation in nonparametric instrumental-variable models {cite:p}`chenChristensenKankanala2021npiv`. The pipelines developed below should be read as the implementation-side companion to that theoretical tradition: the sieve literature tells us *when* neural-network estimators consistently identify deep structural parameters; the surrogate pipelines tell us *how* to make the resulting estimators cheap enough to deploy at research scale.
 
@@ -14,6 +14,99 @@ Before the current deep-learning boom, neural networks were already studied as n
 2.  **Two-layer surrogates.** Stack a Gaussian-process surrogate on top of the policy net ({ref}`sec-smm_gp_moments`): Layer 1 (the policy net) turns "one re-solve per $\theta$" into "one forward simulation per $\theta$", and Layer 2 (a GP per moment) turns "one forward simulation per $\theta$" into "one GP posterior per $\theta$". The result is a microseconds-per-call moment map, enabling bootstrap, Bayesian post-processing, and policy search at scale.
 ```
 
+
+## Motivation: The Computational Bottleneck
+
+Every workflow this chapter targets puts an expensive numerical solve inside an outer loop. For estimation, uncertainty quantification, and optimal policy design, the outer loop runs over a parameter or scenario vector $\theta$ and the inner solve is a full model solution, a Bellman fixed point, a PDE solve, or a Monte Carlo run that costs seconds to hours, repeated at the $10^3$ to $10^6$ outer iterations these tasks demand.
+
+For dynamic programming, the outer loop is the Bellman iteration itself: at iteration $s$ the inner "solve" is one evaluation of the operator $(TV^{s-1})(\x)$ at a state $\x$, which itself requires a constrained nonlinear program over controls plus a quadrature over the next-period shock, then a global fit of $V^s$ to those labels ({ref}`sec-gp_dp_supervised_view` of Chapter {ref}`ch-gp`). In both cases the obstacle is the same: the per-inner-solve cost times the per-outer-iteration count.
+
+The key insight is that since we *own* the structural model, we can generate training data by solving the model on a carefully chosen set of input configurations (a *design of experiments*). A cheap-to-evaluate function approximator trained on this synthetic dataset, a *surrogate model*, then replaces the expensive original model for all downstream tasks. Any suitable function approximator can serve as the surrogate; the right choice depends on the dimensionality of the input space and the cost of generating each training point.
+
+##### Cutting out the outer loop.
+
+The point of a surrogate is to break this nesting. One pays a one-time offline cost: pick a design of experiments $\theta^{(1)},\dots,\theta^{(N)}$, solve the model at those $N$ configurations, and fit a surrogate $\phi(s,\theta)$ to the results. From then on the expensive inner solve is gone, and the estimation, uncertainty-quantification, or policy-search outer loop evaluates a function that costs microseconds and returns exact gradients, so it can run at the $10^3$ to $10^6$ scale those tasks need. The model is solved at a handful of configurations and the surrogate *interpolates between them*, which is almost always far cheaper than re-solving at every new $\theta$; Figure {numref}`fig-surrogate_outer_loop` contrasts the two workflows. The surrogate-based SMM estimation developed below and the surrogate-then-optimize policy search of Chapter {ref}`ch-climate` are both instances of this move, as is the GP value-function iteration of {ref}`sec-gp_dp` in Chapter {ref}`ch-gp`, where the "outer loop" is the Bellman iteration itself; there the surrogate is refit every Bellman step and the "offline" phase becomes a per-iteration update.
+
+```{figure} figures/fig-surrogate_outer_loop.svg
+:name: fig-surrogate_outer_loop
+
+Why surrogates help. *Left*: structural estimation, uncertainty quantification, and optimal policy design are outer loops over a parameter vector $\theta$, and the direct implementation re-solves the full model inside the loop, so the cost scales with the number of outer iterations times the per-solve cost. *Right*: a surrogate moves that solve into a one-time offline phase, solving the model only at a design of experiments and fitting $\phi(s,\theta)$; the outer loop then queries a cheap, differentiable interpolant. The saving grows with both the number of outer iterations and the per-solve cost. The same picture applies to GP value-function iteration with the outer loop relabeled as the Bellman iteration and the inner solve as one $TV$ evaluation; the offline phase is then replaced by a per-iteration GP refit at modest design size.
+```
+
+##### Two surrogate strategies.
+
+This course covers two complementary approaches:
+
+1.  **Deep neural network (DNN) surrogates** are best suited for *high-dimensional* settings ($d \gg 10$ inputs) where training data can be generated in large quantities, for example when each model solve takes seconds or when closed-form solutions exist. DNNs scale gracefully with dimensionality, can be trained via mini-batch SGD on millions of samples, and provide exact gradients via automatic differentiation. {cite:t}`chen2026Deep` formalize this approach and demonstrate speedups of several orders of magnitude for option pricing (the same surrogate-for-finance idea was implemented earlier with adaptive sparse grids by {cite:t}`scheideggertreccani_2018`); {cite:t}`friedlDeep2023` apply it to uncertainty quantification in high-dimensional integrated assessment models.
+
+2.  **Gaussian process (GP) surrogates** are preferable for *intermediate-dimensional* settings ($d \lesssim 10$--$15$) where each training point is numerically expensive, for example solving a full DSGE model at one parameter configuration may take minutes or hours. GPs are *data-efficient*: the Bayesian posterior extracts maximum information from each observation. Crucially, the posterior variance provides a built-in uncertainty estimate that can guide *where* to evaluate next, enabling Bayesian Active Learning (BAL) strategies that allocate the computational budget optimally {cite:p}`SCHEIDEGGER201968`.
+
+````{table}
+:name: tab-surrogate_strategy_comparison
+
+Two complementary surrogate strategies. DNN surrogates are attractive when the input dimension and available training set are large; GP surrogates are attractive when each simulator call is expensive and calibrated posterior uncertainty is useful for active learning.
+
+|  | **DNN surrogate** | **GP surrogate** |
+|---|---|---|
+| Best for | high-dim. ($d \gg 10$), large $N$ | moderate-dim. ($d \lesssim 15$), small $N$ |
+| Data efficiency | data-hungry; wants a large training set | data-efficient; informative from a small one |
+| Key advantage | scales to very high $d$ via SGD | built-in UQ and active learning |
+````
+
+Table {numref}`tab-surrogate_strategy_comparison` summarizes the main trade-off. The two approaches are not mutually exclusive: one can use a GP to build an initial low-data surrogate with uncertainty estimates, and later switch to a DNN when more training data becomes available. A detailed comparison covering computational cost, gradient access, and further trade-offs is given in Section {ref}`sec-gp_vs_dnn` of Chapter {ref}`ch-gp`, where it sits naturally alongside the GP machinery itself.
+
+##### Speed gains.
+
+This is the payoff sketched in Figure {numref}`fig-surrogate_outer_loop`: regardless of whether a DNN or GP is used, once the surrogate is trained the per-iteration cost of the downstream outer loop, estimation, sensitivity analysis, or optimal policy design, collapses to a function evaluation. {cite:t}`chen2026Deep` report speedups of several orders of magnitude for option pricing, where evaluating the DNN surrogate replaces expensive FFT-based Fourier inversion (their Bates-model benchmark documents two-to-three orders of magnitude over the numerical pricing baseline). As a rough rule of thumb, the gain scales with the cost of the underlying pricing routine: the orders-of-magnitude gains arise for models requiring a PDE solve (roughly $1$ ms/eval $\to$ $1$ $\mu$s/eval through a surrogate) or high-dimensional Monte Carlo, regimes in which $10^3$--$10^4\times$ speedups are typical. The gains are even larger for gradient computations: while finite-difference gradients require $d+1$ model evaluations (one per parameter), the gradient through the surrogate (autograd for DNNs, closed-form for GPs) requires only a single pass, regardless of the number of parameters.
+
+## Pseudo-States: Parameters as "State" Variables
+
+The central innovation of the deep surrogate framework is to treat model parameters $\theta$ as additional "pseudo-state" variables:
+
+$$
+\tilde{\x} = \bigl(\underbrace{s_1,\dots,s_n}_{\text{states}},\;\underbrace{\theta_1,\dots,\theta_p}_{\text{parameters}}\bigr) \in \R^{d}, \quad d = n + p.
+$$
+
+```{figure} figures/fig-pseudo_state_surrogate.svg
+:name: fig-pseudo_state_surrogate
+
+Pseudo-state surrogate architecture. Economic states $s$ and model parameters $\theta$ are concatenated into the augmented input $\tilde{\x} = (s, \theta)$ and fed to a single approximator $\phi(\tilde{\x}\,|\,\theta_\mathrm{NN})$ with weights $\theta_\mathrm{NN}$, yielding a target quantity $y$ (price, policy, moment) as a continuous, differentiable function of both the state and the parameter vector. After one offline training pass, the surrogate is queried instantly across the parameter space without re-solving the original model.
+```
+
+The surrogate is trained once over the full augmented space and can then be queried instantly for any parameter configuration, without re-solving the model. This is fundamentally different from simply re-running the model: the surrogate provides a continuous, differentiable mapping from parameters to outputs, enabling gradient-based optimization and uncertainty propagation that would be impossible with the original model. Figure {numref}`fig-pseudo_state_surrogate` sketches this concatenated input.
+
+{cite:t}`scheideggertreccani_2018` achieve the surrogate-for-finance idea with adaptive sparse grids; {cite:t}`friedlDeep2023` apply the surrogate idea to uncertainty quantification in integrated assessment models of climate change; {cite:t}`chen2026Deep` demonstrate speedups of several orders of magnitude for option pricing with the deep-surrogate approach.
+
+##### Comparison of approximation methods.
+
+The surrogate approach is one of several function approximation strategies used in computational economics. Table {numref}`tab-approximation_methods_comparison` situates it relative to alternatives.
+
+````{table}
+:name: tab-approximation_methods_comparison
+
+Common approximation methods in computational economics. Grid and polynomial methods are transparent but become difficult in high dimension; DNN and GP surrogates trade direct grid structure for sample-based learning and repeated fast evaluation.
+
+| **Method** | **Max dim.** | **Smoothness** | **Parametric** | **Differentiable** |
+|---|:---:|:---:|:---:|:---:|
+| Cartesian grids | $d \leq 5$ | any | no | no |
+| Sparse grids | $d \leq 15$ | $C^k$ needed | no | limited |
+| Chebyshev polynomials | $d \leq 10$ | smooth | yes | yes |
+| DNN surrogate | $d \gg 10$ | any | yes | yes (autograd) |
+| GP surrogate | $d \leq 10$^$\dagger$^ | kernel-dependent | no | yes (closed-form) |
+|  |  |  |  |  |
+````
+
+### Worked Example: Black--Scholes Surrogate
+
+To illustrate the surrogate pipeline concretely, consider the European call option pricing problem from Section {ref}`sec-bs_pinn`. In the PINN approach (Chapter {ref}`ch-pinn`), the network learned the option price by minimizing the Black--Scholes PDE residual; no training data were needed, only the differential equation. The surrogate approach takes the opposite route: we *generate* training data by evaluating the closed-form Black--Scholes formula at a design of experiments, and train a neural network to interpolate this data.
+
+Specifically, we sample $N$ input tuples $(S_i, t_i, \sigma_i, r_i, K_i)$ from a Latin Hypercube design over the ranges of interest and evaluate the analytical price $V_i = V_\mathrm{BS}(S_i, t_i, \sigma_i, r_i, K_i)$ at each. The surrogate $\hat{V} = \mathcal{N}_\rho(S, t, \sigma, r, K)$ is then trained via standard supervised learning:
+
+$$
+\ell_\rho = \frac{1}{N}\sum_{i=1}^N \bigl|\mathcal{N}_\rho(S_i, t_i, \sigma_i, r_i, K_i) - V_i\bigr|^2.
+$$
+
+Once trained, the surrogate provides instant evaluation at any $(S, t, \sigma, r, K)$ in a single forward pass, instant Greeks ($\Delta$, $\Gamma$, Vega, etc.) via a single backward pass, and gradient-based implied volatility calibration, none of which require re-solving the PDE. The key contrast with the PINN is that the surrogate requires *solved* training data (here from the analytical formula; in general, from a numerical solver), but in return it treats the model parameters $(\sigma, r, K)$ as inputs, enabling re-evaluation across the entire parameter space without re-solving. This is precisely the "pseudo-state" idea of the previous section. See the companion notebook `01_Surrogate_Primer.ipynb` for the full implementation.
 
 ## Brock--Mirman with Parameters as Pseudo-States
 

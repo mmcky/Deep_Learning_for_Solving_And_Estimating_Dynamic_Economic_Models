@@ -1,128 +1,19 @@
 ---
-title: "Deep Surrogate Models and Gaussian Processes"
+title: "Gaussian Processes"
 label: ch-gp
 ---
 
-The DEQNs and PINNs of previous chapters solve a single model configuration at a time, to high accuracy. This chapter takes a different angle: every method developed below is *supervised regression on the output of an expensive numerical oracle*, where the oracle is queried at modestly many designed inputs and the fitted surrogate then stands in for it everywhere else. The script uses that move on two distinct oracles. The first is the structural model itself, evaluated across many parameter or scenario vectors $\theta$ for downstream estimation, uncertainty quantification, and optimal policy design (Chapter {ref}`ch-estimation`, Chapter {ref}`ch-climate`). The second is the Bellman operator $TV$ at a fixed model, evaluated at many state-space points inside a value-function-iteration loop, for solving high-dimensional dynamic programs ({ref}`sec-gp_dp`). Both settings call for the same GP machinery, the same diagnostics, and the same active-learning logic; only the labels change. A *surrogate* is, in effect, a twenty-first-century lookup table: not a static grid of precomputed answers, but a trained, smooth, differentiable function that interpolates the oracle's output across a high-dimensional space of states and parameters and can be queried in microseconds {cite:p}`chen2026Deep`. Surrogates produce thousands of evaluations per second, enabling parametric estimation, sensitivity analysis, and uncertainty quantification that would be infeasible if every evaluation required a full numerical solve. The methodological foundations are the GP textbook of {cite:t}`Rasmussen:2005:GPM:1162254` and the Bayesian-active-learning ideas dating back to {cite:t}`mackay1992information` and {cite:t}`krause2008near`. Embedding GPs inside dynamic programming was pioneered by {cite:t}`deisenroth2009gaussian` (GPDP) and {cite:t}`engel2005reinforcement` (GP temporal-difference learning); within economics, applications include high-dimensional growth models {cite:p}`SCHEIDEGGER201968`, dynamic incentive problems {cite:p}`rennerscheidegger_2018`, and deep uncertainty quantification for integrated assessment models {cite:p}`friedlDeep2023`. We also cover Bayesian active learning for optimal training-point selection, sparse approximations {cite:p}`titsias2009variational,hensman2013gaussian` that extend GPs beyond their cubic scaling limit, active subspaces for dimensionality reduction, GP-based value function iteration for dynamic programming, and deep kernel learning for combining neural network feature extraction with GP inference.
+{ref}`sec-nas_gp_primer` introduced Gaussian processes at the picture level, with just enough machinery to follow the Bayesian-optimization argument of Chapter {ref}`ch-nas`: the definition $f(\x) \sim \mathcal{GP}(\mu(\x), k(\x, \x'))$, the squared-exponential kernel {eq}`eq-nas_kse`, and the closed-form posterior mean and variance {eq}`eq-nas_gp_mean`--{eq}`eq-nas_gp_var`. Those formulas took the kernel and its hyperparameters $(\ell, \sigma_f, \sigma_y)$ as given. The present chapter removes both shortcuts and develops the full machinery: it samples whole functions from the GP *prior* ({ref}`sec-gp_regression`), learns $(\ell, \sigma_f, \sigma_y)$ from data via the marginal-likelihood Occam's razor ({ref}`sec-gp_kernels`), expands the kernel zoo beyond the squared-exponential to Matérn and composite kernels ({ref}`sec-matern`), uses the posterior variance to choose where to evaluate next via Bayesian Active Learning ({ref}`sec-bal`), scales the whole machinery to high-dimensional inputs through active subspaces ({ref}`sec-active_subspaces`), and embeds GPs inside value-function iteration for high-dimensional dynamic programming ({ref}`sec-gp_dp`). Two applications-driven chapters then put the machinery to work: structural estimation via surrogate-driven SMM (Chapter {ref}`ch-estimation`) and climate-policy uncertainty quantification (Chapter {ref}`ch-climate`). Methodological foundations are the GP textbook of {cite:t}`Rasmussen:2005:GPM:1162254` and the Bayesian-active-learning ideas dating back to {cite:t}`mackay1992information` and {cite:t}`krause2008near`. Embedding GPs inside dynamic programming was pioneered by {cite:t}`deisenroth2009gaussian` (GPDP) and {cite:t}`engel2005reinforcement` (GP temporal-difference learning); within economics, applications include high-dimensional growth models {cite:p}`SCHEIDEGGER201968`, dynamic incentive problems {cite:p}`rennerscheidegger_2018`, and deep uncertainty quantification for integrated assessment models {cite:p}`friedlDeep2023`. Sparse approximations {cite:p}`titsias2009variational,hensman2013gaussian` extend GPs beyond their cubic scaling limit; deep kernel learning combines neural-network feature extraction with GP inference and closes the chapter.
 
-## Motivation: The Computational Bottleneck
-
-Every workflow this chapter targets puts an expensive numerical solve inside an outer loop. For estimation, uncertainty quantification, and optimal policy design, the outer loop runs over a parameter or scenario vector $\theta$ and the inner solve is a full model solution, a Bellman fixed point, a PDE solve, or a Monte Carlo run that costs seconds to hours, repeated at the $10^3$ to $10^6$ outer iterations these tasks demand.
-
-For dynamic programming, the outer loop is the Bellman iteration itself: at iteration $s$ the inner "solve" is one evaluation of the operator $(TV^{s-1})(\x)$ at a state $\x$, which itself requires a constrained nonlinear program over controls plus a quadrature over the next-period shock, then a global fit of $V^s$ to those labels ({ref}`sec-gp_dp_supervised_view`). In both cases the obstacle is the same: the per-inner-solve cost times the per-outer-iteration count.
-
-The key insight is that since we *own* the structural model, we can generate training data by solving the model on a carefully chosen set of input configurations (a *design of experiments*). A cheap-to-evaluate function approximator trained on this synthetic dataset, a *surrogate model*, then replaces the expensive original model for all downstream tasks. Any suitable function approximator can serve as the surrogate; the right choice depends on the dimensionality of the input space and the cost of generating each training point.
-
-##### Cutting out the outer loop.
-
-The point of a surrogate is to break this nesting. One pays a one-time offline cost: pick a design of experiments $\theta^{(1)},\dots,\theta^{(N)}$, solve the model at those $N$ configurations, and fit a surrogate $\phi(s,\theta)$ to the results. From then on the expensive inner solve is gone, and the estimation, uncertainty-quantification, or policy-search outer loop evaluates a function that costs microseconds and returns exact gradients, so it can run at the $10^3$ to $10^6$ scale those tasks need. The model is solved at a handful of configurations and the surrogate *interpolates between them*, which is almost always far cheaper than re-solving at every new $\theta$; Figure {numref}`fig-surrogate_outer_loop` contrasts the two workflows. The surrogate-based SMM estimation of Chapter {ref}`ch-estimation` and the surrogate-then-optimize policy search of Chapter {ref}`ch-climate` are both instances of this move, as is the GP value-function iteration of {ref}`sec-gp_dp`, where the "outer loop" is the Bellman iteration itself. In the GP-VFI variant the surrogate is refit every Bellman step and the "offline" phase becomes a per-iteration update; that is the second of the two oracles announced at the start of the chapter.
-
-```{figure} figures/fig-surrogate_outer_loop.svg
-:name: fig-surrogate_outer_loop
-
-Why surrogates help. *Left*: structural estimation, uncertainty quantification, and optimal policy design are outer loops over a parameter vector $\theta$, and the direct implementation re-solves the full model inside the loop, so the cost scales with the number of outer iterations times the per-solve cost. *Right*: a surrogate moves that solve into a one-time offline phase, solving the model only at a design of experiments and fitting $\phi(s,\theta)$; the outer loop then queries a cheap, differentiable interpolant. The saving grows with both the number of outer iterations and the per-solve cost. The same picture applies to GP value-function iteration with the outer loop relabeled as the Bellman iteration and the inner solve as one $TV$ evaluation; the offline phase is then replaced by a per-iteration GP refit at modest design size.
-```
-
-##### Two surrogate strategies.
-
-This course covers two complementary approaches:
-
-1.  **Deep neural network (DNN) surrogates** are best suited for *high-dimensional* settings ($d \gg 10$ inputs) where training data can be generated in large quantities, for example when each model solve takes seconds or when closed-form solutions exist. DNNs scale gracefully with dimensionality, can be trained via mini-batch SGD on millions of samples, and provide exact gradients via automatic differentiation. {cite:t}`chen2026Deep` formalize this approach and demonstrate speedups of several orders of magnitude for option pricing (the same surrogate-for-finance idea was implemented earlier with adaptive sparse grids by {cite:t}`scheideggertreccani_2018`); {cite:t}`friedlDeep2023` apply it to uncertainty quantification in high-dimensional integrated assessment models.
-
-2.  **Gaussian process (GP) surrogates** are preferable for *intermediate-dimensional* settings ($d \lesssim 10$--$15$) where each training point is numerically expensive, for example solving a full DSGE model at one parameter configuration may take minutes or hours. GPs are *data-efficient*: the Bayesian posterior extracts maximum information from each observation. Crucially, the posterior variance provides a built-in uncertainty estimate that can guide *where* to evaluate next, enabling Bayesian Active Learning (BAL) strategies that allocate the computational budget optimally {cite:p}`SCHEIDEGGER201968`.
-
-````{table}
-:name: tab-surrogate_strategy_comparison
-
-Two complementary surrogate strategies. DNN surrogates are attractive when the input dimension and available training set are large; GP surrogates are attractive when each simulator call is expensive and calibrated posterior uncertainty is useful for active learning.
-
-|  | **DNN surrogate** | **GP surrogate** |
-|---|---|---|
-| Best for | high-dim. ($d \gg 10$), large $N$ | moderate-dim. ($d \lesssim 15$), small $N$ |
-| Data efficiency | data-hungry; wants a large training set | data-efficient; informative from a small one |
-| Key advantage | scales to very high $d$ via SGD | built-in UQ and active learning |
-````
-
-Table {numref}`tab-surrogate_strategy_comparison` summarizes the main trade-off. The two approaches are not mutually exclusive: one can use a GP to build an initial low-data surrogate with uncertainty estimates, and later switch to a DNN when more training data becomes available. A detailed comparison covering computational cost, gradient access, and further trade-offs is given in Section {ref}`sec-gp_vs_dnn` after the GP methodology has been introduced.
-
-##### Speed gains.
-
-This is the payoff sketched in Figure {numref}`fig-surrogate_outer_loop`: regardless of whether a DNN or GP is used, once the surrogate is trained the per-iteration cost of the downstream outer loop, estimation, sensitivity analysis, or optimal policy design, collapses to a function evaluation. {cite:t}`chen2026Deep` report speedups of several orders of magnitude for option pricing, where evaluating the DNN surrogate replaces expensive FFT-based Fourier inversion (their Bates-model benchmark documents two-to-three orders of magnitude over the numerical pricing baseline). As a rough rule of thumb, the gain scales with the cost of the underlying pricing routine: the orders-of-magnitude gains arise for models requiring a PDE solve (roughly $1$ ms/eval $\to$ $1$ $\mu$s/eval through a surrogate) or high-dimensional Monte Carlo, regimes in which $10^3$--$10^4\times$ speedups are typical. The gains are even larger for gradient computations: while finite-difference gradients require $d+1$ model evaluations (one per parameter), the gradient through the surrogate (autograd for DNNs, closed-form for GPs) requires only a single pass, regardless of the number of parameters.
-
-## Pseudo-States: Parameters as "State" Variables
-
-The central innovation of the deep surrogate framework is to treat model parameters $\theta$ as additional "pseudo-state" variables:
-
-$$
-\tilde{\x} = \bigl(\underbrace{s_1,\dots,s_n}_{\text{states}},\;\underbrace{\theta_1,\dots,\theta_p}_{\text{parameters}}\bigr) \in \R^{d}, \quad d = n + p.
-$$
-
-```{figure} figures/fig-pseudo_state_surrogate.svg
-:name: fig-pseudo_state_surrogate
-
-Pseudo-state surrogate architecture. Economic states $s$ and model parameters $\theta$ are concatenated into the augmented input $\tilde{\x} = (s, \theta)$ and fed to a single approximator $\phi(\tilde{\x}\,|\,\theta_\mathrm{NN})$ with weights $\theta_\mathrm{NN}$, yielding a target quantity $y$ (price, policy, moment) as a continuous, differentiable function of both the state and the parameter vector. After one offline training pass, the surrogate is queried instantly across the parameter space without re-solving the original model.
-```
-
-The surrogate is trained once over the full augmented space and can then be queried instantly for any parameter configuration, without re-solving the model. This is fundamentally different from simply re-running the model: the surrogate provides a continuous, differentiable mapping from parameters to outputs, enabling gradient-based optimization and uncertainty propagation that would be impossible with the original model. Figure {numref}`fig-pseudo_state_surrogate` sketches this concatenated input.
-
-{cite:t}`scheideggertreccani_2018` achieve the surrogate-for-finance idea with adaptive sparse grids; {cite:t}`friedlDeep2023` apply the surrogate idea to uncertainty quantification in integrated assessment models of climate change; {cite:t}`chen2026Deep` demonstrate speedups of several orders of magnitude for option pricing with the deep-surrogate approach.
-
-##### Comparison of approximation methods.
-
-The surrogate approach is one of several function approximation strategies used in computational economics. Table {numref}`tab-approximation_methods_comparison` situates it relative to alternatives.
-
-````{table}
-:name: tab-approximation_methods_comparison
-
-Common approximation methods in computational economics. Grid and polynomial methods are transparent but become difficult in high dimension; DNN and GP surrogates trade direct grid structure for sample-based learning and repeated fast evaluation.
-
-| **Method** | **Max dim.** | **Smoothness** | **Parametric** | **Differentiable** |
-|---|:---:|:---:|:---:|:---:|
-| Cartesian grids | $d \leq 5$ | any | no | no |
-| Sparse grids | $d \leq 15$ | $C^k$ needed | no | limited |
-| Chebyshev polynomials | $d \leq 10$ | smooth | yes | yes |
-| DNN surrogate | $d \gg 10$ | any | yes | yes (autograd) |
-| GP surrogate | $d \leq 10$^$\dagger$^ | kernel-dependent | no | yes (closed-form) |
-|  |  |  |  |  |
-````
-
-### Worked Example: Black--Scholes Surrogate
-
-To illustrate the surrogate pipeline concretely, consider the European call option pricing problem from Section {ref}`sec-bs_pinn`. In the PINN approach (Chapter {ref}`ch-pinn`), the network learned the option price by minimizing the Black--Scholes PDE residual; no training data were needed, only the differential equation. The surrogate approach takes the opposite route: we *generate* training data by evaluating the closed-form Black--Scholes formula at a design of experiments, and train a neural network to interpolate this data.
-
-Specifically, we sample $N$ input tuples $(S_i, t_i, \sigma_i, r_i, K_i)$ from a Latin Hypercube design over the ranges of interest and evaluate the analytical price $V_i = V_\mathrm{BS}(S_i, t_i, \sigma_i, r_i, K_i)$ at each. The surrogate $\hat{V} = \mathcal{N}_\rho(S, t, \sigma, r, K)$ is then trained via standard supervised learning:
-
-$$
-\ell_\rho = \frac{1}{N}\sum_{i=1}^N \bigl|\mathcal{N}_\rho(S_i, t_i, \sigma_i, r_i, K_i) - V_i\bigr|^2.
-$$
-
-Once trained, the surrogate provides instant evaluation at any $(S, t, \sigma, r, K)$ in a single forward pass, instant Greeks ($\Delta$, $\Gamma$, Vega, etc.) via a single backward pass, and gradient-based implied volatility calibration, none of which require re-solving the PDE. The key contrast with the PINN is that the surrogate requires *solved* training data (here from the analytical formula; in general, from a numerical solver), but in return it treats the model parameters $(\sigma, r, K)$ as inputs, enabling re-evaluation across the entire parameter space without re-solving. This is precisely the "pseudo-state" idea of the previous section. See the companion notebook `01_Surrogate_Primer.ipynb` for the full implementation.
-
+(sec-gp_regression)=
 ## Gaussian Process Regression
+##### Sampling from the GP prior.
 
-A Gaussian Process (GP) is a nonparametric Bayesian approach to function approximation {cite:p}`Rasmussen:2005:GPM:1162254` that is particularly well suited to settings where data is scarce but uncertainty quantification is essential. Intuitively, a GP defines a probability distribution over functions whose support and sample-path regularity are determined by the covariance kernel: an RBF kernel implies extremely smooth (in fact, infinitely mean-square differentiable) sample paths, while a Matérn kernel with small smoothness parameter implies rougher paths. Upon observing data, Bayes' rule yields a posterior distribution that concentrates around functions consistent with the observations while maintaining calibrated uncertainty elsewhere.
+Recall from {ref}`sec-nas_gp_primer` that for any finite set of test inputs $\x_1, \ldots, \x_n$, the function values $\bm{f} = (f(\x_1), \ldots, f(\x_n))^\top$ are jointly Gaussian with prior mean $\bm{\mu}$ (the entries $\mu(\x_i)$) and covariance matrix $K_{ij} = k(\x_i, \x_j)$. To draw a function from the GP prior at those test inputs, evaluate $K$, compute its Cholesky decomposition $K = L L^\top$, draw $\bm{u} \sim \mathcal{N}(\bm{0}, I)$, and set $\bm{f} = \bm{\mu} + L \bm{u}$. The resulting paths have the smoothness, amplitude, and length scale dictated entirely by the kernel.
 
-A GP is fully specified by a mean function $\mu(\x)$ and a covariance (kernel) function $k(\x, \x')$:
+##### Kernel choice.
 
-$$
-f(\x) \sim \mathcal{GP}\bigl(\mu(\x), k(\x, \x')\bigr).
-$$
-
-This means that for any finite collection of test points $\x_1, \ldots, \x_n$, the function values $\bm{f} = (f(\x_1), \ldots, f(\x_n))^\top$ are jointly Gaussian:
-
-$$
-\bm{f} \sim \mathcal{N}(\bm{\mu},\, K), \qquad \text{where } K_{ij} = k(\x_i, \x_j).
-$$
-
-To sample a function from the GP prior, one evaluates the kernel matrix $K$ at a grid of test points, computes its Cholesky decomposition $K = LL^\top$, draws $\bm{u} \sim \mathcal{N}(\bm{0}, I)$, and forms $\bm{f} = \bm{\mu} + L\bm{u}$. This procedure generates smooth random functions whose properties (smoothness, amplitude, length scale) are controlled entirely by the kernel choice.
-
-The squared exponential (RBF) kernel is the most widely used choice; we briefly preview the practical recommendation here so the reader can keep it in mind through the derivations: in economic applications, the target function (value, policy, equilibrium price) often has *kinks* from occasionally-binding constraints, and the Matérn-$3/2$ kernel introduced in {ref}`sec-matern` below is then a better default than RBF, since it does not oversmooth at non-differentiable features. The RBF kernel remains the right default when the target is genuinely smooth (e.g. in the unconstrained interior of an ergodic set).
-
-$$
-k_\mathrm{SE}(\x, \x') = \sigma_f^2 \exp\!\left(-\frac{\|\x - \x'\|^2}{2\ell^2}\right),
-$$
-
-where $\ell$ is the length scale (controlling smoothness) and $\sigma_f^2$ is the signal variance.
+The squared-exponential kernel {eq}`eq-nas_kse` of {ref}`sec-nas_gp_primer` remains the right default for genuinely smooth targets, e.g. in the unconstrained interior of an ergodic set. In economic applications, however, the target function (value, policy, equilibrium price) often has *kinks* from occasionally binding constraints, and the Matérn-$3/2$ kernel introduced in {ref}`sec-matern` below is then a better default than RBF, since it does not oversmooth at non-differentiable features.
 
 ```{figure} figures/fig-rbf_length_scale.svg
 :name: fig-rbf_length_scale
@@ -130,27 +21,17 @@ where $\ell$ is the length scale (controlling smoothness) and $\sigma_f^2$ is th
 Squared-exponential kernel as a function of distance for three length scales. Small $\ell$ makes correlations decay quickly and produces rougher, more local fits; large $\ell$ couples distant points and imposes smoother functions.
 ```
 
-Figure {numref}`fig-rbf_length_scale` shows how the RBF length scale controls the distance over which observations remain informative. Given training data $\mathcal{D} = \{(\x_i, y_i)\}_{i=1}^n$, let $\bm{\mu}_X = (\mu(\x_1),\ldots,\mu(\x_n))^\top$, $\mu_*=\mu(\x_*)$, and $K_y = K + \sigma_y^2 I$. The GP posterior at a test point $\x_*$ has a closed-form latent-function mean and variance:
-
-$$
-\bar{f}_* = \mu_* + \bm{k}_*^\top K_y^{-1}(\bm{y}-\bm{\mu}_X)
-$$ (eq-gp_mean)
-
-$$
-\sigma_{f,*}^2 = k(\x_*, \x_*) - \bm{k}_*^\top K_y^{-1} \bm{k}_*
-$$ (eq-gp_var)
-
-where $K$ is the kernel matrix, $\bm{k}_*$ is the vector of kernel evaluations between the test point and the training inputs, and $\sigma_y^2$ is the observation noise variance. For a noisy future observation $y_*$, the predictive variance is $\sigma_{y,*}^2 = \sigma_{f,*}^2 + \sigma_y^2$. The common zero-mean formulas are recovered by centering outputs or setting $\mu \equiv 0$.
+Figure {numref}`fig-rbf_length_scale` shows how the RBF length scale controls the distance over which observations remain informative. For any training dataset $\mathcal{D} = \{(\x_i, y_i)\}_{i=1}^n$, the GP posterior at a test point $\x_*$ has the closed-form mean $\bar{f}_*$ and variance $\sigma_{f,*}^2$ stated in {eq}`eq-nas_gp_mean`--{eq}`eq-nas_gp_var`, with $K_{ij} = k(\x_i,\x_j)$ the kernel matrix on training inputs, $K_y = K + \sigma_y^2 I$ its noise-augmented version, $\bm{\mu}_X$ the prior-mean vector at training inputs, and $\bm{k}_*$ the cross-covariance whose $i$-th entry is $k(\x_*, \x_i)$. For a noisy future observation $y_*$ the predictive variance is $\sigma_{y,*}^2 = \sigma_{f,*}^2 + \sigma_y^2$, and the common zero-mean formulas are recovered by centering outputs or setting $\mu \equiv 0$.
 
 ##### A hand-traceable 1D example.
 
-To make {eq}`eq-gp_mean`--{eq}`eq-gp_var` concrete, take $f(x) = \sin x$, observe $f$ noiselessly at $x_1 = 0$ and $x_2 = \pi$ (so $y_1 = y_2 = 0$), and query at $x_\star = \pi/2$. Use the kernel $k(x, x') = \exp\!\bigl(-(x - x')^2/2\bigr)$ and a tiny noise floor $\sigma_y^2 = 10^{-6}$ for numerical stability. The training kernel matrix is $$K + \sigma_y^2 I \;=\;
+To make {eq}`eq-nas_gp_mean`--{eq}`eq-nas_gp_var` concrete, take $f(x) = \sin x$, observe $f$ noiselessly at $x_1 = 0$ and $x_2 = \pi$ (so $y_1 = y_2 = 0$), and query at $x_\star = \pi/2$. Use the kernel $k(x, x') = \exp\!\bigl(-(x - x')^2/2\bigr)$ and a tiny noise floor $\sigma_y^2 = 10^{-6}$ for numerical stability. The training kernel matrix is $$K + \sigma_y^2 I \;=\;
 \begin{pmatrix} 1 & e^{-\pi^2/2} \\ e^{-\pi^2/2} & 1 \end{pmatrix}
 \;\approx\;
 \begin{pmatrix} 1.000 & 0.00719 \\ 0.00719 & 1.000 \end{pmatrix},$$ where the off-diagonal $e^{-\pi^2/2} \approx 0.00719$ is small because $0$ and $\pi$ are far apart relative to $\ell = 1$. The cross-covariance vector is $$\bm k_\star \;=\;
 \begin{pmatrix} \exp(-(\pi/2)^2/2) \\ \exp(-(\pi/2)^2/2) \end{pmatrix}
 \;\approx\;
-\begin{pmatrix} 0.2910 \\ 0.2910 \end{pmatrix},$$ since $x_\star = \pi/2$ is equidistant from $0$ and $\pi$. Because $\bm y = (0,0)^\top$, the posterior mean {eq}`eq-gp_mean` is exactly $\bar f_\star = 0$. For the variance, $$(K + \sigma_y^2 I)^{-1} \bm k_\star \;\approx\; \tfrac{0.2910}{1 + 0.00719}\,(1, 1)^\top \;\approx\; (0.2890, 0.2890)^\top,$$ so $\bm k_\star^\top (K + \sigma_y^2 I)^{-1} \bm k_\star \approx 2 \cdot 0.2910 \cdot 0.2890 \approx 0.1682$, giving $\sigma_\star^2 \approx 1 - 0.1682 \approx 0.832$ and a posterior standard deviation $\sigma_\star \approx 0.91$. The GP predicts zero at the midpoint, with substantial residual uncertainty, consistent with the fact that $\sin(\pi/2) = 1$ is not pinned down by the two boundary observations under this length scale.
+\begin{pmatrix} 0.2910 \\ 0.2910 \end{pmatrix},$$ since $x_\star = \pi/2$ is equidistant from $0$ and $\pi$. Because $\bm y = (0,0)^\top$, the posterior mean {eq}`eq-nas_gp_mean` is exactly $\bar f_\star = 0$. For the variance, $$(K + \sigma_y^2 I)^{-1} \bm k_\star \;\approx\; \tfrac{0.2910}{1 + 0.00719}\,(1, 1)^\top \;\approx\; (0.2890, 0.2890)^\top,$$ so $\bm k_\star^\top (K + \sigma_y^2 I)^{-1} \bm k_\star \approx 2 \cdot 0.2910 \cdot 0.2890 \approx 0.1682$, giving $\sigma_\star^2 \approx 1 - 0.1682 \approx 0.832$ and a posterior standard deviation $\sigma_\star \approx 0.91$. The GP predicts zero at the midpoint, with substantial residual uncertainty, consistent with the fact that $\sin(\pi/2) = 1$ is not pinned down by the two boundary observations under this length scale.
 
 Figure {numref}`fig-gp_prior_posterior` illustrates the GP prior and posterior for a simple one-dimensional regression problem. Before observing data, the GP prior has constant mean and uniform uncertainty. After conditioning on five observations, the posterior mean interpolates the data and the uncertainty bands collapse near the observations while remaining wide in unexplored regions.
 

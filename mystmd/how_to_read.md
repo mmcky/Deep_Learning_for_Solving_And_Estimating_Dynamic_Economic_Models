@@ -19,7 +19,7 @@ Readers who already know part of the material can take a shorter route, but the 
 
 - **Continuous-time methods:** read Chapter 1 for neural-network basics, Chapter 7 for PINNs and PDE residuals, and Chapter 8 for the continuous-time heterogeneous-agent HJB--KFE system. Chapter 6 is useful background if the distribution $\mu_t$ is unfamiliar.
 
-- **Surrogates and estimation:** read Chapter 1 for optimization and approximation, Chapter 9 for deep surrogates, GPs, active subspaces, and GP-based dynamic programming, and Chapter 10 for the SMM pipeline. Chapter 2 is the minimum DEQN background for the Brock--Mirman examples used there.
+- **Surrogates and estimation:** read Chapter 1 for optimization and approximation, Chapter 9 for the Gaussian-process toolkit (kernels, Bayesian active learning, active subspaces, and GP-based dynamic programming), and Chapter 10 for the deep-surrogate pseudo-state pattern and the SMM pipeline that uses it. Chapter 2 is the minimum DEQN background for the Brock--Mirman examples used there.
 
 - **Climate economics:** read Chapter 11 together with Chapter 2 for DEQN solution logic and Chapter 9 for surrogate-based uncertainty quantification. The climate chapter is written as an application chapter, not as a replacement for those methodological chapters.
 

@@ -117,7 +117,7 @@ Note that DEQNs operate squarely in the "modern regime" of Section {ref}`sec-ge
   - for gradient step $t = 1, \ldots, T_{\mathrm{train}}$:
     - Draw mini-batch $\mathcal{B} \subset \{\x_0, \ldots, \x_{T_{\mathrm{sim}}}\} \cup \mathrm{replay}$
     - Compute loss:~$\ell_\rho = \frac{1}{|\mathcal{B}|}\sum_{\x_i \in \mathcal{B}} \|G(\x_i, \mathcal{N}_\rho(\x_i); \mathcal{Q})\|^2$ **[NEW: $\mathcal{Q}$ is the chosen path-average or Gauss--Hermite / monomial / QMC rule]**
-    - Update:~$\rho \leftarrow \rho - \eta \cdot \nabla_\rho \ell_\rho$ **[NEW: wrap the per-step kernel in \texttt{@tf.function} / \texttt{torch.compile} / \texttt{@jax.jit} for $5$--$50\times$ speed-up]**
+    - Update:~$\rho \leftarrow \rho - \eta \cdot \nabla_\rho \ell_\rho$ **[NEW: wrap the per-step kernel in \texttt{{@}tf.function} / \texttt{torch.compile} / \texttt{{@}jax.jit} for $5$--$50\times$ speed-up]**
 - **Output:** Trained network $\mathcal{N}_{\rho^\star}$ approximating the policy function; report Euler residuals on $\x^{\mathrm{val}}$.
 ```
 

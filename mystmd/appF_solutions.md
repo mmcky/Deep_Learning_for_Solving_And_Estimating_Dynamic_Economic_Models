@@ -257,7 +257,7 @@ Let $\ell_i^{(t)}$ have magnitude $L_i \in \{10^0, 10^{-2}, 10^{-4}\}$ and per-c
 
 The scheme breaks down when the gradients are correlated: $\langle \nabla\ell_i, \nabla\ell_j\rangle \neq 0$ means that scaling up $\lambda_3$ to "boost" $\ell_3$ also moves $\theta$ along the $\nabla\ell_1$ direction, changing $\ell_1$. The "equal contribution" targeted by the fixed weights is no longer a fixed point: each parameter update changes the local gradient geometry, and weights tuned at one iteration become wrong at the next. Adaptive schemes (ReLoBRaLo, GradNorm) re-tune the $\lambda_i$ at every step, recovering the equalisation in a way that fixed weights cannot.
 
-##### {prf:ref}`ex-ch4-5`: Pareto front geometry.
+##### {prf:ref}`ex-ch4-5`: Pareto frontier geometry.
 
 *(i)* Differentiate $\mathcal{L}(\theta;\lambda) = \lambda(\theta-a)^2 + (1-\lambda)(\theta-b)^2$ in $\theta$ and set to zero: $2\lambda(\theta - a) + 2(1-\lambda)(\theta - b) = 0$, hence $$\theta^\star(\lambda) \;=\; \lambda a + (1-\lambda) b.$$
 
@@ -493,7 +493,7 @@ Coding exercises. Expected diagnostics:
 *{prf:ref}`ex-ch8-7`.* On the one-asset stationary benchmark, finite differences should usually win on absolute wall-clock time and give the cleanest low-dimensional benchmark residuals. A PINN may become more attractive when the same architecture is reused across many nearby parameter values, when warm starts work well, or when the state space is extended beyond what a grid handles comfortably. Report the actual cold-start and warm-start timings from your machine, and treat memory use as hardware- and backend-dependent.
 
 (sol-ch9)=
-## Chapter {ref}`ch-gp`: Deep Surrogate Models and Gaussian Processes
+## Chapter {ref}`ch-gp`: Gaussian Processes
 ##### {prf:ref}`ex-ch9-1`: Posterior on three points.
 
 The RBF kernel with length scale $\ell = 1$ and signal variance $\sigma_f^2 = 1$ is $k(x, x') = \exp(-(x-x')^2/2)$. With training points $X = (0, 1, 2)$ and targets $y = (0, 0.8, 0.3)$, the kernel matrix is $$K = \begin{pmatrix} 1 & e^{-1/2} & e^{-2} \\ e^{-1/2} & 1 & e^{-1/2} \\ e^{-2} & e^{-1/2} & 1\end{pmatrix}
@@ -541,7 +541,7 @@ Coding exercise. Report the actual errors from the run rather than treating fixe
 Mitigations: use a Matérn kernel with $\nu = 1/2$ or $\nu = 3/2$ (heavier-tailed than RBF, posterior reverts to prior more slowly), incorporate a polynomial mean function in the GP prior (so extrapolation grows with $x$ instead of decaying to zero), or use a boundary-aware acquisition function that explicitly penalizes exploitation outside the convex hull. In economic applications (e.g., extrapolating an estimated value function to wealth levels outside the training range), the safest practice is to flag any query outside the convex hull of training data and refuse to predict, rather than to trust a prior-driven band that has no data behind it.
 
 (sol-ch10)=
-## Chapter {ref}`ch-estimation`: Structural Estimation via SMM
+## Chapter {ref}`ch-estimation`: Deep Surrogate Models and Structural Estimation
 ##### {prf:ref}`ex-ch10-1`: Identification.
 
 Let $m(\varrho)=\mathbb{E}_\varrho[h(C,I,Y)]$ be the simulated moment vector implied by the persistence parameter. At the truth $\varrho^\star$, local identification is captured by the Jacobian $$M(\varrho^\star)

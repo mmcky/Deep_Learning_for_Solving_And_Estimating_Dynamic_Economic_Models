@@ -19,8 +19,12 @@ chapters:
   - { stem: ch06_ha_youngs,       title: "Heterogeneous Agents and Young's Method" }
   - { stem: ch07_pinns,           title: "Physics-Informed Neural Networks" }
   - { stem: ch08_ctime_ha,        title: "Heterogeneous Agent Models in Continuous Time" }
-  - { stem: ch09_surrogates_gps,  title: "Deep Surrogate Models and Gaussian Processes" }
-  - { stem: ch10_smm,             title: "Structural Estimation via SMM" }
+  # R16: the source split Ch9/10 (commits a81cf80 + c7f1762) — Ch9 is now the
+  # GP toolkit and Ch10 absorbs the deep-surrogate material that used to open
+  # Ch9. Titles track the new \chapter{} headings; stems are kept stable to
+  # avoid churning output filenames and the myst.yml TOC.
+  - { stem: ch09_surrogates_gps,  title: "Gaussian Processes" }
+  - { stem: ch10_smm,             title: "Deep Surrogate Models and Structural Estimation" }
   - { stem: ch11_climate,         title: "Climate Economics and Deep Uncertainty Quantification" }
   - { stem: ch12_synthesis,       title: "Synthesis and Outlook" }
 
@@ -210,6 +214,37 @@ postprocess:
     # renders correctly as-is.
     - { from: '\\protect\\texttt\{([^}]+)\}',
         to:   '`\1`' }
+
+    # R16 — Class F: undo the prose fallout of upstream commit 4b70424, which
+    # wrapped the leading @ as \texttt{{@}tf.function} ("escape @ inside texttt"
+    # for MyST-compat). That brace group is *correct* inside the algorithm boxes
+    # — there the \texttt leaks verbatim and the bare @ would make MyST misparse
+    # `[NEW: … @tf.function …]` as a parenthetical citation [@tf.function]; the
+    # `{@}` form (`@}` is not a valid citation key) suppresses that. But in
+    # flowing prose pandoc turns \texttt{{@}foo} into two *adjacent* code spans,
+    # leaving the broken token `@``foo`. The two contexts are separable after
+    # pandoc: prose carries backticks, the leaked algorithm body does not. So
+    # collapse the prose double-backtick only, leaving the box's `{@}` untouched.
+    # 2 prose occurrences in ch02 (`@tf.function`/`@jax.jit`, and
+    # `@tf.custom_gradient`). Tracked upstream as QuantEcon/claude-latex-to-myst#105;
+    # remove once that lands or the source drops the {@} wrapping.
+    - { from: '`@``',
+        to:   '`@' }
+
+    # R16 — Class G: complete the issue-#14 figure fix. Upstream commit 6cdec62
+    # added PNG rasters for restud_fig11a/15a and dropped the extension from
+    # \includegraphics (\includegraphics{fig/restud_fig11a}) so MyST could pick
+    # up the PNG. The tool copies the PNG into mystmd/figures/ but emits the
+    # {figure} directive with the raw, extensionless source path `fig/restud_…`,
+    # which MyST cannot resolve ("Cannot find image fig/restud_fig11a"). Rewrite
+    # those two directives to the copied raster path. Scoped to ch11 and to the
+    # raw `fig/<name>` (extensionless) form so it never touches the figures/<…>
+    # directives the rest of the book already uses. Tracked upstream as
+    # QuantEcon/claude-latex-to-myst#104; remove once the converter resolves an
+    # extensionless \includegraphics to its copied raster.
+    - { stems: [ch11_climate],
+        from:  '^```\{figure\} fig/(\w+)$',
+        to:    '```{figure} figures/\1.png' }
 
 # --- Validation -------------------------------------------------------------
 
