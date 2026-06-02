@@ -170,7 +170,7 @@
 
 
 \title[Deep Learning for Dynamic Economic Models]{Deep Learning for Economics and Finance}
-\subtitle{Stochastic IAMs with DEQNs, GP surrogates, Sobol/Shapley, constrained Pareto-improving carbon-tax design}
+\subtitle{Stochastic IAMs with DEQNs, GP surrogates, Sobol sensitivity indices, constrained Pareto-improving carbon-tax design}
 \author{Simon Scheidegger}
 \institute[HEC Lausanne]{HEC, University of Lausanne}
 \date{}
@@ -930,7 +930,10 @@ where $\psi_1$ is a damage parameter and $TP_t$ follows a random walk which is t
       \begin{itemize}
         \item Optimize planner objective: maximize the weighted sum given a specific set of welfare weights.
       \end{itemize}
-  \end{itemize}   
+  \end{itemize}
+
+  \vspace{0.2cm}
+  {\scriptsize\textcolor{uzhblue}{\textbf{Companion notebook (this lecture).}} Notebook \texttt{09} demonstrates the Step-2 machinery -- a Gaussian-process surrogate (Mat\'ern-5/2 $+$ white noise) with \textbf{Sobol} sensitivity analysis -- applied to the social cost of carbon of the \emph{deterministic DICE} model over $(\rho,\pi_2)$. The full stochastic-OLG / DEQN solve (Step~1) and the constrained Pareto-tax optimization (Step~3) are research results, not reproduced by the notebook.}
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

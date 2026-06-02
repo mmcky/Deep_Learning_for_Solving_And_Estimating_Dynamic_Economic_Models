@@ -2145,13 +2145,13 @@ CPU time grows \emphc{sub-exponentially} ($<$2 days wall-clock for 500D with 100
 \end{block}
 \end{frame}
 
-% --- New slide: 2D GP-VFI in action ---
-\begin{frame}{2D GP-VFI in Action}
+% --- Slide: 1D active enrichment vs fixed design ---
+\begin{frame}{Active Enrichment vs.\ Fixed Design: 1D GP-VFI}
 \centering
-\includegraphics[height=0.65\textheight,keepaspectratio]{fig/gp_vfi_2d_active_benchmark.pdf}
+\includegraphics[width=\textwidth,keepaspectratio]{fig/gp_vfi_active_learning_1d.pdf}
 
 \smallskip
-{\scriptsize Comparison of GP design strategies on a smooth 2D test target $V(k_1,k_2)$ used to isolate the role of design geometry in two dimensions. Active design places points where $\sigma_{\text{GP}}$ is largest. (Notebook 04, cell 25.)}
+{\scriptsize Same Bellman-label budget (10 points). Active BAL (pure $\sigma_{\text{GP}}$ acquisition, $N=12$, $n_{\text{add}}=2$) reduces posterior standard deviation and LOO-RMSE relative to a fixed Latin-hypercube design. Left: value functions; centre: posterior std; right: Bellman residual. (Notebook~04.)}
 \end{frame}
 
 % --- Finger Exercise: GP-VFI ---

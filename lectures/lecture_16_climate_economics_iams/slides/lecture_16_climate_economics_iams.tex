@@ -575,6 +575,9 @@ Separate risk aversion from intertemporal substitution --- crucial for long-run 
 \end{align*}
 \end{minipage}
 }
+
+\vspace{2pt}
+{\scriptsize\emphc{In this lecture's notebooks:} \texttt{02}/\texttt{03} solve the \emphc{8-equation CDICE core} (the first eight rows); the two Bayesian ECS-learning equations ($\mu_f, S_f$) are the Friedl et al.\ research extension, not implemented here.}
 \end{frame}
 
 % --- Frame 21: KEY SLIDE --- Nonstationarity and time as state ---
@@ -725,7 +728,7 @@ At the optimum: marginal abatement cost $=$ carbon tax $=$ SCC (in the planner's
 \end{frame}
 
 % --- Frame 27: Bayesian learning ---
-\begin{frame}{Bayesian Learning Mechanics}
+\begin{frame}{Bayesian Learning Mechanics (literature)}
 \small
 Temperature evolves with uncertain climate feedback $\tilde{f}_{t+1} \sim \mathcal{N}(\mu_{f,t}, S_{f,t})$:
 \[
@@ -782,10 +785,10 @@ G_i(\x, \nn) = 0 \quad \forall i
 \textbf{Component} & \textbf{Specification} \\
 \midrule
 Hidden layers & 2 \\
-Nodes per layer & 1024 \\
-Activation & selu \\
-Optimizer & Adam, $\alpha = 10^{-5}$ \\
-Batch size & 128 \\
+Nodes per layer & 512 (1024 in production) \\
+Activation & relu \\
+Optimizer & Adam, $\alpha = 5\times10^{-5}$ \\
+Batch size & 512 \\
 Inputs & 9 + $N$ (states + pseudo) \\
 Outputs & $k', \mu$, multipliers \\
 \bottomrule
@@ -808,9 +811,12 @@ Outputs & $k', \mu$, multipliers \\
 \end{columns}
 \end{frame}
 
-% --- Frame 29b: Notebook-04 EZ + iid weather formulation ---
-\begin{frame}{Epstein--Zin + i.i.d.\ weather: model ingredients}
+% --- Frame 29b: EZ + iid weather formulation (Friedl et al., literature/preview; no notebook in this lecture) ---
+\begin{frame}{Epstein--Zin + i.i.d.\ weather (literature): model ingredients}
 \small
+\begin{alertblock}{Literature / preview --- not a notebook in this lecture}
+\footnotesize The Epstein--Zin $+$ i.i.d.-weather formulation in the next four slides follows Friedl et al.\ (2023) and is shown as an advanced target. This lecture's stochastic notebook (\texttt{03}) implements the simpler \emphc{CRRA $+$ AR(1)} version (Cai--Lontzek spirit); EZ with tipping risk returns in the next lecture.
+\end{alertblock}
 \textbf{State (8-D):} $\X_t = [k_t, M_{\mathrm{AT},t}, M_{\mathrm{UO},t}, M_{\mathrm{LO},t}, T^{\mathrm{AT}}_t, T^{\mathrm{OC}}_t, \tau_t, w_t]$
 \begin{itemize}\setlength\itemsep{0pt}
     \item $\tau_t = 1 - e^{-\vartheta t}$: time transform (handles nonstationarity).
@@ -828,7 +834,7 @@ Shadow values $\nu, \eta$ are network outputs, not derivatives of $V$. This give
 \end{frame}
 
 % --- Frame 29c: The 9-residual EZ loss with v_+/v normalization ---
-\begin{frame}{Epstein--Zin: the 9-residual loss}
+\begin{frame}{Epstein--Zin (literature): the 9-residual loss}
 \footnotesize
 With $\hat\beta = e^{-\rho}$, $e_1 = \frac{1-\gamma}{1-1/\psi}$, $e_2 = \frac{\gamma - 1/\psi}{1-\gamma}$, $e_3 = \frac{1/\psi - \gamma}{1-1/\psi}$:
 
@@ -857,7 +863,7 @@ We never evaluate $V_+^{e_3}$ directly ($e_3 \approx 19$ at $\gamma=10$ blows up
 \end{frame}
 
 % --- Frame 29d: The freezing trick (stop_gradient on EZ corrections) ---
-\begin{frame}{The freezing trick: \texttt{stop\_gradient} on EZ corrections}
+\begin{frame}{Freezing trick (literature): \texttt{stop\_gradient} on EZ corrections}
 \footnotesize
 \textbf{Pathology.} At $\gamma = 10$, $\psi = 0.69$ $\Rightarrow$ $e_3 \approx 19$. A 1\% spread in $V_+$ across GH nodes becomes a 19\% spread in $(V_+/V)^{e_3}$. The optimizer ``discovers'' it can shrink the FOC residual by moving $V$ --- but $V$ is also pinned by the Bellman equation (eq 9). The two forces fight, training oscillates.
 
@@ -881,7 +887,7 @@ Freeze high-power $V$-corrections in the FOCs; train $V$ \emphc{only} via the Be
 \end{frame}
 
 % --- Frame 29e: γ-curriculum + training diagnostics ---
-\begin{frame}{$\gamma$-curriculum and training diagnostics}
+\begin{frame}{$\gamma$-curriculum and diagnostics (literature)}
 \footnotesize
 \textbf{Curriculum} (200 episodes in the reference run):
 \begin{center}

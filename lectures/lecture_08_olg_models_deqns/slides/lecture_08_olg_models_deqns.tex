@@ -948,18 +948,18 @@ f\!\left(\!\begin{bmatrix} z_t \\ \bm{k}_t \\ \bm{b}_t \end{bmatrix}\!\right)
 \begin{bmatrix}
 \hat{k}_t'^1,\ldots,\hat{k}_t'^{A-1} \\
 \hat\lambda_{b,t}^1,\ldots,\hat\lambda_{b,t}^{A-1} \\
-\hat q_{t}^{1},\ldots,\hat q_{t}^{A-1} \\
+\hat{b}_t'^1,\ldots,\hat{b}_t'^{A-1} \\
 \hat \mu_{t}^{1},\ldots,\hat \mu_{t}^{A-1} \\
 \hat p_t
 \end{bmatrix}^{\!\top}
 \]
-{\footnotesize Output blocks: capital savings; borrowing multipliers; collateral $\hat q^h \equiv \hat k'^h + \kappa\,\hat b'^h$; collateral multipliers; equilibrium bond price (one scalar).}
+{\footnotesize Output blocks: capital savings; borrowing multipliers; bond holdings $\hat b'^h$ (transformed to satisfy the collateral floor $\hat k'^h + \kappa\,\hat b'^h \ge 0$); collateral multipliers; equilibrium bond price (one scalar).}
 \vspace{-3pt}\end{exampleblock}
 
 \textbf{Such that} $G\bigl([z_t, \bm{k}_t, \bm{b}_t],\,f([z_t, \bm{k}_t, \bm{b}_t])\bigr) = \bm{0}$ where $G$ stacks the $4(A-1)+1$ equations of III.6.
 
 \vspace{0.3em}
-{\footnotesize With $A = 56$: minimal state dim $=113$; the notebook input is $240$ after engineered aggregates and transition probabilities.  Output dim $=4\times55+1=\bm{221}$.  Bond holdings are recovered as $\hat b'^h=(\hat q^h-\hat k'^h)/\kappa$, and the output transforms enforce $\hat k'^h,\hat\lambda_b^h,\hat q^h,\hat\mu^h\ge0$.}
+{\footnotesize With $A = 56$: minimal state dim $=113$; the notebook input is $240$ after engineered aggregates and transition probabilities.  Output dim $=4\times55+1=\bm{221}$.  Collateral is then formed as $\hat q^h=\hat k'^h+\kappa\,\hat b'^h$; the output transforms enforce $\hat k'^h,\hat\lambda_b^h,\hat\mu^h\ge0$ and the collateral floor $\hat q^h\ge0$ (via $\hat b'^h\ge-\hat k'^h/\kappa$).}
 \end{frame}
 
 
@@ -978,7 +978,7 @@ $\N_\theta:\;\R^{240} \to \R^{221}$
 Notebook input   & $240$ (minimal state: $113$) \\
 Hidden layers    & $2{\times}128$ (teach.) / $2{\times}1000$ (prod.) \\
 Output dim       & $4(A{-}1) + 1 = 221$ \\
-Output layer     & softplus (multipliers, collateral slack) / bounded-exp (capital, bond price) \\
+Output layer     & softplus (multipliers) / bounded-exp (capital, bonds, bond price) \\
 Optimizer        & Adam, lr $10^{-5}$\\
 \bottomrule
 \end{tabular}
@@ -990,10 +990,10 @@ Optimizer        & Adam, lr $10^{-5}$\\
 \[
 \N_\theta(x_t)
 =
-\bigl(\hat k'^{1:A-1},\;\hat\lambda_b^{1:A-1},\;\hat q^{1:A-1},\;\hat\mu^{1:A-1},\;\hat p\bigr).
+\bigl(\hat k'^{1:A-1},\;\hat\lambda_b^{1:A-1},\;\hat b'^{1:A-1},\;\hat\mu^{1:A-1},\;\hat p\bigr).
 \]
 \vspace{-4pt}
-Same MLP template as Part II, plus a bond-price head; bonds recovered as $\hat b'^h=(\hat q^h-\hat k'^h)/\kappa$.
+Same MLP template as Part II, plus a bond-price head; collateral formed as $\hat q^h=\hat k'^h+\kappa\,\hat b'^h$.
 \end{exampleblock}
 \end{frame}
 

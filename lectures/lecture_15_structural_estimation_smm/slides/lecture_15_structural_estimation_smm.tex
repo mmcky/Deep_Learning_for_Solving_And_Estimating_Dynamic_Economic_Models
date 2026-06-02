@@ -261,8 +261,8 @@ $m_0 = \mathrm{mean}(s_t)$ (\emph{diagnostic only}) & Should be flat in $\varrho
 \end{block}
 \begin{enumerate}
   \item Define one routine $\varrho \mapsto (C_t, I_t, Y_t) \mapsto m(\varrho)$ that reuses the trained surrogate.
-  \item Coarse grid pass on $\varrho \in [0.50, 0.99]$ to localize the minimum.
-  \item Refine with \texttt{scipy.optimize.minimize\_scalar} (bounded Brent's method).
+  \item Evaluate the criterion on a fine $\varrho$-grid over $[0.50, 0.99]$ (step $0.005$, 99 points).
+  \item Take the grid argmin as $\hat\varrho$ -- the grid is fine enough that no separate optimizer call is needed.
   \item \emphc{Verify the solution is interior} ($\hat\varrho$ strictly inside the bounds), required for asymptotic theory.
 \end{enumerate}
 \begin{alertblock}{Hint}
@@ -350,8 +350,8 @@ $\hat\theta = \argmin_{\theta = (\beta,\varrho)}\; [m(\theta) - \hat{m}^{\mathrm
   \itemsep1pt
   \item 4-input MLP $(z, K, \beta, \varrho) \to s$. Train once on the whole rectangle.
   \item Forge synthetic data at $(\beta_{\text{true}}, \varrho_{\text{true}}) = (0.96, 0.90)$.
-  \item Compute the SMM criterion on a $25\times 25$ grid in $(\beta, \varrho)$ -- visualize both moment subsets.
-  \item Refine with \texttt{scipy.optimize.minimize} (bounded \texttt{Nelder--Mead}, started from the grid argmin -- gradient-free, so no FP32 finite-difference issues).
+  \item Compute the SMM criterion on a $29\times 50$ grid in $(\beta, \varrho)$ -- visualize both moment subsets.
+  \item Take the grid argmin as $\hat\theta$ -- gradient-free (no FP32 finite-difference issues); the grid is fine enough that no separate optimizer call is needed.
   \item Verify the solution is interior; report distance to truth on each axis.
 \end{enumerate}
 \end{frame}

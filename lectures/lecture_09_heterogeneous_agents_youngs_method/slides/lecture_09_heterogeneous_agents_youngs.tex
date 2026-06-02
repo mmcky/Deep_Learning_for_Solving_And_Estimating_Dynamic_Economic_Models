@@ -1092,7 +1092,7 @@ Total mass is preserved: $0.10 + 0.15 = 0.25$ = original mass at bin $0.5$. \che
 \vspace{-0.2em}
 \texttt{anext = tf.minimum(anext, amax * tf.ones\_like(anext))}\\[2pt]
 {\small Asset holdings are clipped at $a_{\max} = 20$ to prevent overflow.\\
-\emphc{Teaching notebook \texttt{11\_Continuum\_of\_Agents\_DEQN.ipynb} handles the boundary inside \texttt{get\_weights\_eta()} via the histogram-redistribution math, not via a direct \texttt{tf.minimum} clamp.}}
+\emphc{Teaching notebook \texttt{11\_Continuum\_of\_Agents\_DEQN.ipynb} uses exactly this clamp inside \texttt{get\_weights\_eta()} -- \texttt{anext = tf.minimum(anext, amax)} -- before redistributing the clipped mass onto the grid.}}
 \end{block}
 \end{frame}
 
@@ -1593,7 +1593,7 @@ Preferences (EZ) & $\beta=0.95$, $\rho=2$, $\sigma=8$ \\
 Asset & Bonds, unit net supply \\
 Idiosyncratic $\eta$ & $\{0.8,1.2\}$, $\Pi_\eta=\bigl(\begin{smallmatrix}0.7&0.3\\0.3&0.7\end{smallmatrix}\bigr)$ \\
 Aggregate shocks & 6 states ($2{\times}3$) \\
-Asset grid & $N_b=100$, $b\in[0,20]$ \\
+Asset grid & $N_b=50$ (teaching; $100$ in production), $b\in[0,20]$ \\
 Borrowing & $b_{t+1}\geq 0$ \\
 \bottomrule
 \end{tabular}

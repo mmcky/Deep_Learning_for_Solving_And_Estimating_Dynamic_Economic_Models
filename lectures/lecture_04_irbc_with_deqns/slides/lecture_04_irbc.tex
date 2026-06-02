@@ -746,7 +746,7 @@ Consider the 2-country IRBC model. Suppose we \emphc{double} the capital depreci
 \begin{itemize}
     \item The neural network maps the \emphc{full state} to \emphc{all policy variables simultaneously}
     \item For $N=2$: input dimension 4, output dimension 5
-    \item All outputs must be \emphc{positive}: use softplus activation in output layer
+    \item Outputs must satisfy economic constraints: a \emphc{linear} output layer is mapped through custom per-policy transforms
 \end{itemize}
 \end{frame}
 
@@ -760,31 +760,31 @@ Consider the 2-country IRBC model. Suppose we \emphc{double} the capital depreci
     arr/.style={-{Stealth[length=2.5mm]}, thick, uzhblue}
 ]
     \node[layer, fill=blue!8] (in) at (0,0) {Input: $2N$};
-    \node[layer] (h1) at (3.2,0) {Dense 64};
-    \node[layer] (h2) at (6.4,0) {Dense 64};
+    \node[layer] (h1) at (3.2,0) {Dense 128};
+    \node[layer] (h2) at (6.4,0) {Dense 128};
     \node[layer, fill=red!8] (out) at (9.6,0) {Output: $2N\!+\!1$};
 
     \draw[arr] (in) -- (h1) node[midway, above, font=\tiny] {};
     \draw[arr] (h1) -- (h2) node[midway, above, font=\tiny] {};
     \draw[arr] (h2) -- (out) node[midway, above, font=\tiny] {};
 
-    \node[below=0.15cm, font=\tiny] at (h1.south) {Swish};
-    \node[below=0.15cm, font=\tiny] at (h2.south) {Swish};
-    \node[below=0.15cm, font=\tiny, darkred] at (out.south) {Softplus};
+    \node[below=0.15cm, font=\tiny] at (h1.south) {tanh};
+    \node[below=0.15cm, font=\tiny] at (h2.south) {tanh};
+    \node[below=0.15cm, font=\tiny, darkred] at (out.south) {linear};
 \end{tikzpicture}
 \end{center}
 
 \vspace{0.5em}
 \begin{itemize}
-    \item \textbf{Hidden layers:} 2 layers $\times$ 64 units with \emphc{Swish} activation: $\text{swish}(x) = x \cdot \sigma(x)$
-    \item \textbf{Output layer:} \emphc{Softplus} activation: $\ln(1 + e^x) > 0$
-    \item Softplus ensures $k^{j\prime} > 0$, $\lambda > 0$, $\mu^j \geq 0$
-    \item Total parameters: $(2N \cdot 64 + 64) + (64 \cdot 64 + 64) + (64 \cdot (2N+1) + 2N+1)$
+    \item \textbf{Hidden layers:} 2 layers $\times$ 128 units with \emphc{tanh} activation
+    \item \textbf{Output layer:} \emphc{linear} (zero-initialized); raw outputs pass through custom transforms
+    \item Transforms enforce the constraints: $k^{j\prime} > 0$ via $\exp\!\cdot\!\tanh$, $\lambda > 0$ via $\exp\!\cdot\!\tanh$, $\mu^j \geq 0$ via softplus (the smooth model omits $\mu^j$)
+    \item Total parameters: $(2N \cdot 128 + 128) + (128 \cdot 128 + 128) + (128 \cdot (2N+1) + 2N+1)$
 \end{itemize}
 \end{frame}
 
-% --- Slide 23: Why Softplus? ---
-\begin{frame}{Why Softplus for Output Activations?}
+% --- Slide 23: Enforcing positive outputs ---
+\begin{frame}{Enforcing Positive, Feasible Outputs}
 \begin{center}
 \begin{tikzpicture}
 \begin{axis}[
@@ -812,7 +812,7 @@ Consider the 2-country IRBC model. Suppose we \emphc{double} the capital depreci
 
 \vspace{0.2em}
 {\small
-\textbf{Softplus} $\approx$ smooth ReLU: strictly positive, bounded gradients, no overflow risk (unlike $e^x$).
+The notebooks keep a \emphc{linear} output and apply bounded transforms: $k^{j\prime}=k^j\exp\{\bar g\tanh r\}$ and $\lambda=\lambda_{\text{ref}}\exp\{s\tanh r\}$ -- the $\tanh$ caps the exponent, so no overflow (unlike a raw $e^x$) -- while the inequality multipliers $\mu^j$ use \textbf{softplus}.
 }
 \end{frame}
 
@@ -989,7 +989,7 @@ Policies & $C$ (or $s$) & $(k^{1\prime}, \ldots, k^{N\prime}, \lambda, \mu^1, \l
 Equations & 1 Euler & $N$ Euler $+$ 1 ARC $+$ $N$ FB \\
 Constraints & none & irreversibility, adj.\ costs \\
 Shocks & 1 & $N+1$ \\
-Output act. & sigmoid & softplus \\
+Output act. & sigmoid & linear $+$ transforms \\
 Analytical sol. & yes ($\delta=1$) & no \\
 \bottomrule
 \end{tabular}
@@ -1013,7 +1013,7 @@ $N$-country IRBC with irreversible investment, adjustment costs, complete market
 \begin{block}{Network}
 \centering
 \small
-$\mathcal{N}_\rho: \R^{2N} \to \R^{2N+1}$ with swish hidden layers, softplus output. All policies in one forward pass.
+$\mathcal{N}_\rho: \R^{2N} \to \R^{2N+1}$ with tanh hidden layers, linear output mapped through bounded transforms. All policies in one forward pass.
 \end{block}
 
 \column{0.32\textwidth}
@@ -1125,11 +1125,11 @@ n_states = 2 * N_COUNTRIES      # = 4
 n_policies = 2 * N_COUNTRIES + 1 # = 5
 
 nn = keras.Sequential([
-    keras.layers.Dense(64, activation='swish',
+    keras.layers.Dense(128, activation='tanh',
                        input_shape=(n_states,)),
-    keras.layers.Dense(64, activation='swish'),
-    keras.layers.Dense(n_policies,
-                       activation='softplus')
+    keras.layers.Dense(128, activation='tanh'),
+    keras.layers.Dense(n_policies, activation=None,
+                       kernel_initializer='zeros')
 ])
 \end{lstlisting}
 \end{minipage}
@@ -1137,8 +1137,8 @@ nn = keras.Sequential([
 
 \vspace{0.3em}
 \begin{itemize}
-    \item \texttt{swish}: $x \cdot \sigma(x)$ --- smooth, non-monotone, good gradients
-    \item \texttt{softplus}: $\ln(1 + e^x)$ --- ensures all outputs $> 0$
+    \item \texttt{tanh} hidden activations; output layer is linear (zero-initialized)
+    \item Raw outputs pass through custom transforms (\texttt{exp$\cdot$tanh}, \texttt{sigmoid}, \texttt{softplus}) to enforce the constraints
     \item Output: $[k^{1\prime}, k^{2\prime}, \lambda, \mu^1, \mu^2]$
 \end{itemize}
 \end{frame}
