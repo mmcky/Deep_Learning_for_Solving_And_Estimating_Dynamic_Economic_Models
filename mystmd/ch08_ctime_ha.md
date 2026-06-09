@@ -3,7 +3,7 @@ title: "Heterogeneous Agent Models in Continuous Time"
 label: ch-ct_theory
 ---
 
-Building on the PINN foundations of Chapter {ref}`ch-pinn`, this chapter develops the full continuous-time heterogeneous-agent framework: the coupled system of the Hamilton--Jacobi--Bellman equation (for individual optimization) and the Kolmogorov forward equation (for the stationary wealth distribution), closed by a market-clearing condition. This is the continuous-time analogue of the discrete-time Krusell--Smith economy of Chapter {ref}`ch-young`. The primary reference is {cite:t}`achdou2022income`; for pedagogical background on the continuous-time methods, see also Moll's lecture notes.[^1]
+Building on the PINN foundations of Chapter {ref}`ch-pinn`, this chapter develops the full continuous-time heterogeneous-agent framework: the coupled system of the Hamilton--Jacobi--Bellman equation (for individual optimization) and the Kolmogorov forward equation (for the stationary wealth distribution), closed by a market-clearing condition. Without aggregate risk, this coupled HJB--KFE system is the continuous-time analogue of the Aiyagari economy treated in Chapter {ref}`ch-young`; once aggregate risk is added, the natural object becomes the *master equation* ({ref}`sec-master_eq`), which is the continuous-time analogue of the Krusell--Smith model. The primary reference is {cite:t}`achdou2022income`; for pedagogical background on the continuous-time methods, see also Moll's lecture notes.[^1]
 
 In the previous chapter, we applied PINNs to individual PDEs (ODEs, the Poisson equation, the HJB for cake-eating, and the Black--Scholes equation). This chapter makes the leap to *equilibrium systems*: coupled PDEs that arise when a continuum of heterogeneous agents interact through prices. The theoretical framework draws on the Bewley--Huggett--Aiyagari tradition, formulated in continuous time following {cite:t}`achdou2022income`. We derive the two core PDEs, the Hamilton--Jacobi--Bellman (HJB) equation for individual optimization and the Kolmogorov forward equation (KFE) for the cross-sectional density, and show how they are coupled through market clearing. The chapter culminates with the *master equation*, a single (infinite-dimensional) PDE that encapsulates the full equilibrium, and with EMINNs, introduced by {cite:t}`gu2024masterequations`, which solve it using deep learning.
 
@@ -19,9 +19,9 @@ Before turning to the PDEs themselves, it is worth fixing the economic picture. 
 ## Why Continuous Time?
 Chapters {ref}`ch-deqn`--{ref}`ch-young` formulated heterogeneous-agent models in discrete time. Working in continuous time offers several complementary advantages:
 
-- **Analytical tractability.** Itô calculus provides clean first-order conditions, and the separation between the backward HJB and the forward KFE is sharper than in discrete time.
+- **Analytical tractability.** FOCs hold with equality in the interior of the state space, and borrowing constraints appear as boundary conditions on the HJB/KFE rather than as occasionally binding inequality constraints inside the recursion; the separation between the backward HJB and the forward KFE is also sharper than in discrete time.
 
-- **No expectations operator.** Conditional expectations are replaced by differential operators, avoiding numerical integration over shock distributions.
+- **Differential operators in place of conditional expectations.** Itô calculus turns conditional expectations into infinitesimal generators, so the HJB and KFE are PDEs rather than integral equations; this removes numerical integration over shock distributions from the inner loop.
 
 - **Powerful numerical methods.** Finite differences, PINNs, and deep learning methods (EMINNs) can be applied directly to the PDE system.
 
@@ -52,7 +52,7 @@ Key properties include $\E{B_t} = 0$, $\mathrm{Var}(B_t) = t$, nowhere-different
 ```{figure} figures/fig-brownian_paths.svg
 :name: fig-brownian_paths
 
-Three simulated standard Brownian sample paths $\{B_t\}_{t\in[0,1]}$, generated with discretization step $\Delta t = 0.05$ and Gaussian increments $B_{t+\Delta t} = B_t + \sqrt{\Delta t}\,\varepsilon_t$, $\varepsilon_t \sim \mathcal{N}(0,1)$. Paths are jagged at the chosen $\Delta t$; limiting Brownian paths are continuous almost surely but nowhere differentiable, with $\mathrm{Var}(B_t) = t$.
+Three simulated standard Brownian sample paths $\{B_t\}_{t\in[0,1]}$, generated with discretization step $\Delta t = 0.05$ and Gaussian increments $B_{t+\Delta t} = B_t + \sqrt{\Delta t}\,\varepsilon_t$, $\varepsilon_t \sim \mathcal{N}(0,1)$. Paths are jagged at the chosen $\Delta t$ and the polylines linearly interpolate between the sample points, so the figure is an approximate visualization rather than a true Brownian path: limiting Brownian paths are continuous almost surely but nowhere differentiable, with $\mathrm{Var}(B_t) = t$, and therefore cannot be drawn exactly at any finite resolution.
 ```
 
 ### Itô Processes and SDEs
@@ -235,7 +235,7 @@ At the borrowing constraint $a = \underline{a}$, consumption must keep the drift
 
 ##### Boundary atoms in the stationary distribution.
 
-When the borrowing constraint binds on a positive mass of agents, the stationary measure is not absolutely continuous with respect to Lebesgue measure: it carries a Dirac atom at $a=\underline a$. The decomposition is $g(a,n) = g_{\mathrm{ac}}(a,n) + \alpha(n)\,\delta(a-\underline a)$, where $g_{\mathrm{ac}}$ is the absolutely-continuous interior density and $\alpha(n)\geq 0$ is the constrained mass for income state $n$. The KFE {eq}`eq-kfe_econ` as written governs only the interior part $g_{\mathrm{ac}}$; the atomic mass $\alpha(n)$ is determined by a separate flux-balance equation that equates inflows from the no-flux boundary condition with the income-driven outflow back into the interior. Finite-difference implementations typically represent $\alpha(n)$ as the mass in the first grid cell, and PINN implementations either absorb the atom implicitly into a smooth density approximation (with corresponding accuracy loss near $\underline a$) or explicitly parameterize $\alpha(n)$ alongside the interior network.
+When the borrowing constraint binds on a positive mass of agents, the stationary measure is not absolutely continuous with respect to Lebesgue measure: it carries a Dirac atom at $a=\underline a$. The decomposition is $g(a,n) = g_{\mathrm{ac}}(a,n) + \alpha(n)\,\delta(a-\underline a)$, where $g_{\mathrm{ac}}$ is the absolutely-continuous interior density and $\alpha(n)\geq 0$ is the constrained mass for income state $n$. In the sense of distributions (acting on smooth test functions against which the atom is integrated), equation {eq}`eq-kfe_econ` remains valid for the full measure $g$. The explicit split into a PDE for the interior part $g_{\mathrm{ac}}$ and a separate flux-balance equation for $\alpha(n)$ (equating inflows from the no-flux boundary condition with the income-driven outflow back into the interior) is the *numerical* device used by finite-difference and PINN implementations, which cannot resolve a delta on a regular grid. Finite-difference implementations typically represent $\alpha(n)$ as the mass in the first grid cell, and PINN implementations either absorb the atom implicitly into a smooth density approximation (with corresponding accuracy loss near $\underline a$) or explicitly parameterize $\alpha(n)$ alongside the interior network.
 
 ##### Variant: continuous (diffusion) income.
 
