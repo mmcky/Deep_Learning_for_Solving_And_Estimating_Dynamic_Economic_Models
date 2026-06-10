@@ -122,7 +122,7 @@ The derivation is a two-step inversion of the planner's first-order condition. T
 
 ##### Reference calibration.
 
-Throughout the companion notebooks `lecture_04_01_IRBC_DEQN_smooth.ipynb` and `lecture_04_02_IRBC_DEQN_irreversible.ipynb`, we use the quarterly calibration summarized in Table {numref}`tab-irbc_params`. The implied total factor productivity and deterministic steady-state quantities can then be computed analytically.
+Throughout the companion notebooks `lecture_04_01_IRBC_DEQN_smooth.ipynb` and `lecture_04_02_IRBC_DEQN_irreversible.ipynb`, we use the quarterly calibration summarized in {numref}`tab-irbc_params`. The implied total factor productivity and deterministic steady-state quantities can then be computed analytically.
 
 ````{table}
 :name: tab-irbc_params
@@ -269,7 +269,7 @@ $$
 \mathrm{FB}_\varepsilon(\mu^j, I^j) = \mu^j + I^j - \sqrt{(\mu^j)^2 + (I^j)^2 + \varepsilon^2} = 0.
 $$
 
-The exact Fischer--Burmeister map is the limiting case $\mathrm{FB}_0(\mu,I)=\mu+I-\sqrt{\mu^2+I^2}$. Its zero set coincides with the positive axes in the $(\mu, I)$-plane, ensuring $\mu^j \geq 0$, $I^j \geq 0$, and $\mu^j \cdot I^j = 0$ (Figure {numref}`fig-fb_zeroset`). The smoothed version with $\varepsilon > 0$ rounds the corner at the origin and is differentiable there, improving numerical conditioning at the cost of a slight relaxation of exact complementarity. The companion notebooks use $\varepsilon = 10^{-4}$ as the default; tighter values ($10^{-6}$--$10^{-5}$) are sometimes preferred when complementarity must hold to higher accuracy, at the cost of stiffer gradients near the origin.
+The exact Fischer--Burmeister map is the limiting case $\mathrm{FB}_0(\mu,I)=\mu+I-\sqrt{\mu^2+I^2}$. Its zero set coincides with the positive axes in the $(\mu, I)$-plane, ensuring $\mu^j \geq 0$, $I^j \geq 0$, and $\mu^j \cdot I^j = 0$ ({numref}`fig-fb_zeroset`). The smoothed version with $\varepsilon > 0$ rounds the corner at the origin and is differentiable there, improving numerical conditioning at the cost of a slight relaxation of exact complementarity. The companion notebooks use $\varepsilon = 10^{-4}$ as the default; tighter values ($10^{-6}$--$10^{-5}$) are sometimes preferred when complementarity must hold to higher accuracy, at the cost of stiffer gradients near the origin.
 
 ```{figure} figures/fig-fb_zeroset.svg
 :name: fig-fb_zeroset
@@ -279,9 +279,9 @@ The Fischer--Burmeister complementarity function, drawn in the investment--multi
 
 The complementarity conditions $\mu^j \geq 0$, $I^j \geq 0$, $\mu^j \cdot I^j = 0$ have a natural economic interpretation: when investment is strictly positive ($I^j > 0$), the irreversibility constraint is slack and the multiplier is zero ($\mu^j = 0$); conversely, when the constraint binds ($I^j = 0$), the multiplier is positive, reflecting the shadow value of the binding constraint. The FB function smoothly encodes both regimes, allowing the neural network to learn which regime applies for each state without explicit regime switching.
 
-```{prf:remark}
+```{prf:remark} Why Fischer--Burmeister works so well in DEQNs
 
-The squared FB residual converts a discrete regime-switching problem (constraint slack vs binding) into a smooth gradient field that SGD can navigate. Three properties matter: (i) the zero set of $\mathrm{FB}_0$ *exactly* coincides with the KKT complementarity axes, so a converged network satisfies the constraint structure to whatever tolerance the loss is driven; (ii) the residual is smooth everywhere away from the origin, so backpropagation through it is well behaved; and (iii) the $\varepsilon^2$ smoothing rounds the single remaining kink at the origin, restoring differentiability there at the price of an $\mathcal{O}(\varepsilon)$ relaxation of exact complementarity. In the IRBC context, the network learns which states fall on the "investing" axis and which on the "constrained" axis without ever being told which regime applies, a major saving over methods that require manual regime indicators.
+ The squared FB residual converts a discrete regime-switching problem (constraint slack vs binding) into a smooth gradient field that SGD can navigate. Three properties matter: (i) the zero set of $\mathrm{FB}_0$ *exactly* coincides with the KKT complementarity axes, so a converged network satisfies the constraint structure to whatever tolerance the loss is driven; (ii) the residual is smooth everywhere away from the origin, so backpropagation through it is well behaved; and (iii) the $\varepsilon^2$ smoothing rounds the single remaining kink at the origin, restoring differentiability there at the price of an $\mathcal{O}(\varepsilon)$ relaxation of exact complementarity. In the IRBC context, the network learns which states fall on the "investing" axis and which on the "constrained" axis without ever being told which regime applies, a major saving over methods that require manual regime indicators.
 ```
 
 
@@ -289,7 +289,7 @@ The squared FB residual converts a discrete regime-switching problem (constraint
 
 ##### From Brock--Mirman to IRBC.
 
-It is useful to see the IRBC as the natural extension of the one-country benchmark of Chapter {ref}`ch-deqn`. Table {numref}`tab-bm_vs_irbc` summarizes what changes.
+It is useful to see the IRBC as the natural extension of the one-country benchmark of Chapter {ref}`ch-deqn`. {numref}`tab-bm_vs_irbc` summarizes what changes.
 
 ````{table}
 :name: tab-bm_vs_irbc
@@ -308,7 +308,7 @@ The DEQN template is the same in both cases; only the input/output dimensions, t
 | Analytical solution | yes (log utility, $\delta=1$) | no |
 ````
 
-The full system of equations comprises $N$ Euler equations, $N$ Fischer--Burmeister conditions, and 1 aggregate resource constraint, totaling $2N+1$ equations. Table {numref}`tab-irbc_scalability` summarizes how the problem dimensions scale with $N$.
+The full system of equations comprises $N$ Euler equations, $N$ Fischer--Burmeister conditions, and 1 aggregate resource constraint, totaling $2N+1$ equations. {numref}`tab-irbc_scalability` summarizes how the problem dimensions scale with $N$.
 
 ````{table}
 :name: tab-irbc_scalability
@@ -330,7 +330,7 @@ Scaling of the IRBC state, policy, equation, and quadrature dimensions with the 
 Quadrature-cost crossover for the IRBC model as a function of the number of countries $N$. Tensor-product Gauss--Hermite (red) grows exponentially in $N$ and becomes infeasible by $N=10$; the Stroud-3 monomial rule (blue) grows linearly and stays well under $10^3$ nodes even at $N=100$. This is the operational reason every IRBC application beyond the classroom $N=2$ case uses monomial or QMC integration.
 ```
 
-The neural network maps the full state vector $\bm{s} = (k^1,\ldots,k^N, z^1,\ldots,z^N) \in \R^{2N}$ to all $2N+1$ policy variables $(k^{1\prime},\ldots,k^{N\prime}, \lambda, \mu^1,\ldots,\mu^N)$ simultaneously through the small Swish--softplus network in Figure {numref}`fig-irbc_nn_arch`.
+The neural network maps the full state vector $\bm{s} = (k^1,\ldots,k^N, z^1,\ldots,z^N) \in \R^{2N}$ to all $2N+1$ policy variables $(k^{1\prime},\ldots,k^{N\prime}, \lambda, \mu^1,\ldots,\mu^N)$ simultaneously through the small Swish--softplus network in {numref}`fig-irbc_nn_arch`.
 
 ```{figure} figures/fig-irbc_nn_arch.svg
 :name: fig-irbc_nn_arch
@@ -368,15 +368,15 @@ The architecture is a 2-hidden-layer Swish network with a softplus output head. 
 def fischer_burmeister(mu, I, eps=1e-4):
     return mu + I - tf.sqrt(mu**2 + I**2 + eps**2)
 ```
-This residual is then squared elementwise and averaged across the mini-batch and across the $N$ countries, in line with the squared-residual treatment of the Euler and ARC blocks; that elementwise square is what makes the gradient field push iterates toward the complementarity axes (see Figure {numref}`fig-fb_zeroset`). Inside the per-batch cost function of the irreversible notebook, this residual is squared and averaged alongside the Euler-equation residual (whose conditional expectation is handled by the Stroud-3 monomial rule of {ref}`sec-monomial_cubature` -- $2(N+1)$ nodes for the $N$ idiosyncratic and one aggregate shock) and the aggregate-resource-constraint residual. The smooth companion implements the same `compute_cost` pipeline with the $\mu^j$ outputs and the FB block removed.
+This residual is then squared elementwise and averaged across the mini-batch and across the $N$ countries, in line with the squared-residual treatment of the Euler and ARC blocks; that elementwise square is what makes the gradient field push iterates toward the complementarity axes (see {numref}`fig-fb_zeroset`). Inside the per-batch cost function of the irreversible notebook, this residual is squared and averaged alongside the Euler-equation residual (whose conditional expectation is handled by the Stroud-3 monomial rule of {ref}`sec-monomial_cubature` -- $2(N+1)$ nodes for the $N$ idiosyncratic and one aggregate shock) and the aggregate-resource-constraint residual. The smooth companion implements the same `compute_cost` pipeline with the $\mu^j$ outputs and the FB block removed.
 
 (sec-irbc_persistent_simulation)=
 ## Persistent-Simulation Training
 The companion notebooks train the IRBC DEQN with a single training pipeline: a continuing ensemble of stochastic trajectories that evolves alongside the policy network. There is no Phase 1 / Phase 2 switch and no reset to the steady state between training segments.
 
-```{prf:definition}
+```{prf:definition} Persistent-Simulation Training
 
-Maintain a vector of $M$ stochastic trajectory heads $\bm{X}^{(1)}_t,\ldots,\bm{X}^{(M)}_t$. Each *training segment* simulates these heads forward for $T$ stochastic periods under the *current* policy network, flattens the simulated states into a training cloud of size $M\cdot T$, performs a fixed number of SGD passes on that cloud, and then continues from the segment's terminal states $\bm{X}^{(m)}_{t+T}$. The trajectory ensemble therefore co-evolves with the policy and is never reset to the steady state.
+ Maintain a vector of $M$ stochastic trajectory heads $\bm{X}^{(1)}_t,\ldots,\bm{X}^{(M)}_t$. Each *training segment* simulates these heads forward for $T$ stochastic periods under the *current* policy network, flattens the simulated states into a training cloud of size $M\cdot T$, performs a fixed number of SGD passes on that cloud, and then continues from the segment's terminal states $\bm{X}^{(m)}_{t+T}$. The trajectory ensemble therefore co-evolves with the policy and is never reset to the steady state.
 ```
 
 
@@ -386,9 +386,9 @@ A `SAMPLING_MODE` switch (`simulation` vs `exogenous`) is exposed for ablation s
 
 A typical schedule on the two-country benchmark uses $M = 10$ trajectories of length $T = 256$ per segment, a batch size of $256$, and one or a small number of optimizer passes per segment, with Adam at learning rate $\eta \sim 10^{-3}$ and a cosine decay; convergence is read off the diagnostics of the next section rather than off a phase-transition criterion. As a budgeting reference, the companion notebooks typically run on the order of $200$--$500$ training segments before mean Euler errors drop below $10^{-3}$ on a held-out trajectory.
 
-```{prf:remark}
+```{prf:remark} Why persistent-simulation training works
 
-Three properties make the single-pipeline approach robust. First, the bounded capital-growth heads of the previous section keep the simulation feasible at every weight setting, so there is no need for a separate uniform-sampling warm-up phase to prevent the trajectories from diverging. Second, because the training cloud co-evolves with the policy, the network is always trained on states drawn from the current policy's ergodic distribution, which is the same distribution out-of-sample evaluation will face; there is no train/test distributional shift. Third, the lack of a phase-transition criterion makes the protocol model-agnostic: scaling from $N=2$ to $N=10$ requires only changing the network's input dimension and the number of equations in the loss, not redesigning the training schedule. The trade-off is that early-training states reflect a poor and rapidly changing policy, so a small replay buffer or generous mini-batch size is helpful to keep the gradient signal stable.
+ Three properties make the single-pipeline approach robust. First, the bounded capital-growth heads of the previous section keep the simulation feasible at every weight setting, so there is no need for a separate uniform-sampling warm-up phase to prevent the trajectories from diverging. Second, because the training cloud co-evolves with the policy, the network is always trained on states drawn from the current policy's ergodic distribution, which is the same distribution out-of-sample evaluation will face; there is no train/test distributional shift. Third, the lack of a phase-transition criterion makes the protocol model-agnostic: scaling from $N=2$ to $N=10$ requires only changing the network's input dimension and the number of equations in the loss, not redesigning the training schedule. The trade-off is that early-training states reflect a poor and rapidly changing policy, so a small replay buffer or generous mini-batch size is helpful to keep the gradient signal stable.
 ```
 
 
@@ -442,7 +442,7 @@ The approach of {cite:t}`ECTA:ECTA1716` handles kinks in the policy function (e.
 
 Beyond the IRBC setting, closely related neural-equilibrium methods have been applied to other policy-relevant problems. {cite:t}`nuno2024monetary` use DEQNs to compute optimal *monetary policy rules* under persistent supply shocks, replacing the linearization step around steady state with a globally trained policy network. {cite:t}`bretscherRicardianBusinessCycles2022` apply DEQN to multi-country international real business cycles with comparative advantage. Most recently, {cite:t}`azinovicyangzemlicka2025sequencespace` replace the endogenous cross-sectional state with a *truncated history of exogenous aggregate shocks* (the sequence-space representation), so that the network's input dimension scales with the truncation horizon rather than with the number of agents, which is the heterogeneous-agent extension developed in Chapter {ref}`ch-young`.
 
-```{prf:remark}
+```{prf:remark} Chapter Summary
 
 - The IRBC model is the standard testbed for high-dimensional global solution methods: $N$ countries each with capital and TFP push the state dimension to $2N$ in the planner formulation used here, and the irreversibility constraint introduces non-smooth kinks via Karush--Kuhn--Tucker complementarity.
 

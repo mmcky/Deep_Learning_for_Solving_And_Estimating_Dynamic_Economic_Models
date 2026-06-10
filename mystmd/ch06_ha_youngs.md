@@ -3,7 +3,7 @@ title: "Heterogeneous Agents and Young's Method"
 label: ch-young
 ---
 
-The OLG models of Chapter {ref}`ch-olg` featured a finite number of agent types, so the cross-sectional state was simply a vector $(k^1,\ldots,k^A)$. Many important macroeconomic applications instead require a *continuum* of agents subject to idiosyncratic shocks. In the {cite:t}`krusell1998income` economy, an aggregate productivity shock additionally moves the cross section in a stochastic way, and the entire wealth distribution $\mu_t$ then becomes part of the aggregate state. The {cite:t}`aiyagari1994uninsured` model is the special case without aggregate risk: $\mu_t$ is fixed in stationary equilibrium and evolves deterministically along transitions, so it is a parameter of the equilibrium rather than a stochastic state variable. Incomplete markets prevent full insurance in both, making explicit distributional tracking essential, but the "master-equation" challenge of treating $\mu_t$ as a high-dimensional aggregate state arises only once aggregate risk is added on top of Aiyagari. Why represent $\mu_t$ as a histogram on a discrete grid rather than as a *Monte Carlo panel* (a finite simulated sample of $N$ agents whose empirical cross-section stands in for $\mu_t$)? Two reasons motivate the choice up front: a histogram is *deterministic*, so re-running the same equilibrium gives identical aggregates and the loss is a smooth function of the network weights, and it is *noise-free*, so Euler-equation residuals reflect approximation error rather than $\mathcal{O}(1/\sqrt N)$ Monte Carlo sampling noise (Figure {numref}`fig-young_vs_mc` makes this contrast quantitative). This chapter develops Young's non-stochastic simulation method {cite:p}`young2010` for representing $\mu_t$ as a histogram and shows how to embed that method within the DEQN framework of {cite:t}`azinovicDEEPEQUILIBRIUMNETS2022` to solve heterogeneous-agent economies with neural network policy functions.
+The OLG models of Chapter {ref}`ch-olg` featured a finite number of agent types, so the cross-sectional state was simply a vector $(k^1,\ldots,k^A)$. Many important macroeconomic applications instead require a *continuum* of agents subject to idiosyncratic shocks. In the {cite:t}`krusell1998income` economy, an aggregate productivity shock additionally moves the cross section in a stochastic way, and the entire wealth distribution $\mu_t$ then becomes part of the aggregate state. The {cite:t}`aiyagari1994uninsured` model is the special case without aggregate risk: $\mu_t$ is fixed in stationary equilibrium and evolves deterministically along transitions, so it is a parameter of the equilibrium rather than a stochastic state variable. Incomplete markets prevent full insurance in both, making explicit distributional tracking essential, but the "master-equation" challenge of treating $\mu_t$ as a high-dimensional aggregate state arises only once aggregate risk is added on top of Aiyagari. Why represent $\mu_t$ as a histogram on a discrete grid rather than as a *Monte Carlo panel* (a finite simulated sample of $N$ agents whose empirical cross-section stands in for $\mu_t$)? Two reasons motivate the choice up front: a histogram is *deterministic*, so re-running the same equilibrium gives identical aggregates and the loss is a smooth function of the network weights, and it is *noise-free*, so Euler-equation residuals reflect approximation error rather than $\mathcal{O}(1/\sqrt N)$ Monte Carlo sampling noise ({numref}`fig-young_vs_mc` makes this contrast quantitative). This chapter develops Young's non-stochastic simulation method {cite:p}`young2010` for representing $\mu_t$ as a histogram and shows how to embed that method within the DEQN framework of {cite:t}`azinovicDEEPEQUILIBRIUMNETS2022` to solve heterogeneous-agent economies with neural network policy functions.
 
 ##### How this chapter maps onto the slides and notebooks.
 
@@ -55,9 +55,9 @@ $$ (eq-ks_forecast)
 
 where $\hat{H}(m_1,a)$ is the approximate next-period aggregate capital (the price-forecasting function), $A(a)$ and $B(a)$ are the OLS intercept and slope coefficients (each a function of the aggregate shock state $a$), and $m_1 = \int k\,d\mu$ is mean capital; this rule achieves $R^2 > 0.9999$ in practice.
 
-```{prf:remark}
+```{prf:remark} Approximate aggregation: what it means and what it does *not* mean
 
-The empirical observation that a single moment $m_1 = \int k\,d\mu$ is sufficient for price forecasting is known as *approximate aggregation*. Conceptually, it says that the equilibrium price mapping $r_{t+1}, w_{t+1}$ depends on the cross-sectional distribution *almost only through its mean*, so the high-dimensional state $\mu_t$ collapses to a one-dimensional summary for forecasting purposes.
+ The empirical observation that a single moment $m_1 = \int k\,d\mu$ is sufficient for price forecasting is known as *approximate aggregation*. Conceptually, it says that the equilibrium price mapping $r_{t+1}, w_{t+1}$ depends on the cross-sectional distribution *almost only through its mean*, so the high-dimensional state $\mu_t$ collapses to a one-dimensional summary for forecasting purposes.
 
 Importantly, {cite:t}`krusell1998income` did not restrict themselves to the one-moment specification. Their original paper explicitly reports results for two- and three-moment forecasting rules (adding the variance, and further adding the skewness of the wealth distribution) and finds that additional moments provide only marginal improvement: $R^2$ barely changes. The one-moment benchmark is therefore an *empirical* finding, not a modeling assumption.
 
@@ -83,17 +83,18 @@ The question is: how do we simulate the distribution forward to compute the real
 
 Before turning to the distribution-update step, it is useful to write the canonical KS algorithm explicitly. It is a nested fixed-point iteration with an *outer* loop over forecasting-rule coefficients and an *inner* loop that solves the individual household's Bellman equation given those coefficients.
 
-```{prf:definition}
+```{prf:definition} Krusell--Smith (1998), Traditional Algorithm
 
-- **Input:** Initial forecast coefficients $(A^{(0)}(a), B^{(0)}(a))$ from Eq.~\eqref{eq:ks_forecast}; capital grid $\mathcal{K}$; tolerances $\varepsilon_{\mathrm{inner}},\varepsilon_{\mathrm{outer}}$; simulation length $T_{\mathrm{sim}}$.
+- **Input:** Initial forecast coefficients $(A^{(0)}(a), B^{(0)}(a))$ from Eq.~{eq}`eq-ks_forecast`; capital grid $\mathcal{K}$; tolerances $\varepsilon_{\mathrm{inner}},\varepsilon_{\mathrm{outer}}$; simulation length $T_{\mathrm{sim}}$.
 - *Key notation:* $a$: aggregate TFP shock; $\varepsilon$: idiosyncratic employment shock; $m_1 = \int k\,d\mu$: mean capital; $\beta$: household discount factor; $u(c)$: period utility; $c = w(\hat H)\,y(\varepsilon) + (1+r(\hat H))\,k - k'$: consumption (wages $w$ and return $r$ come from the forecasting rule $\hat H$); $k'$: end-of-period savings (the policy choice); $\varepsilon', a'$: next-period shocks; $R^2$: OLS coefficient of determination.
-- for outer iteration $\ell = 0, 1, 2, \ldots$ until $\|A^{(\ell+1)}-A^{(\ell)}\| + \|B^{(\ell+1)}-B^{(\ell)}\| < \varepsilon_{\mathrm{outer}}$:
+- for outer iteration $\ell = 0, 1, 2, \ldots$ until $\|A^{(\ell+1)}-A^{(\ell)}\| + \|B^{(\ell+1)}-B^{(\ell)}\| < \varepsilon_{\mathrm{outer}}$ do
   - **(a) Solve individual Bellman equation** given $\hat H(m_1, a) = \exp\!\bigl(A^{(\ell)}(a) + B^{(\ell)}(a)\log m_1\bigr)$.
   - \quad Iterate $V^{(n+1)}(k, \varepsilon, m_1, a) = u(c) + \beta\, \E{V^{(n)}(k', \varepsilon', \hat H(m_1,a), a')}$ until $\|V^{(n+1)}-V^{(n)}\| < \varepsilon_{\mathrm{inner}}$.
   - \quad Return policy $k'(k, \varepsilon, m_1, a)$.
   - **(b) Simulate the cross-section forward** for $T_{\mathrm{sim}}$ periods with (say) $10{,}000$ agents, starting from an initial distribution and drawing idiosyncratic shocks independently.
   - **(c) Update forecasting rule** by OLS on the simulated path: regress $\log m_1^{t+1}$ on $\log m_1^t$ within each aggregate-shock state to obtain $(A^{(\ell+1)}(a), B^{(\ell+1)}(a))$.
   - **(d) Convergence check:** retain the rule if $R^2 \geq 0.9999$ and the coefficient update $\|A^{(\ell+1)}-A^{(\ell)}\| + \|B^{(\ell+1)}-B^{(\ell)}\|$ is below $\varepsilon_{\mathrm{outer}}$.
+- end
 ```
 
 
@@ -132,7 +133,7 @@ $$
 \text{mass } \omega\cdot m \text{ to } k_n, \quad (1-\omega)\cdot m \text{ to } k_{n+1}.
 $$ (eq-young_weights)
 
-Figure {numref}`fig-young_interp` illustrates this operation. A mass $m$ sitting at the off-grid savings target $k'$ is split between the two bracketing grid points $k_n$ and $k_{n+1}$, with the weight $\omega$ proportional to the proximity of $k'$ to $k_n$ (so $\omega \to 1$ when $k' \to k_n$ and $\omega \to 0$ when $k' \to k_{n+1}$).
+{numref}`fig-young_interp` illustrates this operation. A mass $m$ sitting at the off-grid savings target $k'$ is split between the two bracketing grid points $k_n$ and $k_{n+1}$, with the weight $\omega$ proportional to the proximity of $k'$ to $k_n$ (so $\omega \to 1$ when $k' \to k_n$ and $\omega \to 0$ when $k' \to k_{n+1}$).
 
 ```{figure} figures/fig-young_interp.svg
 :name: fig-young_interp
@@ -148,9 +149,9 @@ $$ (eq-young_meanpreserve)
 
 By linearity of expectation, this conditional mean equality at every grid bin extends to the full distribution: the unconditional mean of $G_{t+1}$ equals the unconditional mean of the policy-implied next-period capital. Higher moments (variance, percentiles) are only approximated; the leading error is of order $(\Delta k)^2$ on smooth densities, so a finer grid improves higher-moment fidelity at no cost to mean preservation.
 
-```{prf:remark}
+```{prf:remark} Lottery interpretation: what makes this "non-stochastic"
 
-Equation {eq}`eq-young_weights` can equivalently be read as a *fair lottery*: every agent at $(k, \varepsilon)$ whose policy choice lands at off-grid $k'$ is reassigned to $k_n$ with probability $\omega$ and to $k_{n+1}$ with probability $1-\omega$. In a Monte Carlo panel of size $N$, each agent draws this lottery once and the empirical histogram converges to its expectation at rate $\mathcal{O}(N^{-1/2})$. Young's method instead computes that expectation in closed form, which is equivalent to "running" an infinite number of agents through the lottery and integrating out the result. This is why the procedure is called non-stochastic: the lottery is still there, but its outcome is computed analytically rather than sampled. The same logic, applied to the discrete shock transitions $\pi_{\varepsilon'\mid\varepsilon}$, sends each piece of mass into all reachable next-period $\varepsilon'$ in proportion to $\pi$ rather than drawing one realisation.
+ Equation {eq}`eq-young_weights` can equivalently be read as a *fair lottery*: every agent at $(k, \varepsilon)$ whose policy choice lands at off-grid $k'$ is reassigned to $k_n$ with probability $\omega$ and to $k_{n+1}$ with probability $1-\omega$. In a Monte Carlo panel of size $N$, each agent draws this lottery once and the empirical histogram converges to its expectation at rate $\mathcal{O}(N^{-1/2})$. Young's method instead computes that expectation in closed form, which is equivalent to "running" an infinite number of agents through the lottery and integrating out the result. This is why the procedure is called non-stochastic: the lottery is still there, but its outcome is computed analytically rather than sampled. The same logic, applied to the discrete shock transitions $\pi_{\varepsilon'\mid\varepsilon}$, sends each piece of mass into all reachable next-period $\varepsilon'$ in proportion to $\pi$ rather than drawing one realisation.
 ```
 
 
@@ -193,13 +194,13 @@ When $k' < k_1 = 1.0$ (here $k' = 0.9$ for the low-state, lowest-capital agents)
 
 **Step 5, Mean verification.** The mean of $G_1$ is $\bar{k}_1 = 0.275(1)+0.385(2)+0.325(3)+0.015(4) = 2.08$. The unclipped, policy-implied mean is $\sum_{i,j} G_0(k_i,\varepsilon_j)\,k'(k_i,\varepsilon_j) = 2.07$, so boundary clipping at $k' = 0.9$ raises the mean by only $0.01$. Mean preservation is exact for source bins whose policy choice $k'$ lies strictly inside the grid; clipping at the boundary slightly biases the mean, here upward, because mass that would have landed at $k'=0.9$ is forced to $k=1$. In general, boundary clipping biases the mean in the *direction of the violated boundary*: clipping at $k_{\min}$ biases the mean upward (mass is pulled in from below the grid), clipping at $k_{\max}$ biases it downward. With a wider grid ($k_{\min} < 0.9$) the mean would be preserved exactly.
 
-```{prf:remark}
+```{prf:remark} Practical take-away
 
-This small example shows why the grid must extend beyond the range of the policy function. In production code, a safeguard checks that boundary bins contain negligible mass (typically $<10^{-6}$).
+ This small example shows why the grid must extend beyond the range of the policy function. In production code, a safeguard checks that boundary bins contain negligible mass (typically $<10^{-6}$).
 ```
 
 
-**The full picture: one cell splits into four.** The worked example above used identity shock transitions to keep the arithmetic visible. The general case combines the capital lottery with a *shock fork*: each piece of mass split between $k_J$ and $k_{J+1}$ is then split again across the reachable next-period $\varepsilon'$ values according to $\pi_{\varepsilon'\mid\varepsilon, a}$. With two shocks $\varepsilon \in \{L, H\}$ this produces *four* destination bins for every source bin, with weights given by the product $\{\omega, 1-\omega\} \times \{\pi_{\varepsilon L}, \pi_{\varepsilon H}\}$. Figure {numref}`fig-young_cascade` reproduces this two-stage cascade (essentially Fig. 1 of {cite:t}`young2010`), annotated with a concrete numerical case.
+**The full picture: one cell splits into four.** The worked example above used identity shock transitions to keep the arithmetic visible. The general case combines the capital lottery with a *shock fork*: each piece of mass split between $k_J$ and $k_{J+1}$ is then split again across the reachable next-period $\varepsilon'$ values according to $\pi_{\varepsilon'\mid\varepsilon, a}$. With two shocks $\varepsilon \in \{L, H\}$ this produces *four* destination bins for every source bin, with weights given by the product $\{\omega, 1-\omega\} \times \{\pi_{\varepsilon L}, \pi_{\varepsilon H}\}$. {numref}`fig-young_cascade` reproduces this two-stage cascade (essentially Fig. 1 of {cite:t}`young2010`), annotated with a concrete numerical case.
 
 ```{figure} figures/fig-young_cascade.svg
 :name: fig-young_cascade
@@ -220,13 +221,15 @@ At each time step, the histogram is updated deterministically:
 
 - **Input:** Current histogram $G_t$, policy $g(\cdot)$, transition matrix $\pi_{\varepsilon'|\varepsilon,a}$, grid $\{k_j\}$
 - Initialize $G_{t+1}(k_j, \varepsilon') = 0$ for all $(j, \varepsilon')$
-- for each $(k_i, \varepsilon_j)$ with $G_t(k_i, \varepsilon_j) > 0$:
+- for each $(k_i, \varepsilon_j)$ with $G_t(k_i, \varepsilon_j) > 0$ do
   - Compute optimal savings: $k' = g(k_i, \varepsilon_j, m_1, a_t)$
   - Find bracketing grid points: $k' \in [k_J, k_{J+1}]$
   - Compute weight: $\omega = 1 - (k' - k_J)/(k_{J+1} - k_J)$
-  - for each next-period shock $\varepsilon'$:
+  - for each next-period shock $\varepsilon'$ do
     - $G_{t+1}(k_J, \varepsilon') \mathrel{+}= \omega \cdot \pi_{\varepsilon'|\varepsilon_j, a_t}\cdot G_t(k_i, \varepsilon_j)$
     - $G_{t+1}(k_{J+1}, \varepsilon') \mathrel{+}= (1-\omega) \cdot \pi_{\varepsilon'|\varepsilon_j, a_t}\cdot G_t(k_i, \varepsilon_j)$
+  - end
+- end
 - return Updated histogram $G_{t+1}$
 ```
 
@@ -264,11 +267,11 @@ At each time step, the histogram is updated deterministically:
                     G_next[J + 1, jp] += (1 - omega) * w
         return G_next
 
-The four scatter-add lines correspond exactly to the four leaves of Figure {numref}`fig-young_cascade`: each leaf receives `omega` or `(1-omega)` from the capital lottery, multiplied by `pi_eps[j, jp]` from the shock fork, multiplied by the source mass. The Krusell--Smith JAX tutorial in `lectures/lecture_10_sequence_space_deqns/code/lecture_10_KrusellSmith_Tutorial_CPU.ipynb` implements this same operation as `distribution_step`, vectorised over the grid via `jax.vmap` and accumulated with `.at[ ].add( )`.
+The four scatter-add lines correspond exactly to the four leaves of {numref}`fig-young_cascade`: each leaf receives `omega` or `(1-omega)` from the capital lottery, multiplied by `pi_eps[j, jp]` from the shock fork, multiplied by the source mass. The Krusell--Smith JAX tutorial in `lectures/lecture_10_sequence_space_deqns/code/lecture_10_KrusellSmith_Tutorial_CPU.ipynb` implements this same operation as `distribution_step`, vectorised over the grid via `jax.vmap` and accumulated with `.at[ ].add( )`.
 
-```{prf:remark}
+```{prf:remark} Closed-form bracketing on GPUs, and how to keep it on log-spaced grids
 
-The expensive sub-step of Young's update (and of any piecewise-linear interpolation) is the *bracketing index* $$J(k') \;=\; \max\{\,n : k_n \le k'\,\},\qquad k' \in [k_J,\, k_{J+1}).$$ The textbook implementation uses a binary search (e.g. `numpy.searchsorted` or `jnp.searchsorted`): $\mathcal{O}(\log N_k)$ per query, with data-dependent branches. On a CPU this is essentially free; on a GPU under `XLA`/`CUDA` it is one of the worst patterns one can write, because (i) SIMT threads of the same warp take different branches (warp divergence), (ii) the resulting gathers are irregular, and (iii) the opaque search op breaks operator fusion with the surrounding arithmetic, forcing extra kernel launches.
+ The expensive sub-step of Young's update (and of any piecewise-linear interpolation) is the *bracketing index* $$J(k') \;=\; \max\{\,n : k_n \le k'\,\},\qquad k' \in [k_J,\, k_{J+1}).$$ The textbook implementation uses a binary search (e.g. `numpy.searchsorted` or `jnp.searchsorted`): $\mathcal{O}(\log N_k)$ per query, with data-dependent branches. On a CPU this is essentially free; on a GPU under `XLA`/`CUDA` it is one of the worst patterns one can write, because (i) SIMT threads of the same warp take different branches (warp divergence), (ii) the resulting gathers are irregular, and (iii) the opaque search op breaks operator fusion with the surrounding arithmetic, forcing extra kernel launches.
 
 For an *equidistant* grid the search collapses to a single fused multiply--add and a cast, $$J(k') \;=\; \mathrm{clip}\!\left(\Big\lfloor \tfrac{k' - k_0}{\Delta k} \Big\rfloor,\;0,\;N_k-2\right),$$ which is exactly what the line `J = int((x - k_grid[0]) // dk)` in the cheatsheet does. This is branch-free, uniform across threads, and fuses with the lottery weight $\omega = (k_{J+1}-k')/\Delta k$ into a single GPU kernel.
 
@@ -278,12 +281,12 @@ Uniform $k$-grids waste resolution where the consumption policy is flat (the rig
 ```
 
 
-Figure {numref}`fig-young_forward` visualizes the five stages of a single forward step.
+{numref}`fig-young_forward` visualizes the five stages of a single forward step.
 
 ```{figure} figures/fig-young_forward.svg
 :name: fig-young_forward
 
-Flow diagram for one forward step of Young's histogram update (Algorithm {prf:ref}`alg-young`). Starting from $G_t$, the policy function is evaluated at every active bin, the resulting off-grid savings are interpolated back onto the grid, and idiosyncratic shock transitions redistribute mass across $\varepsilon$-states to produce $G_{t+1}$.
+Flow diagram for one forward step of Young's histogram update ({prf:ref}`alg-young`). Starting from $G_t$, the policy function is evaluated at every active bin, the resulting off-grid savings are interpolated back onto the grid, and idiosyncratic shock transitions redistribute mass across $\varepsilon$-states to produce $G_{t+1}$.
 ```
 
 **Comparison with Monte Carlo.** Young's method produces *zero sampling noise* (deterministic), preserves the mean *exactly*, requires only $\sim$100--5,000 grid points (versus $>$50,000 agents for Monte Carlo), and is fully reproducible. The trade-off is of a different kind than Monte Carlo's: the mean-preserving lottery introduces a deterministic *discretization bias* into higher moments (it tends to flatten cross-sectional kurtosis at coarse grids and is sensitive to the choice of bracket scheme), whereas a Monte Carlo panel is unbiased in all moments but pays $\mathcal{O}(N^{-1/2})$ sampling noise on each. Both methods also require a grid (Young) or an empirical range (Monte Carlo) that is wide enough to contain all mass. The following table summarizes the comparison:
@@ -296,7 +299,7 @@ Flow diagram for one forward step of Young's histogram update (Algorithm {prf:r
 | Reproducibility | Deterministic | Seed-dependent |
 | Higher moments | Approximated | Approximated |
 
-Figure {numref}`fig-young_vs_mc` contrasts the two approaches visually: the histogram method yields a smooth, noise-free distribution, while a Monte Carlo panel of comparable size exhibits visible sampling noise.
+{numref}`fig-young_vs_mc` contrasts the two approaches visually: the histogram method yields a smooth, noise-free distribution, while a Monte Carlo panel of comparable size exhibits visible sampling noise.
 
 ```{figure} figures/fig-young_vs_mc.svg
 :name: fig-young_vs_mc
@@ -352,7 +355,7 @@ $$
 x_t^{agg} = \bigl(\underbrace{z_t^{\mathrm{idx}},\,\mathrm{inc}_t^{\mathrm{idx}},\,\mathrm{unc}_t^{\mathrm{idx}}}_{3\text{ shock-index entries}},\; \underbrace{h_t^{\eta=0.8}(b_1),\ldots,h_t^{\eta=0.8}(b_{N_b})}_{N_b\text{ values}},\;\underbrace{h_t^{\eta=1.2}(b_1),\ldots,h_t^{\eta=1.2}(b_{N_b})}_{N_b\text{ values}}\bigr).
 $$ (eq-young_hist_state)
 
-For $N_b = 100$ grid points and 2 idiosyncratic states, the aggregate state has dimension $3 + 200 = 203$. The full input to the policy network adds the individual state $(b_t, \eta_t)$, giving total dimension $205$. This is the `production` setting; the checked-in `smoke` and `teaching` runs use $N_b = 50$, so the aggregate state has dimension $103$ and the policy input $105$. Figure {numref}`fig-young_encoding` shows how the histogram vector and individual state are assembled and fed into the two networks.
+For $N_b = 100$ grid points and 2 idiosyncratic states, the aggregate state has dimension $3 + 200 = 203$. The full input to the policy network adds the individual state $(b_t, \eta_t)$, giving total dimension $205$. This is the `production` setting; the checked-in `smoke` and `teaching` runs use $N_b = 50$, so the aggregate state has dimension $103$ and the policy input $105$. {numref}`fig-young_encoding` shows how the histogram vector and individual state are assembled and fed into the two networks.
 
 ##### How the notebooks fit together.
 
@@ -360,10 +363,6 @@ The companion notebook sequence mirrors this decomposition. `10_Youngs_Method_Ex
 
 ```{figure} figures/fig-young_encoding.svg
 :name: fig-young_encoding
-
-$5+2N_b$
-
-$3+2N_b$
 
 Histogram encoding and neural network architecture. The individual state $(\eta_t, b_t)$ (blue boxes / blue arrows) and the aggregate state $(z_t^{\mathrm{idx}},\mathrm{inc}_t^{\mathrm{idx}},\mathrm{unc}_t^{\mathrm{idx}}, h_t^{\eta=0.8}, h_t^{\eta=1.2})$ (orange box for the three shock-index entries, red boxes for the two histograms) are concatenated as input to the policy network $\mathcal{N}_{pol}$; each input arrow is colored to match its source box and enters the policy-input layer at a distinct horizontal offset, so the five arrows are uniquely identifiable at a glance. The price network $\mathcal{N}_{price}$ receives only the aggregate state. Both networks use softplus output activations.
 ```
@@ -396,26 +395,26 @@ where $h_t(\eta, b_j)$ is the histogram mass, $b'(\cdot)$ is the policy network 
 
 ##### Young's method inside the training loop.
 
-During each training episode, the histogram is propagated forward using Young's method (Algorithm {prf:ref}`alg-young`) with the current neural network providing the policy function. This creates a sequence of aggregate states $(x_0^{agg}, x_1^{agg}, \ldots, x_T^{agg})$ on which the equilibrium residuals {eq}`eq-young_loss` are evaluated. Young's redistribution operator is differentiable almost everywhere (linear interpolation conditional on fixed brackets), so the *one-step* histogram update that enters the market-clearing residual at each sampled state carries gradients back to the policy network. The longer simulated path of aggregate states is treated as data: it is regenerated each episode from the current network and held fixed inside the gradient tape, rather than backpropagated through end to end. Even so the distribution co-evolves with the network: early in training, when the policy network is inaccurate, the simulated path will be "wrong," but the market-clearing residuals evaluated along it provide corrective feedback through the loss, and as the network improves the distribution converges toward the ergodic steady state.
+During each training episode, the histogram is propagated forward using Young's method ({prf:ref}`alg-young`) with the current neural network providing the policy function. This creates a sequence of aggregate states $(x_0^{agg}, x_1^{agg}, \ldots, x_T^{agg})$ on which the equilibrium residuals {eq}`eq-young_loss` are evaluated. Young's redistribution operator is differentiable almost everywhere (linear interpolation conditional on fixed brackets), so the *one-step* histogram update that enters the market-clearing residual at each sampled state carries gradients back to the policy network. The longer simulated path of aggregate states is treated as data: it is regenerated each episode from the current network and held fixed inside the gradient tape, rather than backpropagated through end to end. Even so the distribution co-evolves with the network: early in training, when the policy network is inaccurate, the simulated path will be "wrong," but the market-clearing residuals evaluated along it provide corrective feedback through the loss, and as the network improves the distribution converges toward the ergodic steady state.
 
 (sec-young_results)=
 ## Results and Discussion
 In the Appendix A.5 teaching model, the DEQN with histogram encoding achieves competitive accuracy: Euler equation errors are of order $10^{-3}$, and market-clearing residuals are comparably small. These figures come from the checked-in `teaching`/`smoke` configuration of the companion notebook (a small network trained for a modest number of episodes); the `production` configuration tightens them further. The broader lesson for the Krusell--Smith benchmark is conceptual rather than model-specific. Compared to the traditional KS algorithm, the DEQN approach has two advantages: (i) the neural network can condition on the *full* distribution rather than just its mean, providing a richer approximation that can capture situations where higher moments of the distribution matter for prices, and (ii) there is no need for a separate outer loop to update forecasting coefficients, since equilibrium conditions are enforced directly through the loss function.
 
-```{prf:remark}
+```{prf:remark} Connection to continuous time
 
-The discrete-time histogram approach presented here has a natural continuous-time counterpart. In Chapter {ref}`ch-ct_theory`, we will see that the Kolmogorov forward equation (KFE; Fokker--Planck) describes the evolution of the wealth *density* in continuous-time heterogeneous-agent models such as {cite:t}`achdou2022income`. While the mathematical formulation differs (histogram update vs. PDE), the economic question is the same: how does the wealth distribution evolve, and how does it feed back into equilibrium prices?
+ The discrete-time histogram approach presented here has a natural continuous-time counterpart. In Chapter {ref}`ch-ct_theory`, we will see that the Kolmogorov forward equation (KFE; Fokker--Planck) describes the evolution of the wealth *density* in continuous-time heterogeneous-agent models such as {cite:t}`achdou2022income`. While the mathematical formulation differs (histogram update vs. PDE), the economic question is the same: how does the wealth distribution evolve, and how does it feed back into equilibrium prices?
 ```
 
 
 (sec-ks_alternatives)=
 ## Alternative Deep-Learning Approaches to Krusell--Smith
-Before turning to the deep-learning alternatives, it is useful to set the histogram-DEQN method in the broader landscape of solution techniques for heterogeneous-agent equilibria with aggregate shocks. Table {numref}`tab-ha_methods_landscape` compares classical and modern approaches along four dimensions that drive method choice in practice.
+Before turning to the deep-learning alternatives, it is useful to set the histogram-DEQN method in the broader landscape of solution techniques for heterogeneous-agent equilibria with aggregate shocks. {numref}`tab-ha_methods_landscape` compares classical and modern approaches along four dimensions that drive method choice in practice.
 
 ````{table}
 :name: tab-ha_methods_landscape
 
-Heterogeneous-agent solution methods at a glance. The first three rows are classical or finite-difference; the last three are the modern deep-learning families compared in detail in Table {numref}`tab-ks_dl_comparison` and the rest of this section.
+Heterogeneous-agent solution methods at a glance. The first three rows are classical or finite-difference; the last three are the modern deep-learning families compared in detail in {numref}`tab-ks_dl_comparison` and the rest of this section.
 
 | **Method** | **Distribution rep.** | **Aggregate state** | **Solution principle** | **Best when** |
 |---|---|---|---|---|
@@ -427,7 +426,7 @@ Heterogeneous-agent solution methods at a glance. The first three rows are class
 | DeepHAM {cite:p}`han2023deepham` | Permutation-invariant set encoder (DeepSets) | Learned $M\!\ll\!N$ generalized moments | Cumulative utility along simulated paths (policy-gradient with structural individual dynamics) | Want a low-dim aggregate state without committing to a moment *a priori* |
 ````
 
-Whereas Table {numref}`tab-ha_methods_landscape` is panoramic (classical and DL methods on common axes), Table {numref}`tab-ks_dl_comparison` drills into the DL trio along the axes that matter when choosing among them. Histogram-DEQN is not the only deep-learning approach to heterogeneous-agent equilibria, and it is pedagogically useful to see how the space of deep-learning strategies decomposes. Three broad families have emerged in the literature. Two informative axes organize them: how the cross-sectional distribution is represented as input to the network, and what objective is optimized. Histogram-DEQN and All-in-One DL minimize residuals of the structural equilibrium equations; DeepHAM instead maximizes cumulative utility along simulated paths and uses Bellman residuals as a validation diagnostic.
+Whereas {numref}`tab-ha_methods_landscape` is panoramic (classical and DL methods on common axes), {numref}`tab-ks_dl_comparison` drills into the DL trio along the axes that matter when choosing among them. Histogram-DEQN is not the only deep-learning approach to heterogeneous-agent equilibria, and it is pedagogically useful to see how the space of deep-learning strategies decomposes. Three broad families have emerged in the literature. Two informative axes organize them: how the cross-sectional distribution is represented as input to the network, and what objective is optimized. Histogram-DEQN and All-in-One DL minimize residuals of the structural equilibrium equations; DeepHAM instead maximizes cumulative utility along simulated paths and uses Bellman residuals as a validation diagnostic.
 
 ````{table}
 :name: tab-ks_dl_comparison
@@ -557,7 +556,7 @@ A natural follow-up question is whether the DeepHAM machinery extends to economi
 
 ### Which Method, When?
 
-The three deep-learning approaches (Histogram DEQN, {ref}`sec-young_deqn`; All-in-One DL, {ref}`sec-mmw_ks`; and DeepHAM, {ref}`sec-deepham_ks`) are complements rather than substitutes. Table {numref}`tab-ks_dl_comparison` summarizes the practical trade-offs:
+The three deep-learning approaches (Histogram DEQN, {ref}`sec-young_deqn`; All-in-One DL, {ref}`sec-mmw_ks`; and DeepHAM, {ref}`sec-deepham_ks`) are complements rather than substitutes. {numref}`tab-ks_dl_comparison` summarizes the practical trade-offs:
 
 - For *teaching* purposes, the Histogram DEQN is the cleanest: the network input is an interpretable distribution vector, and the training loop directly mirrors the DEQN template introduced in Chapter {ref}`ch-deqn`.
 
@@ -565,7 +564,7 @@ The three deep-learning approaches (Histogram DEQN, {ref}`sec-young_deqn`; All-i
 
 - For *policy analysis in richer HA environments* (risky steady states, multiple endogenous states, ZLB), DeepHAM's learned-moment representation pays off both in accuracy and in interpretability, because the learned moments can be plotted and analyzed as functions of the distribution.
 
-Table {numref}`tab-ks_dl_chooser` distils the same trade-offs into a quick decision aid: when the model fits the row's \"When it shines\" column, the matching method is the first one to try.
+{numref}`tab-ks_dl_chooser` distils the same trade-offs into a quick decision aid: when the model fits the row's \"When it shines\" column, the matching method is the first one to try.
 
 ````{table}
 :name: tab-ks_dl_chooser
@@ -589,7 +588,7 @@ For readers who want to benchmark any of the deep-learning approaches against th
 
 (sec-sequence_space)=
 ## Extension: Deep Learning in the Sequence Space
-The histogram-based DEQN above is transparent because it feeds a direct approximation of the endogenous cross-sectional distribution into the neural network. The price of that transparency is dimensionality: in richer heterogeneous-agent economies, the aggregate state can contain hundreds of histogram entries. {cite:t}`azinovicyangzemlicka2025sequencespace` propose a different representation of the aggregate state. Instead of feeding the *current endogenous state* to the network, they feed a *truncated history of exogenous aggregate shocks*. The equilibrium logic does not change: one still enforces Euler equations, market clearing, and occasionally binding constraints inside the loss. What changes is the object that summarizes the aggregate state for the network. Figure {numref}`fig-sequence_space_compare` contrasts the two views.
+The histogram-based DEQN above is transparent because it feeds a direct approximation of the endogenous cross-sectional distribution into the neural network. The price of that transparency is dimensionality: in richer heterogeneous-agent economies, the aggregate state can contain hundreds of histogram entries. {cite:t}`azinovicyangzemlicka2025sequencespace` propose a different representation of the aggregate state. Instead of feeding the *current endogenous state* to the network, they feed a *truncated history of exogenous aggregate shocks*. The equilibrium logic does not change: one still enforces Euler equations, market clearing, and occasionally binding constraints inside the loss. What changes is the object that summarizes the aggregate state for the network. {numref}`fig-sequence_space_compare` contrasts the two views.
 
 ```{figure} figures/fig-sequence_space_compare.svg
 :name: fig-sequence_space_compare
@@ -599,9 +598,9 @@ Two ways to encode the aggregate state in deep equilibrium learning. Each pipeli
 
 **The sequence-space representation.** Let $z_t^T := (z_{t-T+1}, \ldots, z_t) \in \R^T$ denote the last $T$ realizations of the exogenous aggregate shock. The key claim is that, in an ergodic economy, this history is an *approximate sufficient statistic* for the endogenous aggregate state. In the Brock--Mirman warm-up notebook, the network maps the shock history to a bounded savings rate, from which next-period capital follows by the resource constraint, $$s_t = \sigma\!\bigl(\mathcal{N}_\rho(z_t^T)\bigr) \in (0,1), \qquad K_{t+1} = s_t\, z_t K_t^\alpha,$$ where $\sigma$ is the logistic squashing that keeps $K_{t+1}$ feasible. In the richer heterogeneous-agent version, the network instead maps the same history to higher-level equilibrium objects such as policy-function coefficients or pricing objects. This connects the method to the MIT-shock and sequence-space Jacobian literature of {cite:t}`boppart2018exploiting` and {cite:t}`auclert2021using`, but replaces local linear approximations with a global residual-based neural approximation.
 
-```{prf:definition}
+```{prf:definition} State-space vs sequence-space: the equilibrium operator
 
-The two formulations can be written symmetrically. Let $y_t$ denote the equilibrium objects of interest (policies, prices) at date $t$, $x_t$ the endogenous aggregate state, and $\varepsilon_t$ the exogenous shock.
+ The two formulations can be written symmetrically. Let $y_t$ denote the equilibrium objects of interest (policies, prices) at date $t$, $x_t$ the endogenous aggregate state, and $\varepsilon_t$ the exogenous shock.
 
 **State-space recursion.** The decision rule is a function $f$ of the current state, the state evolves through a known transition $H$, and equilibrium is the functional equation $$y_t = f(x_t), \qquad x_{t+1} = H(x_t, y_t, \varepsilon_{t+1}), \qquad G(f, x) = 0 \;\;\forall x.$$
 
@@ -633,7 +632,7 @@ This distinction is important conceptually. For Brock--Mirman, sequence space is
 
 **Intermediate bridge: sequence-space IRBC.** Between the one-shock Brock--Mirman warm-up and the infinite-dimensional Krusell--Smith state, the companion notebook `lectures/lecture_10_sequence_space_deqns/code/lecture_10_05b_SequenceSpace_IRBC.ipynb` re-trains the two-country IRBC model of Chapter {ref}`ch-irbc` under sequence-space inputs: the policy network reads the last $T=80$ shock vectors (a $240$-dimensional history with $\rho_z^T \approx 1.7\times 10^{-2}$ truncation error) instead of the four-dimensional current state. The $2N+1$ equilibrium residuals (Euler, ARC, Fischer--Burmeister), the Gauss--Hermite quadrature, and the cloud-method sampler are literally unchanged from nb 01; only the input domain changes. Because the current capital stock is no longer an input, we parametrize the output head around the steady state, $k'_j = k_{ss}\exp(\tanh z^k_j)$ and $\lambda = \lambda_{ss}\exp(\tanh z^\lambda)$, which keeps gradients lively at the target policy and prevents the cold-start divergence that plagued a naive softplus head. This notebook is a *pedagogical bridge* rather than a computational win, at a four-dimensional state the history is much larger, not smaller, but it shows that the same template handles a multi-equation system with multiple independent shock channels before we hand the method over to Krusell--Smith, where the dimensionality gain is real.
 
-**Training logic.** The computational pattern is also close to the rest of this chapter. One samples an exogenous shock path, constructs overlapping history windows $z_t^T$, evaluates the network on those windows, and then uses the resulting decisions to simulate the endogenous economy forward. In the Brock--Mirman warm-up this produces the capital sequence directly; in the Krusell--Smith tutorial it produces policy-function objects, while Young's method still propagates the cross-sectional distribution inside the simulator. Residuals are then evaluated on the simulated path and backpropagated through the full pipeline. Figure {numref}`fig-sequence_space_training` summarizes this workflow.
+**Training logic.** The computational pattern is also close to the rest of this chapter. One samples an exogenous shock path, constructs overlapping history windows $z_t^T$, evaluates the network on those windows, and then uses the resulting decisions to simulate the endogenous economy forward. In the Brock--Mirman warm-up this produces the capital sequence directly; in the Krusell--Smith tutorial it produces policy-function objects, while Young's method still propagates the cross-sectional distribution inside the simulator. Residuals are then evaluated on the simulated path and backpropagated through the full pipeline. {numref}`fig-sequence_space_training` summarizes this workflow.
 
 ```{figure} figures/fig-sequence_space_training.svg
 :name: fig-sequence_space_training
@@ -641,9 +640,9 @@ This distinction is important conceptually. For Brock--Mirman, sequence space is
 Training flow for sequence-space DEQNs. The exogenous shock history is the network input, but the forward simulator still produces endogenous objects such as prices, aggregate capital, or cross-sectional distributions needed for residual evaluation.
 ```
 
-```{prf:remark}
+```{prf:remark} Worked example: what the network input looks like
 
-In the companion notebook `KrusellSmith_Tutorial_CPU.ipynb`, the helper function `encode_Z_history` represents a discrete shock history as a one-hot block concatenated with the corresponding realized levels. Suppose $N_Z = 2$ (so $Z_t \in \{Z_L, Z_H\}$ with $Z_L = 0.93$, $Z_H = 1.07$) and the truncated history of length $H = 3$ is $(Z_L, Z_H, Z_L)$. `encode_Z_history` then returns $$\underbrace{\bigl[\,\underbrace{1,0}_{Z_L},\ \underbrace{0,1}_{Z_H},\ \underbrace{1,0}_{Z_L}\,\bigr]}_{\text{one-hot block, length }H \cdot N_Z}
+ In the companion notebook `KrusellSmith_Tutorial_CPU.ipynb`, the helper function `encode_Z_history` represents a discrete shock history as a one-hot block concatenated with the corresponding realized levels. Suppose $N_Z = 2$ (so $Z_t \in \{Z_L, Z_H\}$ with $Z_L = 0.93$, $Z_H = 1.07$) and the truncated history of length $H = 3$ is $(Z_L, Z_H, Z_L)$. `encode_Z_history` then returns $$\underbrace{\bigl[\,\underbrace{1,0}_{Z_L},\ \underbrace{0,1}_{Z_H},\ \underbrace{1,0}_{Z_L}\,\bigr]}_{\text{one-hot block, length }H \cdot N_Z}
 \;\bigm\Vert\;
 \underbrace{\bigl[\,0.93,\ 1.07,\ 0.93\,\bigr]}_{\text{level block, length }H},$$ a single vector of length $H \cdot (N_Z + 1) = 9$ that is fed to the MLP. In the Krusell--Smith tutorial, $H = 50$ and $N_Z = 2$, giving an input of length $150$. The corresponding histogram-based input, by contrast, would have hundreds of bins from the wealth distribution alone.
 ```
@@ -653,9 +652,9 @@ In the companion notebook `KrusellSmith_Tutorial_CPU.ipynb`, the helper function
 
 **Why this is useful in heterogeneous-agent models.** Two advantages are worth separating. First, *as a network input*, a history of $T \approx 25$ shocks can be much smaller than a histogram with hundreds of bins. Second, exogenous shock histories are sampled from a fixed distribution. This removes one source of instability in residual-based training: the set of network inputs is anchored by model primitives even though the endogenous simulator still evolves with the current policy network. In the Krusell--Smith tutorial, this means that the network is conditioned on shock histories, while Young's method remains responsible for propagating the distribution used in market-clearing calculations.
 
-```{prf:remark}
+```{prf:remark} Why sequence-space training is more stable: the feedback loop
 
-The second advantage above deserves to be unpacked, because it is empirically the single biggest source of stability gains reported in {cite:t}`azinovicyangzemlicka2025sequencespace`. In a state-space deep-learning HA solver the network reads the endogenous distribution $\mu_t$ as part of its input, and the training set of $\mu$'s is generated by simulating the economy under the *current* policy network. This creates a self-amplifying loop: $$\begin{aligned}
+ The second advantage above deserves to be unpacked, because it is empirically the single biggest source of stability gains reported in {cite:t}`azinovicyangzemlicka2025sequencespace`. In a state-space deep-learning HA solver the network reads the endogenous distribution $\mu_t$ as part of its input, and the training set of $\mu$'s is generated by simulating the economy under the *current* policy network. This creates a self-amplifying loop: $$\begin{aligned}
 \rho^{(k)} \;\longrightarrow\; \pi_{\rho^{(k)}} \;\longrightarrow\; \{\mu_t\}_{\rho^{(k)}} \;\longrightarrow\;& \text{input distribution shifts}\\[-2pt]
 \;\longrightarrow\; \text{out-of-distribution evaluations} \;\longrightarrow\;& \text{large residual gradient} \;\longrightarrow\; \rho^{(k+1)}\;\text{overshoots},
 \end{aligned}$$ and the next outer iteration starts from inputs the network has never seen before, often producing even larger shifts. In sequence space the network input is the truncated shock history $z_t^T$, drawn from the *exogenous* law of motion of the aggregate shock. That distribution is fixed by model primitives and *does not move* with the policy update. The feedback loop is broken at its first link: training inputs are stationary even when the policy is far from optimal. Empirically this often turns a calibration that fails to converge in the state-space formulation (across random seeds and learning rates) into one that converges robustly in sequence space.
@@ -689,22 +688,25 @@ is smooth and satisfies $\mathrm{FB}(g,s) = 0$ if and only if $\min(g, s) = 0$ w
 
 **Putting the pieces together: the HA training loop.** The Krusell--Smith tutorial assembles the encoder, the I-spline policy head, Young's distribution step, and the Fischer--Burmeister loss into a single replay-buffer training loop. {prf:ref}`algo-ks_seqspace` states it explicitly.
 
-```{prf:definition}
+```{prf:definition} Algorithm: Sequence-Space DEQN with Young's method (KS tutorial)
 :label: algo-ks_seqspace
 
 - **Input:** network $\mathcal{N}_\rho$ (I-spline MPC heads), I-spline basis $B$, transition matrices $\Pi_\varepsilon, \Pi_Z$, prices $R(K,L,Z), w(K,L,Z)$
 - **Hyperparameters:** history length $H{=}50$, roll-out $T{=}100$, buffer cap $C{=}128$, $N_{\text{agg}}{=}8$, FB steps per epoch $S{=}10$, mini-batch $B_{\text{fb}}{=}16$, learning rate $\alpha{=}5\!\times\!10^{-5}$, gradient clip $\|\cdot\|_2 \le 1$
 - **Initialize** replay buffer $\mathcal{B}$ with copies of $(\mathbf{0}_H,\, \mu_0)$, where $\mu_0$ is centered at the deterministic-RA reference $K_{ss}$
-- for epoch $e = 1, 2, \ldots$:
+- for epoch $e = 1, 2, \ldots$ do
   - Draw $N_{\text{agg}}$ replay states $\{(z^H_i, \mu_i)\}$ from $\mathcal{B}$
   - Draw fresh shock paths $\{Z_{i,1:T}\}$ with $\Pi_Z$ from each terminal $z^H_i[-1]$
-  - for $i = 1, \ldots, N_{\text{agg}}$:
+  - for $i = 1, \ldots, N_{\text{agg}}$ do
     - **Forward roll (no grad):** for $t=1,\ldots,T$ compute $K_t,L_t$ from $\mu_{i,t-1}$, prices $R_t,w_t$, MPC and $c_t$ from $\mathcal{N}_\rho$ on the running history, advance $\mu_{i,t}$ via the Young step
     - Append $(z^H_{i,T}, \mu_{i,T})$ to $\mathcal{B}$; evict oldest if $|\mathcal{B}| > C$
-  - for $s = 1, \ldots, S$:
+  - end
+  - for $s = 1, \ldots, S$ do
     - Sample mini-batch $\mathcal{M}\subset\mathcal{B}$ of size $B_{\text{fb}}$
-    - Compute Fischer--Burmeister loss $\mathcal{L}(\rho)$ on $\mathcal{M}$ using \eqref{eq:fb}
+    - Compute Fischer--Burmeister loss $\mathcal{L}(\rho)$ on $\mathcal{M}$ using {eq}`eq-fb`
     - Update $\rho \leftarrow \mathrm{Adam}\bigl(\rho,\, \nabla_\rho \mathcal{L}(\rho)\bigr)$ with global-norm clipping
+  - end
+- end
 - **Output:** trained $\mathcal{N}_{\rho^\star}$ that maps a shock history to grid-MPC coefficients
 ```
 
@@ -713,9 +715,9 @@ Three implementation choices in {prf:ref}`algo-ks_seqspace` are worth flagging. 
 
 **Two training algorithms: residual minimization vs. time iteration.** {prf:ref}`algo-ks_seqspace` is one of two families of training schemes used in the sequence-space DL literature. In *direct residual minimization* (the version above and in our notebook), the network is trained by gradient descent on the squared equilibrium residual itself. In *time iteration with EGM*, the network is trained on a sequence of supervised regression problems: at each outer iteration, one (i) uses the current network to construct next-period policies, (ii) backs out implied current-period policies via the endogenous-grid method of {cite:t}`carroll2006method`, and (iii) updates the network by minimizing the squared error against those EGM targets. Time iteration is more involved and requires a per-batch root-finding step, but it is more flexible: it tolerates non-trivial market clearing and, crucially, handles *non-convex* choices (e.g., a discrete retirement decision) and non-monotone Laffer curves where the Euler equation has multiple roots that direct residual minimization cannot disambiguate. In practice, residual minimization is the simpler entry point on smooth, convex problems; switch to time iteration when convergence stalls, when the model contains discrete choices, or when the continuation value has convex regions that admit multiple optimal savings.
 
-```{prf:remark}
+```{prf:remark} Practical heuristics for sequence-space DEQNs
 
-Four operational rules of thumb, distilled from {cite:t}`azinovicyangzemlicka2025sequencespace`:
+ Four operational rules of thumb, distilled from {cite:t}`azinovicyangzemlicka2025sequencespace`:
 
 - **Choosing the truncation length $T$.** Three sensible heuristics, in increasing order of conservatism: (i) for OLG models, set $T$ to roughly two life-cycles, so that all shocks experienced by any household alive today are inside the window; (ii) start short and iteratively increase $T$, monitoring the equilibrium residual; (iii) "overkill", set $T$ such that $\varrho_{\text{shock}}^T \le \text{tol}$ with $\text{tol} \in [10^{-8}, 10^{-6}]$, since long histories are cheap to feed.
 
@@ -731,7 +733,7 @@ Four operational rules of thumb, distilled from {cite:t}`azinovicyangzemlicka202
 
 A third notebook, `KrusellSmith_Tutorial_CPU.ipynb`, is a JAX/optax port of the upstream pedagogical tutorial released by the paper's authors. It exposes the same shape-preserving I-spline MPC parameterization, the same Young step inside the simulator, and the same Fischer--Burmeister KKT loss as the TensorFlow notebook, but in the original JAX form. It is adapted from the upstream tutorial `01_KrusellSmith_Tutorial_CPU.ipynb` in the companion code repository {cite:p}`azinovicyangzemlicka2025sequencespacecode`, available at <https://github.com/azinoma/DeepLearningInTheSequenceSpace>; the local adaptation adds an explicit shape-guarantee diagnostic and additional inline commentary, leaving the algorithm unchanged.
 
-````{prf:definition}
+````{prf:definition} Math-to-code glossary for the KS sequence-space tutorial
 
 ```{list-table}
 :header-rows: 1
@@ -785,9 +787,9 @@ A third notebook, `KrusellSmith_Tutorial_CPU.ipynb`, is a JAX/optax port of the 
 ````
 
 
-```{prf:remark}
+```{prf:remark} Chapter Summary
 
-Continuum-agent equilibria require explicit distribution tracking; Young's (2010) histogram is a deterministic mass-redistribution scheme on a fixed grid that converges to the ergodic distribution exactly as the grid is refined. Embedding Young's update inside a DEQN training loop yields fully differentiable heterogeneous-agent solutions, with gradients flowing through the histogram and the policy network simultaneously. The sequence-space DEQN of {cite:t}`azinovicyangzemlicka2025sequencespace` is the natural alternative when the entire path of aggregate variables, rather than the cross-section, is the state of interest. Bewley--Huggett--Aiyagari--Krusell--Smith is the foundational lineage; {cite:t}`achdou2022income` supply the continuous-time counterpart taken up in Chapter {ref}`ch-ct_theory`.
+ Continuum-agent equilibria require explicit distribution tracking; Young's (2010) histogram is a deterministic mass-redistribution scheme on a fixed grid that converges to the ergodic distribution exactly as the grid is refined. Embedding Young's update inside a DEQN training loop yields fully differentiable heterogeneous-agent solutions, with gradients flowing through the histogram and the policy network simultaneously. The sequence-space DEQN of {cite:t}`azinovicyangzemlicka2025sequencespace` is the natural alternative when the entire path of aggregate variables, rather than the cross-section, is the state of interest. Bewley--Huggett--Aiyagari--Krusell--Smith is the foundational lineage; {cite:t}`achdou2022income` supply the continuous-time counterpart taken up in Chapter {ref}`ch-ct_theory`.
 ```
 
 

@@ -33,7 +33,7 @@ The simplest approach is to define a grid of values for each hyperparameter and 
 ## Random Search
 {cite:t}`bergstra2012random` demonstrated that random sampling of hyperparameter configurations often outperforms grid search, particularly when only a few hyperparameters are important. The key insight is a *projection argument*: when a random configuration is projected onto any single hyperparameter axis, the marginal distribution covers the entire range densely, regardless of how many other hyperparameters exist. In contrast, a grid with the same total number of evaluations provides only $k = N^{1/d}$ distinct values per axis, which can be very coarse in high dimensions.
 
-For example, with a budget of $N = 60$ evaluations in $d = 6$ dimensions, a grid provides only $60^{1/6} \approx 2$ values per hyperparameter, while random search provides 60 distinct values per hyperparameter (in the marginal sense). This makes random search much more likely to find good values for the hyperparameters that matter most. Figure {numref}`fig-grid_vs_random` shows the same projection argument in two dimensions.
+For example, with a budget of $N = 60$ evaluations in $d = 6$ dimensions, a grid provides only $60^{1/6} \approx 2$ values per hyperparameter, while random search provides 60 distinct values per hyperparameter (in the marginal sense). This makes random search much more likely to find good values for the hyperparameters that matter most. {numref}`fig-grid_vs_random` shows the same projection argument in two dimensions.
 
 ```{figure} figures/fig-grid_vs_random.svg
 :name: fig-grid_vs_random
@@ -90,7 +90,7 @@ $$
 \qquad Z = \frac{\ell^\star - \bar{f}(\bm{h})}{\sigma_f(\bm{h})},
 $$
 
-where $\Phi$ and $\phi$ are the standard normal CDF and PDF, respectively {cite:p}`garnett2023bayesian`. The first term rewards *exploitation* (the predicted mean $\bar{f}$ lies below the current best $\ell^\star$); the second rewards *exploration* ($\sigma_f$ is large where no data constrain the loss). EI peaks where the two conspire, which is exactly the place a sensible researcher would probe by hand. Figure {numref}`fig-bayesopt` illustrates one iteration of this rule in one dimension, and the algorithmic box below collects it into a four-step recipe. Bayesian optimization is particularly effective when the number of hyperparameters is moderate ($d \leq 20$) and each evaluation is expensive, which describes many economic applications well.
+where $\Phi$ and $\phi$ are the standard normal CDF and PDF, respectively {cite:p}`garnett2023bayesian`. The first term rewards *exploitation* (the predicted mean $\bar{f}$ lies below the current best $\ell^\star$); the second rewards *exploration* ($\sigma_f$ is large where no data constrain the loss). EI peaks where the two conspire, which is exactly the place a sensible researcher would probe by hand. {numref}`fig-bayesopt` illustrates one iteration of this rule in one dimension, and the algorithmic box below collects it into a four-step recipe. Bayesian optimization is particularly effective when the number of hyperparameters is moderate ($d \leq 20$) and each evaluation is expensive, which describes many economic applications well.
 
 ```{figure} figures/fig-bayesopt.svg
 :name: fig-bayesopt
@@ -98,14 +98,15 @@ where $\Phi$ and $\phi$ are the standard normal CDF and PDF, respectively {cite:
 Bayesian optimization in one dimension; the same setup is reproduced in the companion notebook. *Top:* after five evaluations (black dots), the GP posterior mean $\bar f(h)$ (solid blue) interpolates the observations and the $\bar f(h) \pm 2\sigma_f(h)$ credible band (shaded) pinches to zero at each observation and widens in the gaps; this is the picture predicted by {eq}`eq-nas_gp_mean`--{eq}`eq-nas_gp_var`. The dashed red curve is the (in practice unknown) true loss; the horizontal grey line marks $\ell^\star$, the best observation so far (near $h\approx 2.3$). *Bottom:* Expected Improvement $\mathrm{EI}(h)$ is essentially zero at the existing data, where there is nothing to learn, rises in the unexplored gaps, and peaks at $h \approx 3.75$, which combines a predicted mean already below $\ell^\star$ with substantial residual uncertainty. The maximizer (red arrow) is selected as the next configuration to evaluate; EI thus balances exploitation against exploration automatically, and here it steers the search at the neighborhood of the hidden true minimum.
 ```
 
-```{prf:definition}
+```{prf:definition} Bayesian Optimization with Expected Improvement
 
 - **Input:** initial design $\mathcal{D}_{n_0} = \{(\bm{h}_i, \ell_i)\}_{i=1}^{n_0}$, total budget $N$
-- for $n = n_0, n_0+1, \ldots, N-1$:
-  - Fit the GP posterior $(\bar{f}, \sigma_f)$ to $\mathcal{D}_n$ using \eqref{eq:nas_gp_mean}--\eqref{eq:nas_gp_var}
+- for $n = n_0, n_0+1, \ldots, N-1$ do
+  - Fit the GP posterior $(\bar{f}, \sigma_f)$ to $\mathcal{D}_n$ using {eq}`eq-nas_gp_mean`--{eq}`eq-nas_gp_var`
   - Evaluate $\mathrm{EI}(\bm{h})$ on a fine candidate grid (or via a local optimizer) over the search space
   - Select $\bm{h}_{n+1} = \arg\max_{\bm{h}} \mathrm{EI}(\bm{h})$
   - Evaluate the validation loss $\ell_{n+1} = \ell(\bm{h}_{n+1})$ and append to $\mathcal{D}_{n+1} = \mathcal{D}_n \cup \{(\bm{h}_{n+1}, \ell_{n+1})\}$
+- end
 - **Output:** best observed configuration $\arg\min_i \ell_i$
 ```
 
@@ -116,19 +117,20 @@ Bayesian optimization in one dimension; the same setup is reproduced in the comp
 
 The Successive Halving Algorithm (SHA) turns this observation into a concrete schedule. Start with $n_0$ configurations, give each a small initial budget of $r_0$ epochs, train, then keep only the top $1/\eta$ fraction of survivors and multiply the per-candidate budget by $\eta$ for the next round. Two facts about this schedule do most of the explanatory work below. First, the per-round compute is approximately constant: round $s$ runs $n_s$ survivors for $r_s$ epochs each, and the rule "$\eta\times$ fewer candidates at $\eta\times$ the budget" keeps the product $n_s r_s$ fixed. Second, the cumulative cost across the cascade therefore scales with the *number of rounds* rather than with the worst-case "train every candidate to the final budget" benchmark. Both points are made concrete in the worked example that follows the pseudocode.
 
-```{prf:definition}
+```{prf:definition} Successive Halving Algorithm
 
 - **Input:** initial candidates $n_0$, initial per-candidate budget $r_0$ (epochs), reduction factor $\eta = 3$
 - Draw a set $S_0$ of $n_0$ configurations from the search space
-- for round $s = 0, 1, \ldots, \lceil\log_\eta n_0\rceil - 1$:
+- for round $s = 0, 1, \ldots, \lceil\log_\eta n_0\rceil - 1$ do
   - Train each of the $n_s$ survivors in $S_s$ for $r_s$ epochs and record their validation losses
   - Keep the top $1/\eta$ fraction of $S_s$ to form $S_{s+1}$
   - Set $n_{s+1} = \lceil n_s / \eta \rceil$ and $r_{s+1} = \eta\, r_s$
+- end
 - **Output:** best surviving configuration
 ```
 
 
-To see the per-round invariant on a concrete schedule, take $n_0 = 81$, $r_0 = r$, and $\eta = 3$. Round 0 trains all 81 candidates for $r$ epochs and keeps the top 27; round 1 trains those 27 for $3r$ epochs and keeps the top 9; round 2 trains the 9 for $9r$ and keeps 3; round 3 trains those 3 for $27r$ and selects the winner. At each round the round-level compute is $n_s\, r_s = 81\,r$ (the $1/3$ shrink in survivors is exactly offset by the $3\times$ growth in budget), so the four rounds together cost $4 \cdot 81\,r = 324\,r$, equivalent to four full $R = 81r$-epoch training runs rather than the $81$ that naive parallel evaluation would require. Figure {numref}`fig-hyperband` visualizes this resource-allocation cascade.
+To see the per-round invariant on a concrete schedule, take $n_0 = 81$, $r_0 = r$, and $\eta = 3$. Round 0 trains all 81 candidates for $r$ epochs and keeps the top 27; round 1 trains those 27 for $3r$ epochs and keeps the top 9; round 2 trains the 9 for $9r$ and keeps 3; round 3 trains those 3 for $27r$ and selects the winner. At each round the round-level compute is $n_s\, r_s = 81\,r$ (the $1/3$ shrink in survivors is exactly offset by the $3\times$ growth in budget), so the four rounds together cost $4 \cdot 81\,r = 324\,r$, equivalent to four full $R = 81r$-epoch training runs rather than the $81$ that naive parallel evaluation would require. {numref}`fig-hyperband` visualizes this resource-allocation cascade.
 
 ```{figure} figures/fig-hyperband.svg
 :name: fig-hyperband
@@ -136,7 +138,7 @@ To see the per-round invariant on a concrete schedule, take $n_0 = 81$, $r_0 = r
 Successive Halving with 81 initial candidates and reduction factor $\eta = 3$. Each round trains the surviving configurations for $\eta$ times the previous budget, then discards the bottom $(1-1/\eta)$ fraction. Total compute per bracket is only $\mathcal{O}(B)$ rather than $\mathcal{O}(nB)$ for training every candidate to completion. Hyperband runs several such brackets in parallel with different $(n,r)$ trade-offs to hedge against unknown early-vs-late performance correlations {cite:p}`li2018hyperband`.
 ```
 
-Hyperband extends SHA by running not one but several SHA cascades, each starting from a different trade-off between the number of candidates and the per-candidate initial budget; the intuition is hedging. A bracket that starts with many cheap candidates (large $s$) is well suited to problems where the eventual winner reveals itself early, while a bracket that starts with fewer well-trained candidates (small $s$) is better when ranks shuffle late in training, and Hyperband simply runs both kinds. The cascade shown in Figure {numref}`fig-hyperband`, $(81,1) \to (27,3) \to (9,9) \to (3,27) \to (1,81)$, is the most exploratory of the brackets ($s = s_{\max} = 4$); Table {numref}`tab-hyperband_brackets` unrolls the full canonical schedule for maximum resource $R = 81$ and reduction factor $\eta = 3$.
+Hyperband extends SHA by running not one but several SHA cascades, each starting from a different trade-off between the number of candidates and the per-candidate initial budget; the intuition is hedging. A bracket that starts with many cheap candidates (large $s$) is well suited to problems where the eventual winner reveals itself early, while a bracket that starts with fewer well-trained candidates (small $s$) is better when ranks shuffle late in training, and Hyperband simply runs both kinds. The cascade shown in {numref}`fig-hyperband`, $(81,1) \to (27,3) \to (9,9) \to (3,27) \to (1,81)$, is the most exploratory of the brackets ($s = s_{\max} = 4$); {numref}`tab-hyperband_brackets` unrolls the full canonical schedule for maximum resource $R = 81$ and reduction factor $\eta = 3$.
 
 ````{table}
 :name: tab-hyperband_brackets
@@ -152,11 +154,11 @@ Hyperband bracket schedule for $R = 81$, $\eta = 3$, following Table 1 of {cite
 | $0$ | $(5, 81)$ | $5$@$81$ | $5R$ |
 ````
 
-The companion notebook `03_NAS_RandomSearch_Hyperband.ipynb` implements the SHA inner loop only; the full Hyperband schedule is a straightforward outer loop that iterates this inner loop across the five $(n_s, r_s)$ starting points in Table {numref}`tab-hyperband_brackets`.
+The companion notebook `03_NAS_RandomSearch_Hyperband.ipynb` implements the SHA inner loop only; the full Hyperband schedule is a straightforward outer loop that iterates this inner loop across the five $(n_s, r_s)$ starting points in {numref}`tab-hyperband_brackets`.
 
 ## Method Comparison
 
-Table {numref}`tab-nas_methods` contrasts the four hyperparameter-search strategies covered above on three dimensions that matter in practice: the cost of $N$ objective evaluations, the degree to which the evaluations can be parallelised, and the sample efficiency (how much of the budget actually improves the best-so-far value).
+{numref}`tab-nas_methods` contrasts the four hyperparameter-search strategies covered above on three dimensions that matter in practice: the cost of $N$ objective evaluations, the degree to which the evaluations can be parallelised, and the sample efficiency (how much of the budget actually improves the best-so-far value).
 
 ````{table}
 :name: tab-nas_methods
@@ -261,7 +263,7 @@ w_k^{(t)} =
 + (1-\alpha)\, \hat{w}_{k,\mathrm{step}}^{(t)},
 $$ (eq-relobralo_full)
 
-where $\alpha \in [0,1]$ is a smoothing parameter controlling how much to trust historical weights versus the current step-wise signal, and $\rho \in [0,1]$ is a baseline-mix coefficient controlling the relative importance of the previous weights versus the initial-loss comparison. Equivalently, $w_k^{(t)}$ is a convex combination of $\{w_k^{(t-1)}, \hat{w}_{k,\mathrm{base}}^{(t)}, \hat{w}_{k,\mathrm{step}}^{(t)}\}$ with mixture weights $(\alpha\rho,\, \alpha(1-\rho),\, 1-\alpha)$, which sum to 1. (In the original ReLoBRaLo formulation, $\rho$ governs a stochastic Bernoulli lookback mechanism; here and in the notebooks we use a deterministic convex blend, which is simpler and easier to reproduce.) Typical values are collected in Table {numref}`tab-relobralo_hp`.
+where $\alpha \in [0,1]$ is a smoothing parameter controlling how much to trust historical weights versus the current step-wise signal, and $\rho \in [0,1]$ is a baseline-mix coefficient controlling the relative importance of the previous weights versus the initial-loss comparison. Equivalently, $w_k^{(t)}$ is a convex combination of $\{w_k^{(t-1)}, \hat{w}_{k,\mathrm{base}}^{(t)}, \hat{w}_{k,\mathrm{step}}^{(t)}\}$ with mixture weights $(\alpha\rho,\, \alpha(1-\rho),\, 1-\alpha)$, which sum to 1. (In the original ReLoBRaLo formulation, $\rho$ governs a stochastic Bernoulli lookback mechanism; here and in the notebooks we use a deterministic convex blend, which is simpler and easier to reproduce.) Typical values are collected in {numref}`tab-relobralo_hp`.
 
 ````{table}
 :name: tab-relobralo_hp
@@ -285,7 +287,7 @@ An alternative approach proposed by {cite:t}`chen2018gradnorm` directly normaliz
 *Stylized* sketch of the multi-component loss-scale problem, drawn to mimic what one typically sees early in a two-country IRBC training run; this is *not* measured data. The three curves are hand-picked exponentials $a_k\,e^{-t/\tau_k}$ (with $a_1{=}50,\tau_1{=}150$; $a_2{=}0.5,\tau_2{=}750$; $a_3{=}5,\tau_3{=}200$), chosen only to make the mechanism visible: at initialization the residuals differ by about two orders of magnitude, and under *uniform* weighting the optimizer drives the largest component $\ell_1$ (blue) down fastest because it dominates the summed gradient, while the smaller-scale but equally important country-2 Euler residual $\ell_2$ (red) decays roughly five times more slowly and is left all but flat next to the others. Adaptive loss balancing such as ReLoBRaLo re-weights the components so that all three decrease at comparable rates. For the *actual* recorded trajectories on this problem, see the companion notebook `04_Loss_Normalization.ipynb`.
 ```
 
-Figure {numref}`fig-multi_component_loss` illustrates the typical behavior: without adaptive reweighting, the optimizer focuses almost exclusively on $\ell_1$ (the largest component), allowing $\ell_2$ to stagnate; with adaptive loss balancing (e.g., ReLoBRaLo, GradNorm), all components converge at comparable rates. As a concrete reference, an unweighted run of the two-country IRBC training loop in the companion notebook typically prints something like the trace below (numbers indicative, seed-dependent):
+{numref}`fig-multi_component_loss` illustrates the typical behavior: without adaptive reweighting, the optimizer focuses almost exclusively on $\ell_1$ (the largest component), allowing $\ell_2$ to stagnate; with adaptive loss balancing (e.g., ReLoBRaLo, GradNorm), all components converge at comparable rates. As a concrete reference, an unweighted run of the two-country IRBC training loop in the companion notebook typically prints something like the trace below (numbers indicative, seed-dependent):
 
 ```{code-block} text
 :name: lst-irbc_residual_trace
@@ -299,7 +301,7 @@ The pathology is immediate: $\ell_1$ drops four orders of magnitude while $\ell_
 
 ### Summary of Balancing Methods
 
-Table {numref}`tab-balancing_methods` compares the four balancing strategies on the two dimensions that reliably matter in practice: runtime overhead per step and the number of hyperparameters the user must set.
+{numref}`tab-balancing_methods` compares the four balancing strategies on the two dimensions that reliably matter in practice: runtime overhead per step and the number of hyperparameters the user must set.
 
 ````{table}
 :name: tab-balancing_methods
@@ -319,9 +321,9 @@ Summary of adaptive loss-balancing methods. Overhead is a per-step wall-clock co
 
 Quantitative speedup claims depend on the specific problem (PDE vs. Euler residual, number of components, imbalance ratio), the baseline (uniform vs. manually tuned), and the success criterion. The companion notebook `04_Loss_Normalization.ipynb` runs the four methods on a shared multi-scale regression task so that the reader can generate problem-specific numbers rather than rely on headline speedup factors from unrelated benchmarks.
 
-```{prf:remark}
+```{prf:remark} Practical guidance
 
-When implementing ReLoBRaLo:
+ When implementing ReLoBRaLo:
 
 - Set $T \in [0.5, 2.0]$; higher values yield more uniform weighting. In the limit, $T \to 0$ approximates a winner-take-all scheme that concentrates all weight on the single most-lagging component, while $T \to \infty$ recovers uniform weighting regardless of loss dynamics.
 
@@ -335,7 +337,7 @@ When implementing ReLoBRaLo:
 ```
 
 
-```{prf:remark}
+```{prf:remark} Chapter Summary
 
 - Architecture and hyperparameter choice are first-order: random search dominates grid search whenever only a few hyperparameters matter, and Bayesian optimization dominates random search whenever each evaluation is expensive.
 

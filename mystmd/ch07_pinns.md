@@ -9,7 +9,7 @@ Chapters {ref}`ch-deqn`--{ref}`ch-young` operated in discrete time, where the e
 
 Many frontier models in macroeconomics and finance are written in continuous time. Examples include Hamilton--Jacobi--Bellman (HJB) equations for optimal control, Kolmogorov forward equations for wealth distributions, and Black--Scholes PDEs for asset pricing. The DEQN methodology from Chapters {ref}`ch-deqn`--{ref}`ch-irbc` handles discrete-time equilibrium conditions. Its continuous-time analogue relies on derivatives of the network with respect to its inputs, which automatic differentiation provides directly.
 
-The resulting framework, known as *Physics-Informed Neural Networks* (PINNs), was introduced by {cite:t}`raissi2019physics`. In economics and finance, continuous-time models governed by HJB and related PDEs arise naturally in asset pricing under climate uncertainty {cite:p}`barnett2020pricing`, portfolio choice {cite:p}`duarte2024ml`, and heterogeneous-agent economies with aggregate shocks {cite:p}`gopalakrishna2024aliens`. {cite:t}`duarte2024ml` apply machine-learning methods to continuous-time finance problems, while {cite:t}`gopalakrishna2024aliens` develops the ALIENs framework for solving continuous-time economies with deep learning. PINNs provide a natural and scalable computational framework for such problems. Figure {numref}`fig-deqn_pinn_comparison` summarizes the discrete-time DEQN template and its continuous-time PINN analogue.
+The resulting framework, known as *Physics-Informed Neural Networks* (PINNs), was introduced by {cite:t}`raissi2019physics`. In economics and finance, continuous-time models governed by HJB and related PDEs arise naturally in asset pricing under climate uncertainty {cite:p}`barnett2020pricing`, portfolio choice {cite:p}`duarte2024ml`, and heterogeneous-agent economies with aggregate shocks {cite:p}`gopalakrishna2024aliens`. {cite:t}`duarte2024ml` apply machine-learning methods to continuous-time finance problems, while {cite:t}`gopalakrishna2024aliens` develops the ALIENs framework for solving continuous-time economies with deep learning. PINNs provide a natural and scalable computational framework for such problems. {numref}`fig-deqn_pinn_comparison` summarizes the discrete-time DEQN template and its continuous-time PINN analogue.
 
 ```{figure} figures/fig-deqn_pinn_comparison.svg
 :name: fig-deqn_pinn_comparison
@@ -39,9 +39,9 @@ The derivatives appearing in $\mathcal{D}[\mathcal{N}_\theta]$ are computed algo
 
 The choice of activation function is particularly important for classical *strong-form* PINNs that compute high-order derivatives via automatic differentiation. If the PDE operator $\mathcal{D}$ involves $k$-th order derivatives, the network's activation function must be at least $C^k$ for the strong residual to be well-defined. $\mathrm{ReLU}(z) = \max(0,z)$ is only $C^0$ and its second derivative is zero almost everywhere (and undefined at the kink), so a ReLU network is not suitable for the strong form of a second-order PDE. For second-order PDEs (HJB, Black--Scholes, Poisson), one should use $C^\infty$ activations such as $\tanh$, Swish, or softplus. This requirement stands in contrast to the supervised setting, where ReLU is the default. The trade-off is real: smooth saturating activations propagate gradients more slowly than ReLU on the same architecture (the upper plateau of $\tanh$ has near-zero slope), so PINNs typically need wider networks or more iterations to reach the same training loss as a comparable supervised ReLU network. In practice this is the price of having well-defined second derivatives. Note that the limitation is specific to strong-form auto-differentiation PINNs: weak/variational formulations and methods that handle nonsmooth solutions explicitly can still use ReLU activations, since high-order derivatives never need to be differentiated point-wise. More broadly, PINN optimization can suffer from gradient pathologies across loss terms, which is why adaptive loss balancing is often beneficial {cite:p}`wang2021understanding,bischof2025relobralo`.
 
-```{prf:remark}
+```{prf:remark} Framework choice: PyTorch vs. TensorFlow
 
-The PINN notebooks use PyTorch, whereas the DEQN code (Chapters {ref}`ch-deqn`--{ref}`ch-irbc`) uses TensorFlow. This is a practical implementation choice rather than a mathematical one: PINNs repeatedly differentiate the network with respect to its *inputs* (e.g., $V_{SS}$ in the Black--Scholes PDE), and PyTorch's eager-mode `autograd` makes those higher-order derivatives easy to compose. TensorFlow remains a natural fit for the DEQN training loop already used earlier in the course. The underlying mathematics is identical in both frameworks: a PINN written here in PyTorch can be ported to TensorFlow line-for-line by replacing `torch.autograd.grad` with `tf.GradientTape` (one tape per derivative order, since TF tapes are by default not persistent), and `torch.compile` with `tf.function`.
+ The PINN notebooks use PyTorch, whereas the DEQN code (Chapters {ref}`ch-deqn`--{ref}`ch-irbc`) uses TensorFlow. This is a practical implementation choice rather than a mathematical one: PINNs repeatedly differentiate the network with respect to its *inputs* (e.g., $V_{SS}$ in the Black--Scholes PDE), and PyTorch's eager-mode `autograd` makes those higher-order derivatives easy to compose. TensorFlow remains a natural fit for the DEQN training loop already used earlier in the course. The underlying mathematics is identical in both frameworks: a PINN written here in PyTorch can be ported to TensorFlow line-for-line by replacing `torch.autograd.grad` with `tf.GradientTape` (one tape per derivative order, since TF tapes are by default not persistent), and `torch.compile` with `tf.function`.
 ```
 
 
@@ -68,9 +68,9 @@ $$ (eq-1d_ode_soft_loss)
 
 with collocation points $x_i$ drawn uniformly from $(0,1)$ and a weight $\lambda>0$ on the boundary term. Building the boundary conditions directly into the network output instead -- the *hard* enforcement alternative, which removes the $\lambda$ term entirely -- is taken up in {ref}`sec-bc_soft_hard`.
 
-```{prf:remark}
+```{prf:remark} Collocation strategies
 
-Uniform random sampling is the simplest collocation strategy but not necessarily the most efficient. Alternatives include low-discrepancy Sobol sequences {cite:p}`sobol1967distribution`; Latin Hypercube Sampling {cite:p}`mckay1979comparison`, which provides better space coverage; other quasi-Monte Carlo points {cite:p}`niederreiter1992random,owen1995randomly`, which fill the domain more evenly; and residual-based adaptive refinement {cite:p}`lu2021deepxde`, which concentrates points in regions where the current PDE residual is largest. For most applications in this course, uniform or LHS sampling is sufficient, but adaptive refinement can be beneficial for PDEs with sharp gradients, boundary layers, and near payoff discontinuities (e.g., the kink at $S = K$ in Black--Scholes). *Mini-batch sizes.* Per-step collocation batches are typically $32$--$256$ points in low-dimensional problems and $512$--$4096$ when the input dimension or interaction-order grows; the right number is the largest that fits comfortably in GPU memory together with the AD graph for the highest-order derivative needed. All companion notebooks make this an explicit hyperparameter near the top of the training cell.
+ Uniform random sampling is the simplest collocation strategy but not necessarily the most efficient. Alternatives include low-discrepancy Sobol sequences {cite:p}`sobol1967distribution`; Latin Hypercube Sampling {cite:p}`mckay1979comparison`, which provides better space coverage; other quasi-Monte Carlo points {cite:p}`niederreiter1992random,owen1995randomly`, which fill the domain more evenly; and residual-based adaptive refinement {cite:p}`lu2021deepxde`, which concentrates points in regions where the current PDE residual is largest. For most applications in this course, uniform or LHS sampling is sufficient, but adaptive refinement can be beneficial for PDEs with sharp gradients, boundary layers, and near payoff discontinuities (e.g., the kink at $S = K$ in Black--Scholes). *Mini-batch sizes.* Per-step collocation batches are typically $32$--$256$ points in low-dimensional problems and $512$--$4096$ when the input dimension or interaction-order grows; the right number is the largest that fits comfortably in GPU memory together with the AD graph for the highest-order derivative needed. All companion notebooks make this an explicit hyperparameter near the top of the training cell.
 ```
 
 
@@ -80,7 +80,7 @@ Uniform random sampling is the simplest collocation strategy but not necessarily
 PINN solution of the 1D ODE $y''=-1$ on $(0,1)$ with $y(0)=y(1)=0$ and the soft-penalty loss {eq}`eq-1d_ode_soft_loss`. The analytical solution $\tfrac12 x(1-x)$ (solid blue) is recovered to plotting accuracy by the converged network (dotted green); the dashed red curve illustrates a typical early-training iterate, which still misses the endpoints because the boundary penalty is enforced only approximately. Tick marks on the $x$-axis are the uniformly drawn collocation points. The curves above are TikZ illustrations rather than direct exports. Notebook `lecture_11_01_ODE_PINN_ZeroBCs` runs exactly this experiment; notebook `lecture_11_02_ODE_PINN_SoftVsHardBCs` then contrasts the soft penalty against the hard trial-solution construction of {ref}`sec-bc_soft_hard` on a non-zero-BC variant.
 ```
 
-Figure {numref}`fig-pinn_1d_ode_soft` shows this calculation graphically. This simple example illustrates the key ingredients of every PINN: (i) a neural network that approximates the unknown function, (ii) automatic differentiation to compute derivatives, (iii) a loss function built from the PDE residual (plus, here, a boundary penalty), and (iv) collocation points sampled from the domain interior. The same machinery extends directly to PDEs in two or more dimensions, as we demonstrate in the following applications.
+{numref}`fig-pinn_1d_ode_soft` shows this calculation graphically. This simple example illustrates the key ingredients of every PINN: (i) a neural network that approximates the unknown function, (ii) automatic differentiation to compute derivatives, (iii) a loss function built from the PDE residual (plus, here, a boundary penalty), and (iv) collocation points sampled from the domain interior. The same machinery extends directly to PDEs in two or more dimensions, as we demonstrate in the following applications.
 
 (sec-bc_soft_hard)=
 ## Boundary Conditions: Soft vs. Hard Enforcement
@@ -88,7 +88,7 @@ The treatment of boundary conditions is a critical design choice in PINNs.
 
 ##### Soft enforcement.
 
-Boundary conditions are penalized as an additional loss term, weighted by $\lambda$. The difficulty is that $\lambda$ must be tuned: too small and the BCs are violated; too large and the optimizer ignores the PDE interior. Figure {numref}`fig-soft_bc_failure_modes` sketches the two failure modes and the compromise regime in between.
+Boundary conditions are penalized as an additional loss term, weighted by $\lambda$. The difficulty is that $\lambda$ must be tuned: too small and the BCs are violated; too large and the optimizer ignores the PDE interior. {numref}`fig-soft_bc_failure_modes` sketches the two failure modes and the compromise regime in between.
 
 ```{figure} figures/fig-soft_bc_failure_modes.svg
 :name: fig-soft_bc_failure_modes
@@ -104,7 +104,7 @@ $$
 \hat{y}(x) = A(x) + B(x) \cdot \mathcal{N}_\theta(x),
 $$ (eq-trial)
 
-where $A(x)$ is an anchor function satisfying the BCs exactly, and $B(x)$ is a mask function that vanishes at the boundary. For Dirichlet BCs $\hat{y}(0) = a$, $\hat{y}(1) = b$, one may choose $A(x) = a + (b-a)x$ and $B(x) = x(1-x)$. Figure {numref}`fig-trial_solution_decomposition` visualizes this anchor-plus-mask decomposition for non-zero endpoint data.
+where $A(x)$ is an anchor function satisfying the BCs exactly, and $B(x)$ is a mask function that vanishes at the boundary. For Dirichlet BCs $\hat{y}(0) = a$, $\hat{y}(1) = b$, one may choose $A(x) = a + (b-a)x$ and $B(x) = x(1-x)$. {numref}`fig-trial_solution_decomposition` visualizes this anchor-plus-mask decomposition for non-zero endpoint data.
 
 ```{figure} figures/fig-trial_solution_decomposition.svg
 :name: fig-trial_solution_decomposition
@@ -130,7 +130,7 @@ which has the anchor-plus-mask form {eq}`eq-trial`: the anchor $A$ matches the 
 PINN solution of the 1D ODE $y''+y=0$ on $[0,\pi/2]$ with the hard-BC trial solution {eq}`eq-1d_ode_trial`. The analytical solution $\sin(x)$ (solid blue) is recovered to plotting accuracy by the converged network (dotted green); the dashed red curve illustrates a typical early-training iterate. Tick marks on the $x$-axis are the uniformly drawn collocation points. The curves above are TikZ illustrations rather than direct exports. Notebook `lecture_11_02_ODE_PINN_SoftVsHardBCs` contrasts this hard-trial-solution construction with the soft-penalty alternative on a non-zero-BC variant.
 ```
 
-Figure {numref}`fig-pinn_1d_ode` confirms that the converged trial solution recovers $\sin x$ to plotting accuracy, with the boundary values exact by construction; contrast the early-training iterate of Figure {numref}`fig-pinn_1d_ode_soft`, which still misses the endpoints under the soft penalty.
+{numref}`fig-pinn_1d_ode` confirms that the converged trial solution recovers $\sin x$ to plotting accuracy, with the boundary values exact by construction; contrast the early-training iterate of {numref}`fig-pinn_1d_ode_soft`, which still misses the endpoints under the soft penalty.
 
 ##### Transfinite interpolation for 2D domains.
 
@@ -168,9 +168,9 @@ $$
 
 On any boundary edge, $B=0$ and $\hat{u}$ reduces to $A$, which matches the prescribed data. In the interior, $B > 0$ and the network $\mathcal{N}_\theta$ is free to learn whatever shape is needed to satisfy the PDE. This construction satisfies all four Dirichlet conditions exactly for *any* network output $\mathcal{N}_\theta$.
 
-```{prf:remark}
+```{prf:remark} When to use hard vs. soft BCs
 
-**Hard enforcement** is preferred whenever a valid trial solution can be constructed analytically, which is the case for most standard boundary value problems in economics (e.g., Dirichlet conditions on finite domains). **Soft enforcement** is necessary when the boundary conditions are complicated (e.g., free-boundary problems, state-dependent constraints) or when the domain geometry makes it difficult to construct the mask function $B(x)$. In practice, hard enforcement typically improves accuracy by 1--2 orders of magnitude near the boundaries.
+ **Hard enforcement** is preferred whenever a valid trial solution can be constructed analytically, which is the case for most standard boundary value problems in economics (e.g., Dirichlet conditions on finite domains). **Soft enforcement** is necessary when the boundary conditions are complicated (e.g., free-boundary problems, state-dependent constraints) or when the domain geometry makes it difficult to construct the mask function $B(x)$. In practice, hard enforcement typically improves accuracy by 1--2 orders of magnitude near the boundaries.
 ```
 
 
@@ -186,7 +186,7 @@ with manufactured solution $u^\star(x,y) = x^2 + y + \sin(\pi x)\sin(\pi y)$, yi
 
 ## Common PINN Failure Modes and Remedies
 
-In practice, PINN training often fails for optimization reasons rather than approximation capacity. Table {numref}`tab-pinn_failure_modes` lists the most common pathologies and practical remedies.
+In practice, PINN training often fails for optimization reasons rather than approximation capacity. {numref}`tab-pinn_failure_modes` lists the most common pathologies and practical remedies.
 
 ````{table}
 :name: tab-pinn_failure_modes
@@ -209,7 +209,7 @@ For the course applications, a robust default stack is: smooth activation ($\tan
 
 ## The Deep Galerkin Method (DGM) Architecture
 
-The plain MLP used in the examples so far -- and, below, for the cake-eating HJB -- is sufficient for low-dimensional PDEs with smooth solutions, but its expressive bottleneck shows up in two regimes: (i) genuinely high-dimensional state spaces (where curse-of-dimensionality effects compound across layers), and (ii) PDEs with sharp internal features such as boundary layers, wave fronts, or kinks at policy switches. The Deep Galerkin Method addresses both by adding LSTM-style gates and skip connections from the input to every layer, so that the network can carry input information forward unchanged through depth and route it past intermediate transformations. In the 1D problems studied so far, an MLP and a DGM block train to comparable accuracy and the MLP is preferred for transparency; the architectural complexity pays off as dimension grows or sharp features appear. Table {numref}`tab-mlp_vs_dgm` gives a qualitative comparison across the problem classes treated in this chapter; the chapter's exercises invite a concrete benchmark of the two architectures on the same PDE.
+The plain MLP used in the examples so far -- and, below, for the cake-eating HJB -- is sufficient for low-dimensional PDEs with smooth solutions, but its expressive bottleneck shows up in two regimes: (i) genuinely high-dimensional state spaces (where curse-of-dimensionality effects compound across layers), and (ii) PDEs with sharp internal features such as boundary layers, wave fronts, or kinks at policy switches. The Deep Galerkin Method addresses both by adding LSTM-style gates and skip connections from the input to every layer, so that the network can carry input information forward unchanged through depth and route it past intermediate transformations. In the 1D problems studied so far, an MLP and a DGM block train to comparable accuracy and the MLP is preferred for transparency; the architectural complexity pays off as dimension grows or sharp features appear. {numref}`tab-mlp_vs_dgm` gives a qualitative comparison across the problem classes treated in this chapter; the chapter's exercises invite a concrete benchmark of the two architectures on the same PDE.
 
 ````{table}
 :name: tab-mlp_vs_dgm
@@ -242,7 +242,7 @@ $$
 \a^{(l)} = (1 - G^{(l)}) \odot H^{(l)} + Z^{(l)} \odot \a^{(l-1)}.
 $$
 
-Note that this formulation uses two separate gates: $Z^{(l)}$ controls how much of the previous state $\a^{(l-1)}$ to retain, while $(1 - G^{(l)})$ scales the new candidate $H^{(l)}$. Because $Z$ and $G$ are independent in the original Sirignano--Spiliopoulos formulation, the two coefficients need not sum to one. A simpler GRU-style variant {cite:p}`cho2014gru` collapses the two gates into a single convex combination $\a^{(l)} = (1-G) \odot \a^{(l-1)} + G \odot H$, where the coefficients sum to one; in practice, both variants perform comparably on the PDE benchmarks in this course. The gate $R^{(l)}$ controls which parts of the previous state are relevant for computing the candidate $H^{(l)}$. The gate naming convention $(Z,G,R,H)$ used here follows {cite:t}`al2018solving`; in GRU terminology, $Z$ corresponds to the update gate and $R$ to the reset gate. The input $\x$ enters every layer through the $\bm{U}$ matrices, providing skip connections that ensure input information is available at every depth. This gating mechanism, directly analogous to LSTM recurrent networks, helps the DGM architecture learn functions that depend sensitively on the input coordinates, a common feature of PDE solutions near boundary layers. Figure {numref}`fig-dgm_architecture` shows the resulting feed-forward architecture.
+Note that this formulation uses two separate gates: $Z^{(l)}$ controls how much of the previous state $\a^{(l-1)}$ to retain, while $(1 - G^{(l)})$ scales the new candidate $H^{(l)}$. Because $Z$ and $G$ are independent in the original Sirignano--Spiliopoulos formulation, the two coefficients need not sum to one. A simpler GRU-style variant {cite:p}`cho2014gru` collapses the two gates into a single convex combination $\a^{(l)} = (1-G) \odot \a^{(l-1)} + G \odot H$, where the coefficients sum to one; in practice, both variants perform comparably on the PDE benchmarks in this course. The gate $R^{(l)}$ controls which parts of the previous state are relevant for computing the candidate $H^{(l)}$. The gate naming convention $(Z,G,R,H)$ used here follows {cite:t}`al2018solving`; in GRU terminology, $Z$ corresponds to the update gate and $R$ to the reset gate. The input $\x$ enters every layer through the $\bm{U}$ matrices, providing skip connections that ensure input information is available at every depth. This gating mechanism, directly analogous to LSTM recurrent networks, helps the DGM architecture learn functions that depend sensitively on the input coordinates, a common feature of PDE solutions near boundary layers. {numref}`fig-dgm_architecture` shows the resulting feed-forward architecture.
 
 ```{figure} figures/fig-dgm_architecture.svg
 :name: fig-dgm_architecture
@@ -256,9 +256,9 @@ The PINN framework applies uniformly to both *stationary* PDEs, where the unknow
 
 (sec-cake_eating_hjb)=
 ## Application: HJB Equation and the Cake-Eating Problem
-```{prf:remark}
+```{prf:remark} Notation: $\gamma$ as CRRA
 
-In this section, $\gamma$ denotes the coefficient of relative risk aversion (CRRA), with utility $c^{1-\gamma}/(1-\gamma)$. This convention differs from Chapter {ref}`ch-irbc`, where $\gamma_j$ denotes the intertemporal elasticity of substitution (IES $= 1/\text{CRRA}$). Both conventions are standard in their respective literatures.
+ In this section, $\gamma$ denotes the coefficient of relative risk aversion (CRRA), with utility $c^{1-\gamma}/(1-\gamma)$. This convention differs from Chapter {ref}`ch-irbc`, where $\gamma_j$ denotes the intertemporal elasticity of substitution (IES $= 1/\text{CRRA}$). Both conventions are standard in their respective literatures.
 ```
 
 
@@ -297,9 +297,9 @@ $$
 V\!\bigl(a + (ra - c)\,\Delta t\bigr) \approx V(a) + V'(a)\,(ra - c)\,\Delta t.
 $$ (eq-cake_expand_V)
 
-```{prf:remark}
+```{prf:remark} Where the upwind scheme comes from
 
-The expansion {eq}`eq-cake_expand_V` silently assumes that $V$ is differentiable at $a$. When $V$ has a kink, a common feature of HJB solutions, e.g. at borrowing constraints or policy-switching points, the expansion still holds, but $V'(a)$ must be replaced by the appropriate *one-sided* derivative chosen by the sign of the drift $(ra-c)$. This is exactly the origin of the upwind scheme used in finite-difference HJB solvers: the side of the derivative is selected to follow information flow. PINNs that minimize the strong-form residual implicitly demand two-sided differentiability and therefore tend to over-smooth genuine kinks, one of the mechanisms behind the oscillatory failure mode in Table {numref}`tab-pinn_failure_modes`.
+ The expansion {eq}`eq-cake_expand_V` silently assumes that $V$ is differentiable at $a$. When $V$ has a kink, a common feature of HJB solutions, e.g. at borrowing constraints or policy-switching points, the expansion still holds, but $V'(a)$ must be replaced by the appropriate *one-sided* derivative chosen by the sign of the drift $(ra-c)$. This is exactly the origin of the upwind scheme used in finite-difference HJB solvers: the side of the derivative is selected to follow information flow. PINNs that minimize the strong-form residual implicitly demand two-sided differentiability and therefore tend to over-smooth genuine kinks, one of the mechanisms behind the oscillatory failure mode in {numref}`tab-pinn_failure_modes`.
 ```
 
 
@@ -376,15 +376,15 @@ $$
 
 The DGM (Deep Galerkin Method) architecture of {cite:t}`sirignano2018dgm`, which provides LSTM-style gating and skip connections from the input to every hidden layer, may be used in place of the plain MLP below to improve expressivity for this type of PDE problem; the listing keeps a plain MLP for clarity. In low dimension the trial-solution MLP of notebook `lecture_11_04_Cake_Eating_HJB_PINN` typically outperforms a soft-BC DGM, because the boundary loss no longer competes with the interior residual; DGM becomes worthwhile primarily in higher dimensions or for PDEs with sharp internal features.
 
-```{prf:remark}
+```{prf:remark} Residual loss alone is not enough
 
-A small HJB residual is necessary but not sufficient for an economically meaningful solution. The same residual minimum can correspond to wildly different value-function levels when the boundary anchor is weak, and to spurious non-monotonic policies when $\hat V'(a) \le 0$ is left unpenalized. Practical safeguards used in notebook `lecture_11_04_Cake_Eating_HJB_PINN`: (i) hard-BC trial solution that fixes both endpoints exactly, removing the boundary--interior trade-off; (ii) a softplus-transformed derivative $\widetilde V_a=\operatorname{softplus}(\hat V_a)+\varepsilon$ inside the FOC inversion, eliminating the negative-derivative pathology in training; (iii) checking the implied consumption policy, the raw derivative $\hat V_a$, and the HJB residual against the closed-form benchmark. When the residual, boundary conditions, and policy diagnostics agree, the solution is also economically sensible; when only the HJB residual is small, it usually is not.
+ A small HJB residual is necessary but not sufficient for an economically meaningful solution. The same residual minimum can correspond to wildly different value-function levels when the boundary anchor is weak, and to spurious non-monotonic policies when $\hat V'(a) \le 0$ is left unpenalized. Practical safeguards used in notebook `lecture_11_04_Cake_Eating_HJB_PINN`: (i) hard-BC trial solution that fixes both endpoints exactly, removing the boundary--interior trade-off; (ii) a softplus-transformed derivative $\widetilde V_a=\operatorname{softplus}(\hat V_a)+\varepsilon$ inside the FOC inversion, eliminating the negative-derivative pathology in training; (iii) checking the implied consumption policy, the raw derivative $\hat V_a$, and the HJB residual against the closed-form benchmark. When the residual, boundary conditions, and policy diagnostics agree, the solution is also economically sensible; when only the HJB residual is small, it usually is not.
 ```
 
 
-```{prf:remark}
+```{prf:remark} Optimizer pipeline and double precision
 
-The PINN notebooks of this chapter use a two-stage pipeline: *Adam* on resampled collocation points to find a basin of attraction, then a *deterministic L-BFGS* polish on a fixed grid in float64. Two practical points are not cosmetic. First, switching collocation points each L-BFGS evaluation breaks the strong Wolfe line search; the polish requires a deterministic objective. Second, second derivatives of a $\tanh$ MLP lose substantial precision in float32, which is exactly the scale L-BFGS probes when comparing successive line-search points. FP64 is therefore a stability device, not a guarantee of machine-precision residuals: in a longer `teaching`/`production` run, the one-dimensional cake HJB reaches final HJB loss about $3\times 10^{-4}$ (the checked-in `RUN_MODE="smoke"` notebook stops well short of that), while the heterogeneous-agent examples still require residual, policy, density, and aggregate diagnostics. Recent quantitative discussions of PINN precision and floating-point limits are reviewed in the further-reading list at the end of the chapter.
+ The PINN notebooks of this chapter use a two-stage pipeline: *Adam* on resampled collocation points to find a basin of attraction, then a *deterministic L-BFGS* polish on a fixed grid in float64. Two practical points are not cosmetic. First, switching collocation points each L-BFGS evaluation breaks the strong Wolfe line search; the polish requires a deterministic objective. Second, second derivatives of a $\tanh$ MLP lose substantial precision in float32, which is exactly the scale L-BFGS probes when comparing successive line-search points. FP64 is therefore a stability device, not a guarantee of machine-precision residuals: in a longer `teaching`/`production` run, the one-dimensional cake HJB reaches final HJB loss about $3\times 10^{-4}$ (the checked-in `RUN_MODE="smoke"` notebook stops well short of that), while the heterogeneous-agent examples still require residual, policy, density, and aggregate diagnostics. Recent quantitative discussions of PINN precision and floating-point limits are reviewed in the further-reading list at the end of the chapter.
 ```
 
 
@@ -457,11 +457,11 @@ FNO parameterizes a kernel integral operator by truncating it in Fourier space a
 Operator learning generalizes PINNs by amortising over an entire parametric family of PDEs. For economic applications such as option-price surfaces over $(K,T)$, value functions across a parameter range, or HJB sweeps for sensitivity analysis (Chapter {ref}`ch-gp`), training the operator once gives instant predictions at test time.
 ```
 
-Figure {numref}`fig-operator_learning_bridge` summarizes this progression from one-instance PINNs to operator-learning architectures. In the rest of this script, we mostly stay with PINNs because the focus is on solving one model carefully; we revisit operator learning briefly in Chapter {ref}`ch-outlook` and point readers who want to amortise across an entire parametric family of PDEs to {cite:t}`lu2021learning` {cite}`li2021fourier`.
+{numref}`fig-operator_learning_bridge` summarizes this progression from one-instance PINNs to operator-learning architectures. In the rest of this script, we mostly stay with PINNs because the focus is on solving one model carefully; we revisit operator learning briefly in Chapter {ref}`ch-outlook` and point readers who want to amortise across an entire parametric family of PDEs to {cite:t}`lu2021learning` {cite}`li2021fourier`.
 
-```{prf:remark}
+```{prf:remark} Chapter Summary
 
-PINNs approximate PDE solutions by minimizing the residual at collocation points, with automatic differentiation supplying the required derivatives algorithmically up to floating-point precision {cite:p}`raissi2019physics`. Hard versus soft enforcement of boundary conditions is the central design lever: trial-function constructions of the form $\hat y = A(x) + B(x)\mathcal{N}_\theta(x)$ enforce BCs by construction, while soft penalties cover cases where hard enforcement is intractable. For second-order PDEs (HJB, Black--Scholes, Poisson) the activation must be at least $C^2$, which excludes ReLU and makes $\tanh$ and Swish the standard choices. Operator learning (DeepONet, FNO) is the natural generalization when one wants to amortise across a parametric family rather than solve one instance.
+ PINNs approximate PDE solutions by minimizing the residual at collocation points, with automatic differentiation supplying the required derivatives algorithmically up to floating-point precision {cite:p}`raissi2019physics`. Hard versus soft enforcement of boundary conditions is the central design lever: trial-function constructions of the form $\hat y = A(x) + B(x)\mathcal{N}_\theta(x)$ enforce BCs by construction, while soft penalties cover cases where hard enforcement is intractable. For second-order PDEs (HJB, Black--Scholes, Poisson) the activation must be at least $C^2$, which excludes ReLU and makes $\tanh$ and Swish the standard choices. Operator learning (DeepONet, FNO) is the natural generalization when one wants to amortise across a parametric family rather than solve one instance.
 ```
 
 

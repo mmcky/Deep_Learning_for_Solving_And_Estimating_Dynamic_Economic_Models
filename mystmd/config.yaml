@@ -66,7 +66,26 @@ figures_dir: "fig"
 # compiles via pdflatex+pdf2svg to mystmd/figures/<label>.svg) and the
 # resulting TIKZ_FIGURE_MAP is written to mystmd/tikz_overrides.py for
 # the upstream postprocess to consume.
-tikz_overrides: tikz_overrides.py
+# R18: key renamed upstream (`tikz_overrides:` is a one-release alias for the
+# Phase-5 `project_overrides:` surface, which also accepts EXTRA_REWRITES and
+# POST_CONVERT); same loader, same file.
+project_overrides: tikz_overrides.py
+
+# R18 — doubled-noun de-duplication, book-side extras. Upstream's
+# strip_doubled_noun_refs (QE#110, landed in the phases-1–6 PR) ships defaults
+# for Figure/Chapter/Theorem/… but not for this book's `tab-`/`alg-` label
+# prefixes: prose "Table~\ref{tab:x}" → "Table {numref}`tab-x`" renders as
+# "Table Table 6.1" (62 sites) and "Algorithm~\ref{alg:y}" → "Algorithm
+# {prf:ref}`alg-y`" as "Algorithm Algorithm 6.1" (4 sites), because the role
+# already auto-renders the noun. These entries extend the upstream default
+# list via the designed config surface. ('Table', 'tab-') is general enough
+# that upstream may want it as a default — proposed upstream as
+# QuantEcon/claude-latex-to-myst#131.
+doubled_noun_refs:
+  - { noun: Table,      prefix: tab- }
+  - { noun: Tables,     prefix: tab- }
+  - { noun: Algorithm,  prefix: alg- }
+  - { noun: Algorithms, prefix: alg- }
 
 # --- LaTeX pre-processing ---------------------------------------------------
 
@@ -215,36 +234,27 @@ postprocess:
     - { from: '\\protect\\texttt\{([^}]+)\}',
         to:   '`\1`' }
 
-    # R16 — Class F: undo the prose fallout of upstream commit 4b70424, which
-    # wrapped the leading @ as \texttt{{@}tf.function} ("escape @ inside texttt"
-    # for MyST-compat). That brace group is *correct* inside the algorithm boxes
-    # — there the \texttt leaks verbatim and the bare @ would make MyST misparse
-    # `[NEW: … @tf.function …]` as a parenthetical citation [@tf.function]; the
-    # `{@}` form (`@}` is not a valid citation key) suppresses that. But in
-    # flowing prose pandoc turns \texttt{{@}foo} into two *adjacent* code spans,
-    # leaving the broken token `@``foo`. The two contexts are separable after
-    # pandoc: prose carries backticks, the leaked algorithm body does not. So
-    # collapse the prose double-backtick only, leaving the box's `{@}` untouched.
-    # 2 prose occurrences in ch02 (`@tf.function`/`@jax.jit`, and
-    # `@tf.custom_gradient`). Tracked upstream as QuantEcon/claude-latex-to-myst#105;
-    # remove once that lands or the source drops the {@} wrapping.
-    - { from: '`@``',
-        to:   '`@' }
+    # R18 — Class H: escape the bracket of `**[NEW: … `@tf.function` …]**` in
+    # ch02's DEQN-training algorithm box. mystmd scans `[ … ]` bracket spans
+    # for pandoc-style citations and treats the `@tf.function` token as a
+    # citation key *even though it sits inside a backtick code span*, swallowing
+    # the whole bracket into an unresolved-cite node ("Could not link citation
+    # with label 'tf.function'") and mangling the rendered line. Escaping the
+    # opening `[` (renders as a literal bracket, identical text) stops the
+    # citation parse. One occurrence book-wide (ch02_deqns line ~118); the
+    # root cause is a mystmd parser precedence bug (code spans should shield
+    # `@` tokens from citation scanning) — filed as QuantEcon/mystmd#46.
+    - { stems: [ch02_deqns],
+        from:  '\*\*\[(NEW: wrap the per-step kernel)',
+        to:    '**\\[\1' }
 
-    # R16 — Class G: complete the issue-#14 figure fix. Upstream commit 6cdec62
-    # added PNG rasters for restud_fig11a/15a and dropped the extension from
-    # \includegraphics (\includegraphics{fig/restud_fig11a}) so MyST could pick
-    # up the PNG. The tool copies the PNG into mystmd/figures/ but emits the
-    # {figure} directive with the raw, extensionless source path `fig/restud_…`,
-    # which MyST cannot resolve ("Cannot find image fig/restud_fig11a"). Rewrite
-    # those two directives to the copied raster path. Scoped to ch11 and to the
-    # raw `fig/<name>` (extensionless) form so it never touches the figures/<…>
-    # directives the rest of the book already uses. Tracked upstream as
-    # QuantEcon/claude-latex-to-myst#104; remove once the converter resolves an
-    # extensionless \includegraphics to its copied raster.
-    - { stems: [ch11_climate],
-        from:  '^```\{figure\} fig/(\w+)$',
-        to:    '```{figure} figures/\1.png' }
+    # (R16 Class F deleted in R18: upstream #105/#106 landed — \texttt{{@}foo}
+    # now converts to a single clean code span in both prose and algorithm
+    # bodies, so the `@``-collapse rewrite no longer matched anything.)
+    # (R16 Class G deleted in R18: upstream #104 landed — extensionless
+    # \includegraphics{fig/restud_*} is now resolved to the copied raster by
+    # the converter itself; verified by reconverting ch11 with the rewrite
+    # removed.)
 
 # --- Validation -------------------------------------------------------------
 

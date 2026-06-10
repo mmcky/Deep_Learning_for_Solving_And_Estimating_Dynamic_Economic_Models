@@ -13,7 +13,9 @@ Exercises are referenced by their stable label `ex:ch`$N$`:`$M$, where $N$ is th
 
 Let $z = w_1 x + b_1$, $a = \mathrm{ReLU}(z)$, $\hat y = w_2 a$, $\ell = (\hat y - y)^2$. Reverse-mode chain rule:
 
-$$
+```{math}
+:enumerated: false
+
 \begin{aligned}
 \frac{\partial \ell}{\partial \hat y} &= 2(\hat y - y), &
 \frac{\partial \ell}{\partial w_2} &= 2(\hat y - y)\,a, \\
@@ -21,7 +23,7 @@ $$
 \frac{\partial a}{\partial z} &= \mathbb{1}[z > 0], \\
 \frac{\partial \ell}{\partial w_1} &= 2(\hat y - y)\,w_2\,\mathbb{1}[z>0]\,x.
 \end{aligned}
-$$
+```
 
 Plugging in $x=2$, $y=1$, $w_1 = w_2 = b_1 = 0.5$: $z = 1.5$, $a = 1.5$, $\hat y = 0.75$, $\ell = 0.0625$. Hence $\partial\ell/\partial w_2 = 2(-0.25)(1.5) = -0.75$ and $\partial\ell/\partial w_1 = 2(-0.25)(0.5)(1)(2) = -0.5$. A two-line PyTorch script (`torch.autograd.grad`) returns the same numbers to machine precision; this is the simplest non-trivial sanity check that the chain-rule derivation matches what AD computes.
 
@@ -43,13 +45,15 @@ Write the gradient at step $t$ as $g_t = \nabla_\theta \ell(\theta_t)$. With $L_
 
 With $W_h = 0.5\,I_2$, $W_x = (1,0)^\top$, $h_0 = (0,0)^\top$:
 
-$$
+```{math}
+:enumerated: false
+
 \begin{aligned}
 h_1 &= \tanh\!\big((0,0)^\top + (1,0)^\top\big) = (\tanh 1,\, 0)^\top \approx (0.7616,\, 0)^\top,\\
 h_2 &= \tanh\!\big(0.5\,h_1 + (0,0)^\top\big) = (\tanh(0.3808),\,0)^\top \approx (0.3637,\,0)^\top,\\
 h_3 &= \tanh\!\big(0.5\,h_2 + (1,0)^\top\big) = (\tanh(1.1818),\,0)^\top \approx (0.8275,\,0)^\top.
 \end{aligned}
-$$
+```
 
 Outputs: $\hat y_t = W_y h_t$ gives $\hat y_1 \approx 0.7616$, $\hat y_2 \approx 0.3637$, $\hat y_3 \approx 0.8275$ (only the first hidden coordinate is excited, so the second column of $W_y$ is irrelevant).
 
@@ -59,13 +63,15 @@ For the gradient, write $h_t = \tanh(z_t)$ with $z_t = W_h h_{t-1} + W_x x_t$. T
 
 With $q_i = k_i = v_i = x_i$ and $x = (0,1,0.5)$, the score matrix $S_{ij} = q_i k_j$ is $$S = \begin{pmatrix} 0 & 0 & 0 \\ 0 & 1 & 0.5 \\ 0 & 0.5 & 0.25\end{pmatrix}.$$ Softmaxing each row and using $e^0 = 1$, $e^{0.25} \approx 1.284$, $e^{0.5}\approx 1.649$, $e^1 \approx 2.718$:
 
-$$
+```{math}
+:enumerated: false
+
 \begin{aligned}
 a_1 &= \tfrac{1}{3}(1,1,1), & o_1 &= \tfrac{1}{3}(0 + 1 + 0.5) = 0.5, \\
 a_2 &\approx (0.186,\, 0.506,\, 0.307), & o_2 &\approx 0.186\cdot 0 + 0.506\cdot 1 + 0.307\cdot 0.5 \approx 0.660, \\
 a_3 &\approx (0.254,\, 0.419,\, 0.327), & o_3 &\approx 0.254\cdot 0 + 0.419\cdot 1 + 0.327\cdot 0.5 \approx 0.583.
 \end{aligned}
-$$
+```
 
 Each attention vector $a_i$ is on the simplex (entries non-negative, summing to one), so $o_i = \sum_j a_{ij} v_j$ is a convex combination of the values, lying in $[0, 1]$. Token 2, the largest input, attends most strongly to itself ($a_{22}\approx 0.51$); token 3 also attends most to token 2 because the inner products $q_3 k_2 = 0.5$ exceed the self-score $q_3 k_3 = 0.25$. Token 1 has zero query magnitude, so its row is uniform: with no signal to discriminate on, attention defaults to a uniform average over the values.
 
@@ -99,7 +105,7 @@ Bias--variance trade-off at finite $T_{\text{sim}}$: the path-averaged loss has 
 
 The Euler equation in Brock--Mirman with $\delta = 1$, log utility, and AR(1) productivity $\ln z' = \varrho\ln z + \sigma_z\varepsilon'$, $\varepsilon' \sim \mathcal{N}(0,1)$, is $$\frac{1}{C_t}
    \;=\;
-   \beta\,\E\!\left[\frac{\alpha\,z'\,K_{t+1}^{\alpha - 1}}{C_{t+1}} \,\Big|\, K_t, z_t\right].$$ Replace the expectation by a Gauss--Hermite rule. After the change of variables $\varepsilon' = \sqrt{2}\,\xi$ that absorbs the normalization $1/\sqrt{\pi}$, the $Q$-point GH quadrature is $$\E[h(\varepsilon')] \;\approx\; \frac{1}{\sqrt{\pi}} \sum_{q=1}^{Q} w_q\,h\!\bigl(\sqrt{2}\,\xi_q\bigr),$$ with classical nodes $\xi_q$ and weights $w_q$ that satisfy $\sum_q w_q = \sqrt{\pi}$. Table {numref}`tab-gh5_nodes` lists the five-point rule used in this exercise.
+   \beta\,\E\!\left[\frac{\alpha\,z'\,K_{t+1}^{\alpha - 1}}{C_{t+1}} \,\Big|\, K_t, z_t\right].$$ Replace the expectation by a Gauss--Hermite rule. After the change of variables $\varepsilon' = \sqrt{2}\,\xi$ that absorbs the normalization $1/\sqrt{\pi}$, the $Q$-point GH quadrature is $$\E[h(\varepsilon')] \;\approx\; \frac{1}{\sqrt{\pi}} \sum_{q=1}^{Q} w_q\,h\!\bigl(\sqrt{2}\,\xi_q\bigr),$$ with classical nodes $\xi_q$ and weights $w_q$ that satisfy $\sum_q w_q = \sqrt{\pi}$. {numref}`tab-gh5_nodes` lists the five-point rule used in this exercise.
 
 ````{table}
 :name: tab-gh5_nodes
@@ -183,7 +189,9 @@ Phase 1 (uniform sampling on a wide box of states, with Euler residuals compute
 
 Write $g^j \equiv k^{j\prime}/k^j - 1$. Then $\Gamma^j = (\kappa/2)\,k^j (g^j)^2$. The partials are
 
-$$
+```{math}
+:enumerated: false
+
 \begin{aligned}
 \frac{\partial \Gamma^j}{\partial k^{j\prime}} &= \frac{\kappa}{2}\,k^j \cdot 2 g^j \cdot \frac{1}{k^j} \;=\; \kappa\,g^j \;=\; \kappa\!\left(\frac{k^{j\prime}}{k^j} - 1\right), \\
 \frac{\partial \Gamma^j}{\partial k^j} &= \frac{\kappa}{2}(g^j)^2 + \frac{\kappa}{2}\,k^j \cdot 2 g^j \cdot \!\left(-\frac{k^{j\prime}}{(k^j)^2}\right) \\
@@ -191,7 +199,7 @@ $$
    \;=\; \frac{\kappa}{2}\!\left[\bigl(g^j\bigr)^2 - 2(1+g^j) g^j\right] \\
 &= -\frac{\kappa}{2}\!\left[(g^j)^2 + 2 g^j\right] \;=\; \frac{\kappa}{2}\!\left[1 - \bigl(\tfrac{k^{j\prime}}{k^j}\bigr)^{\!2}\right],
 \end{aligned}
-$$
+```
 
 matching equation {eq}`eq-irbc_adjcost_derivs`.
 
@@ -231,7 +239,7 @@ This is a coding exercise. A grid with step size $0.01$ over $[-1,2]$ has $301$ 
 
 ##### {prf:ref}`ex-ch4-3`: Hyperband budget allocation.
 
-Hyperband with $R = 81$, $\eta = 3$ runs a ladder of brackets indexed by $s = s_{\max}, s_{\max}-1, \dots, 0$, where $s_{\max} = \lfloor\log_\eta R\rfloor = 4$. Each bracket starts with $n_s = \lceil (s_{\max}+1)\,\eta^s / (s+1)\rceil$ candidates trained for $r_s = R / \eta^s$ resource each, then runs Successive Halving with reduction factor $\eta$. Table {numref}`tab-hyperband_r81_eta3` works out the resulting schedule.
+Hyperband with $R = 81$, $\eta = 3$ runs a ladder of brackets indexed by $s = s_{\max}, s_{\max}-1, \dots, 0$, where $s_{\max} = \lfloor\log_\eta R\rfloor = 4$. Each bracket starts with $n_s = \lceil (s_{\max}+1)\,\eta^s / (s+1)\rceil$ candidates trained for $r_s = R / \eta^s$ resource each, then runs Successive Halving with reduction factor $\eta$. {numref}`tab-hyperband_r81_eta3` works out the resulting schedule.
 
 ````{table}
 :name: tab-hyperband_r81_eta3
@@ -295,22 +303,26 @@ The general rule: budget grows $\to$ smarter methods become affordable; search-s
 
 With three cohorts (young $h=1$, middle $h=2$, old $h=3$), the budget constraints are
 
-$$
+```{math}
+:enumerated: false
+
 \begin{aligned}
 c^1_t &= w_t \,\ell^1 - k^2_{t+1}, \\
    c^2_t &= w_t \,\ell^2 + R_t k^2_t - k^3_{t+1}, \\
    c^3_t &= w_t \,\ell^3 + R_t k^3_t,
 \end{aligned}
-$$
+```
 
 where $w_t, R_t$ are equilibrium prices and $\ell^h$ are exogenous lifecycle labor endowments (the old cohort consumes its capital). Two Euler equations determine the savings of the young and middle cohorts:
 
-$$
+```{math}
+:enumerated: false
+
 \begin{aligned}
 u'(c^1_t) &= \beta\,\mathbb{E}_t[u'(c^2_{t+1})\,R_{t+1}], \\
 u'(c^2_t) &= \beta\,\mathbb{E}_t[u'(c^3_{t+1})\,R_{t+1}].
 \end{aligned}
-$$
+```
 
 The market-clearing condition closes the system: $$k^2_{t+1} + k^3_{t+1} \;=\; K_{t+1},$$ where $K_{t+1}$ is aggregate capital.
 
@@ -604,24 +616,28 @@ Coding exercise. Report the SCC at the central calibration and at each ECS value
 
 For $q(\theta_1, \theta_2, \theta_3) = \theta_1\theta_2 + \theta_3^2$ with $\theta_i \sim \mathcal{U}[0,1]$ i.i.d.:
 
-$$
+```{math}
+:enumerated: false
+
 \begin{aligned}
 \mathbb{E}[q] &= \mathbb{E}[\theta_1]\mathbb{E}[\theta_2] + \mathbb{E}[\theta_3^2] = \tfrac{1}{4} + \tfrac{1}{3} = \tfrac{7}{12}, \\
    \mathbb{E}[q^2] &= \mathbb{E}[\theta_1^2]\mathbb{E}[\theta_2^2] + 2\mathbb{E}[\theta_1\theta_2]\mathbb{E}[\theta_3^2] + \mathbb{E}[\theta_3^4] = \tfrac{1}{9} + \tfrac{1}{6} + \tfrac{1}{5} = \tfrac{43}{90}, \\
    \mathrm{Var}(q) &= \tfrac{43}{90} - \bigl(\tfrac{7}{12}\bigr)^2 = \tfrac{11}{80}.
 \end{aligned}
-$$
+```
 
 Conditional means:
 
-$$
+```{math}
+:enumerated: false
+
 \begin{aligned}
 \mathbb{E}[q \mid \theta_1] &= \tfrac{\theta_1}{2} + \tfrac{1}{3}, &
    \mathrm{Var}_{\theta_1}\bigl(\mathbb{E}[q\mid\theta_1]\bigr) &= \tfrac{1}{48},\\
    \mathbb{E}[q \mid \theta_3] &= \tfrac{1}{4} + \theta_3^2, &
    \mathrm{Var}_{\theta_3}\bigl(\mathbb{E}[q\mid\theta_3]\bigr) &= \mathrm{Var}(\theta_3^2) = \tfrac{4}{45}.
 \end{aligned}
-$$
+```
 
 First-order Sobol indices: $$S_1 = S_2 = \frac{1/48}{11/80} = \frac{5}{33} \approx 0.152,
    \qquad

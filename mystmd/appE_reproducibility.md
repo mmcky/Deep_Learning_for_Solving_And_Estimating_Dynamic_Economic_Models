@@ -3,7 +3,7 @@ title: "Reproducibility Information"
 label: app-reproducibility
 ---
 
-Every empirical statement in the main text relies on the companion notebooks listed in the *Execution Map*. Bit-exact reproducibility on a different machine requires fixing both the random seeds and the floating-point environment; Table {numref}`tab-repro_conventions` summarizes the conventions used in this script's notebooks.
+Every empirical statement in the main text relies on the companion notebooks listed in the *Execution Map*. Bit-exact reproducibility on a different machine requires fixing both the random seeds and the floating-point environment; {numref}`tab-repro_conventions` summarizes the conventions used in this script's notebooks.
 
 ````{table}
 :name: tab-repro_conventions

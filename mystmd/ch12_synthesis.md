@@ -15,11 +15,11 @@ The methods presented in this course, namely DEQNs, PINNs, deep surrogates, and 
 The shared computational workflow of the four methods of this course (DEQNs, PINNs, deep surrogates, and GP + BAL): a flexible function approximator (a deep network or a Gaussian-process kernel) plays the role of the unknown economic object; structural information enters through equilibrium residuals and hard constraints (DEQNs, PINNs), through model-generated training data and parameter pseudo-states (deep surrogates), or through the prior, the simulator, and the acquisition rule (GP + BAL); and a differentiable or Bayesian inference layer supplies the gradients, the posterior, and the design rule needed for training, sensitivity analysis, and uncertainty quantification.
 ```
 
-Figure {numref}`fig-unifying_paradigm` makes the common template explicit. Structural knowledge of the economic or financial model is built directly into the training objective or the training design rather than learned from labelled data: DEQNs minimize equilibrium-residual losses, PINNs minimize PDE residuals, deep surrogates fit model-generated labels (often with parameter pseudo-states), and GP + BAL combines a kernel prior with an acquisition rule that decides where to sample next. Automatic differentiation supplies the gradients needed for network training, and the mesh-free nature of neural networks and kernels avoids explicit tensor-product state grids, mitigating the practical curse of dimensionality without eliminating the underlying high-dimensional sample-complexity, approximation, optimization, and integration costs.
+{numref}`fig-unifying_paradigm` makes the common template explicit. Structural knowledge of the economic or financial model is built directly into the training objective or the training design rather than learned from labelled data: DEQNs minimize equilibrium-residual losses, PINNs minimize PDE residuals, deep surrogates fit model-generated labels (often with parameter pseudo-states), and GP + BAL combines a kernel prior with an acquisition rule that decides where to sample next. Automatic differentiation supplies the gradients needed for network training, and the mesh-free nature of neural networks and kernels avoids explicit tensor-product state grids, mitigating the practical curse of dimensionality without eliminating the underlying high-dimensional sample-complexity, approximation, optimization, and integration costs.
 
 ## Decision Guide: When to Use Which Method
 
-The four method families covered in this course occupy partly overlapping but distinguishable niches. Table {numref}`tab-method_decision_guide` summarizes the key distinctions along four practical criteria: the natural *time domain* (discrete vs. continuous), the kind of *equation* the method is designed to solve, the *key advantage* that distinguishes it from the others, and the *typical use cases* encountered in this course.
+The four method families covered in this course occupy partly overlapping but distinguishable niches. {numref}`tab-method_decision_guide` summarizes the key distinctions along four practical criteria: the natural *time domain* (discrete vs. continuous), the kind of *equation* the method is designed to solve, the *key advantage* that distinguishes it from the others, and the *typical use cases* encountered in this course.
 
 ````{table}
 :name: tab-method_decision_guide
@@ -40,7 +40,7 @@ The categories are not mutually exclusive. Many production pipelines combine the
 
 (sec-running_case_bm)=
 ## Running Benchmarks Through Every Lens
-The course repeatedly returns to a small set of canonical benchmarks: Brock--Mirman for discrete-time stochastic growth, cake-eating for continuous-time HJBs, and parameterized Brock--Mirman variants for surrogates and SMM. Table {numref}`tab-bm_running_case` reads each benchmark through the lens of one course method, exposing what changes when the methodology changes and what stays invariant.
+The course repeatedly returns to a small set of canonical benchmarks: Brock--Mirman for discrete-time stochastic growth, cake-eating for continuous-time HJBs, and parameterized Brock--Mirman variants for surrogates and SMM. {numref}`tab-bm_running_case` reads each benchmark through the lens of one course method, exposing what changes when the methodology changes and what stays invariant.
 
 ````{table}
 :name: tab-bm_running_case
@@ -59,7 +59,7 @@ The takeaway is that no single methodology is the "right" one for these benchmar
 
 ## Bridges Between Methods
 
-The four method families do not sit in isolated boxes. Figure {numref}`fig-unified_view_methods` maps the bridges between them: which methods share a state representation, which methods share an inference machinery, and where one method layers naturally on top of another. Discrete- and continuous-time formulations connect DEQNs and PINNs; deep surrogates and GP + BAL share the pseudo-state and uncertainty-quantification idea; and the lower row of the figure can be read as a pipeline (solve $\to$ amortize $\to$ quantify) rather than as four parallel choices.
+The four method families do not sit in isolated boxes. {numref}`fig-unified_view_methods` maps the bridges between them: which methods share a state representation, which methods share an inference machinery, and where one method layers naturally on top of another. Discrete- and continuous-time formulations connect DEQNs and PINNs; deep surrogates and GP + BAL share the pseudo-state and uncertainty-quantification idea; and the lower row of the figure can be read as a pipeline (solve $\to$ amortize $\to$ quantify) rather than as four parallel choices.
 
 ```{figure} figures/fig-unified_view_methods.svg
 :name: fig-unified_view_methods
@@ -133,7 +133,7 @@ The following guidelines distill recurring lessons from the applications covered
 
 ##### Common failure modes.
 
-Table {numref}`tab-dl_failure_modes` summarizes recurring failure modes and their mitigations:
+{numref}`tab-dl_failure_modes` summarizes recurring failure modes and their mitigations:
 
 ````{table}
 :name: tab-dl_failure_modes
@@ -177,7 +177,7 @@ The convergence of abundant compute, mature software ecosystems (TensorFlow, PyT
 
 For further reading, we refer to the comprehensive survey by {cite:t}`fernandezvillaverde2024taming`, the methodological foundations laid in {cite:t}`azinovicDEEPEQUILIBRIUMNETS2022`, and the applications in {cite:t}`rennerscheidegger_2018`, {cite:t}`friedlDeep2023`, {cite:t}`han2023deepham`, {cite:t}`payne2025deepsam`, {cite:t}`kase2022estimating`, {cite:t}`chen2026Deep`, {cite:t}`kubler2025using`, and {cite:t}`fernandezvillaverde2025climate`. The list of references in these notes is necessarily incomplete; for a full bibliography, we refer the reader to the cited papers and the references therein.
 
-```{prf:remark}
+```{prf:remark} Chapter Summary
 
 - All four method families share one paradigm: *neural network as function approximator* $+$ *economic structure in the loss* $+$ *automatic differentiation for training*.
 

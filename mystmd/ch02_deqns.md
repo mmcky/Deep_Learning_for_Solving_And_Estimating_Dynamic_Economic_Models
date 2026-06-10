@@ -13,7 +13,7 @@ Chapter {ref}`ch-intro` used $\bm{\theta}$ for the parameter vector of a generi
 ## The Curse of Dimensionality in Economics
 A central challenge in computational economics is that many models of interest, such as overlapping-generations (OLG) economies, heterogeneous-agent models, and international business cycle models, feature state spaces of high dimension. In an OLG model with $N$ cohorts and idiosyncratic risk, the state vector may include individual capital holdings, productivity levels, and wealth shares for each cohort, leading to state spaces of dimension $d \gg 10$. Traditional grid-based solution methods, such as value function iteration on a Cartesian grid with $n$ nodes per dimension, require $n^d$ grid points; this is the *curse of dimensionality*, the term coined by {cite:t}`bellman1961adaptive` to describe the exponential growth of computational cost with the number of state variables. A concrete back-of-the-envelope makes the bottleneck plain: at the modest resolution of $n=100$ nodes per dimension, a $d=5$ state space already requires $100^5 = 10^{10}$ grid points, which is infeasible under any reasonable compute budget; even more modest resolutions of $n=20$--$30$ become prohibitive once $d$ exceeds ten.
 
-Table {numref}`tab-curse_of_dim` illustrates the curse concretely. Even with a modest $n=10$ grid points per dimension, the total number of grid points grows astronomically.
+{numref}`tab-curse_of_dim` illustrates the curse concretely. Even with a modest $n=10$ grid points per dimension, the total number of grid points grows astronomically.
 
 ````{table}
 :name: tab-curse_of_dim
@@ -39,11 +39,11 @@ $$
 \frac{V_\mathrm{ball}(d)}{V_\mathrm{cube}(d)} = \frac{\pi^{d/2}}{2^d\,\Gamma(d/2+1)}.
 $$ (eq-volume_ratio)
 
-This ratio collapses with $d$ (Figure {numref}`fig-volume_paradox`): it is $\pi/4 \approx 0.785$ at $d=2$ and $\pi/6 \approx 0.524$ at $d=3$, has fallen to $\approx 2.5\times 10^{-3}$ by $d=10$, and is below $10^{-70}$ at $d=100$. The geometry behind the numbers is sharp. The inscribed ball touches the center of each of the $2d$ faces, at distance $1$ from the center, but its surface never gets within $\sqrt{d}-1$ of any of the $2^d$ corners, which sit at distance $\sqrt{d}$. As $d$ grows the corners march off to infinity while the ball stays put, so essentially all of the cube's volume drains into its corners, far from the center. A box-shaped object in high dimensions is, to a first approximation, all corners and no middle.
+This ratio collapses with $d$ ({numref}`fig-volume_paradox`): it is $\pi/4 \approx 0.785$ at $d=2$ and $\pi/6 \approx 0.524$ at $d=3$, has fallen to $\approx 2.5\times 10^{-3}$ by $d=10$, and is below $10^{-70}$ at $d=100$. The geometry behind the numbers is sharp. The inscribed ball touches the center of each of the $2d$ faces, at distance $1$ from the center, but its surface never gets within $\sqrt{d}-1$ of any of the $2^d$ corners, which sit at distance $\sqrt{d}$. As $d$ grows the corners march off to infinity while the ball stays put, so essentially all of the cube's volume drains into its corners, far from the center. A box-shaped object in high dimensions is, to a first approximation, all corners and no middle.
 
-Why should an economist care about a fact about cubes and balls? Because solving a dynamic stochastic model means producing a *global* solution[^1], and the region over which that solution actually has to be accurate is the model's *ergodic set*, the states the economy visits under its own law of motion. That set is typically a thin, curved, low-volume sliver of any hypercube $[\x_{\min},\x_{\max}]^d$ that one would draw around it, often well under one percent of the bounding box already at moderate $d$ {cite:p}`judd2011numerically`. Yet most of the high-dimensional approximation machinery on offer, tensor-product grids, adaptive sparse grids, tensor-product quadrature, is built on the hypercube; by the volume paradox an exponentially growing fraction of those nodes lands in corners the model never visits, so most of the computational effort is spent representing the function where it does not matter. Figure {numref}`fig-ergodic_vs_grid` visualizes this mismatch. This is exactly the waste the DEQN approach is designed to avoid: instead of tiling a box, it trains the network on states sampled from the model's own simulated trajectories, putting the approximation effort where the economics lives.
+Why should an economist care about a fact about cubes and balls? Because solving a dynamic stochastic model means producing a *global* solution[^1], and the region over which that solution actually has to be accurate is the model's *ergodic set*, the states the economy visits under its own law of motion. That set is typically a thin, curved, low-volume sliver of any hypercube $[\x_{\min},\x_{\max}]^d$ that one would draw around it, often well under one percent of the bounding box already at moderate $d$ {cite:p}`judd2011numerically`. Yet most of the high-dimensional approximation machinery on offer, tensor-product grids, adaptive sparse grids, tensor-product quadrature, is built on the hypercube; by the volume paradox an exponentially growing fraction of those nodes lands in corners the model never visits, so most of the computational effort is spent representing the function where it does not matter. {numref}`fig-ergodic_vs_grid` visualizes this mismatch. This is exactly the waste the DEQN approach is designed to avoid: instead of tiling a box, it trains the network on states sampled from the model's own simulated trajectories, putting the approximation effort where the economics lives.
 
-Distance itself is the second casualty of high dimensions, and it is worth flagging now because it returns later with teeth. Draw a point uniformly from the unit $d$-ball: its radius has cumulative distribution $r^d$ and density $d\,r^{d-1}$ on $[0,1]$, which for large $d$ piles essentially all of its mass against the shell $r\to 1$. Random points sit on the pulp, not in the core, and they do so with overwhelming probability. Relatedly, pairwise Euclidean distances among random points concentrate so tightly that the nearest and the farthest neighbor of a query point become almost equidistant, so "distance" loses most of its power to discriminate {cite:p}`aggarwal2001surprising` (Figure {numref}`fig-distance_concentration`). This is not a curio: any method that judges similarity through $\|\x-\x'\|$, from $k$-nearest-neighbors to kernel ridge regression to the Gaussian-process surrogates of Chapter {ref}`ch-gp`, whose RBF and Matérn kernels are functions of $\|\x-\x'\|$ alone, loses resolution as $d$ grows. It is one of the reasons Chapter {ref}`ch-gp` reaches for dimension reduction, active subspaces and deep kernels, before fitting a GP in a high-dimensional input space.
+Distance itself is the second casualty of high dimensions, and it is worth flagging now because it returns later with teeth. Draw a point uniformly from the unit $d$-ball: its radius has cumulative distribution $r^d$ and density $d\,r^{d-1}$ on $[0,1]$, which for large $d$ piles essentially all of its mass against the shell $r\to 1$. Random points sit on the pulp, not in the core, and they do so with overwhelming probability. Relatedly, pairwise Euclidean distances among random points concentrate so tightly that the nearest and the farthest neighbor of a query point become almost equidistant, so "distance" loses most of its power to discriminate {cite:p}`aggarwal2001surprising` ({numref}`fig-distance_concentration`). This is not a curio: any method that judges similarity through $\|\x-\x'\|$, from $k$-nearest-neighbors to kernel ridge regression to the Gaussian-process surrogates of Chapter {ref}`ch-gp`, whose RBF and Matérn kernels are functions of $\|\x-\x'\|$ alone, loses resolution as $d$ grows. It is one of the reasons Chapter {ref}`ch-gp` reaches for dimension reduction, active subspaces and deep kernels, before fitting a GP in a high-dimensional input space.
 
 ```{figure} figures/fig-volume_paradox.svg
 :name: fig-volume_paradox
@@ -81,12 +81,10 @@ $$
 G\bigl(\x_t,\, p(\x_t),\, \mathbb{E}_t[H(\x_{t+1}, p(\x_{t+1}))]\bigr) = 0, \qquad \forall\, \x_t,
 $$
 
-where $G$ encodes optimality conditions (e.g., Euler equations) and $\mathbb{E}_t[\cdot]$ is the conditional expectation over next-period shocks via the transition law $\x_{t+1} = T(\x_t, p(\x_t), \varepsilon_{t+1})$. The fundamental challenge is that this is a *functional equation*: we seek functions $p:\R^d \to \R^m$ rather than finite-dimensional parameter vectors. The DEQN approach parameterizes $p$ as a neural network and solves this functional equation via stochastic optimization (Figure {numref}`fig-supervised_vs_deqn`).
+where $G$ encodes optimality conditions (e.g., Euler equations) and $\mathbb{E}_t[\cdot]$ is the conditional expectation over next-period shocks via the transition law $\x_{t+1} = T(\x_t, p(\x_t), \varepsilon_{t+1})$. The fundamental challenge is that this is a *functional equation*: we seek functions $p:\R^d \to \R^m$ rather than finite-dimensional parameter vectors. The DEQN approach parameterizes $p$ as a neural network and solves this functional equation via stochastic optimization ({numref}`fig-supervised_vs_deqn`).
 
 ```{figure} figures/fig-supervised_vs_deqn.svg
 :name: fig-supervised_vs_deqn
-
-self-supervised
 
 Supervised learning (left) versus DEQN training (right). Both paradigms train a parameter vector by minimizing a residual loss with SGD; the difference is the *source* of the training signal, labeled data $(\x_i, y_i)$ in the supervised case, structural equilibrium equations $G(\x, p(\x)) = 0$ in the DEQN case. No labeled solution data are required for DEQNs. For Brock--Mirman the right-hand side specializes to $G(K, z) = 1 - \beta\,(C/C') \cdot \alpha z' K'^{\alpha-1}$ with $C = \mathcal{N}_\rho(K, z)$ and $K' = z K^\alpha - C$; the network learns the policy by driving the squared mean of this residual to zero on simulated trajectories.
 ```
@@ -107,17 +105,19 @@ Note that DEQNs operate squarely in the "modern regime" of Section {ref}`sec-ge
 
 (sec-deqn_algo)=
 ## The DEQN Training Algorithm
-```{prf:definition}
+```{prf:definition} Algorithm: Deep Equilibrium Net Training
 
 - **Input:** Initial state $\x_0$, network $\mathcal{N}_\rho$, learning rate $\eta$, episodes $E$, simulation horizon $T_{\mathrm{sim}}$, training steps $T_{\mathrm{train}}$, expectation rule $\mathcal{Q}$ (path-average or quadrature)
 - **[NEW]** Burn-in: draw the first episode's states from a broad prior (uniform box around the deterministic steady state) and maintain a small replay buffer of early states.
 - **[NEW]** Independent validation trajectory $\x^{\mathrm{val}}_{0:T_{\mathrm{val}}}$ for out-of-sample residual diagnostics, simulated once with frozen $\rho$ at each checkpoint.
-- for episode $e = 1, \ldots, E$:
+- for episode $e = 1, \ldots, E$ do
   - **Simulate path:** $\x_0 \to \x_1 \to \cdots \to \x_{T_{\mathrm{sim}}}$ using $\mathcal{N}_\rho$ and transition law; guard infeasible states (e.g.\ clip $C\le 0$).
-  - for gradient step $t = 1, \ldots, T_{\mathrm{train}}$:
+  - for gradient step $t = 1, \ldots, T_{\mathrm{train}}$ do
     - Draw mini-batch $\mathcal{B} \subset \{\x_0, \ldots, \x_{T_{\mathrm{sim}}}\} \cup \mathrm{replay}$
     - Compute loss:~$\ell_\rho = \frac{1}{|\mathcal{B}|}\sum_{\x_i \in \mathcal{B}} \|G(\x_i, \mathcal{N}_\rho(\x_i); \mathcal{Q})\|^2$ **[NEW: $\mathcal{Q}$ is the chosen path-average or Gauss--Hermite / monomial / QMC rule]**
-    - Update:~$\rho \leftarrow \rho - \eta \cdot \nabla_\rho \ell_\rho$ **[NEW: wrap the per-step kernel in \texttt{{@}tf.function} / \texttt{torch.compile} / \texttt{{@}jax.jit} for $5$--$50\times$ speed-up]**
+    - Update:~$\rho \leftarrow \rho - \eta \cdot \nabla_\rho \ell_\rho$ **\[NEW: wrap the per-step kernel in `@tf.function` / `torch.compile` / `@jax.jit` for $5$--$50\times$ speed-up]**
+  - end
+- end
 - **Output:** Trained network $\mathcal{N}_{\rho^\star}$ approximating the policy function; report Euler residuals on $\x^{\mathrm{val}}$.
 ```
 
@@ -226,7 +226,7 @@ where $z_{t+1}$ denotes a single realization of the next-period shock and $K_{t+
 
 2.  **Quadrature:** for each state $(K_t, z_t)$, approximate $\mathbb{E}_t[\cdot]$ explicitly via deterministic nodes and weights (Section {ref}`sec-quadrature_rules`), form the residual from the estimated expectation, and then square. This targets $\bigl(\mathbb{E}_t[G]\bigr)^2$ directly and is the approach used for the IRBC model of Chapter {ref}`ch-irbc`, where accurate expectations are critical for convergence.
 
-Both approaches recover the analytical solution {eq}`eq-bm_analytical` to high accuracy, providing a rigorous validation of the methodology. Because convergence curves depend on the exact training run, random seed, and solver configuration, this manuscript does *not* include a hand-drawn convergence plot. In practice, one should report diagnostics from the *actual notebook run*: residual trajectories, held-out Euler errors, and the gap between the learned policy and the analytical benchmark. Figure {numref}`fig-bm_convergence_schematic` sketches the qualitative shape one should expect to see.
+Both approaches recover the analytical solution {eq}`eq-bm_analytical` to high accuracy, providing a rigorous validation of the methodology. Because convergence curves depend on the exact training run, random seed, and solver configuration, this manuscript does *not* include a hand-drawn convergence plot. In practice, one should report diagnostics from the *actual notebook run*: residual trajectories, held-out Euler errors, and the gap between the learned policy and the analytical benchmark. {numref}`fig-bm_convergence_schematic` sketches the qualitative shape one should expect to see.
 
 ```{figure} figures/fig-bm_convergence_schematic.svg
 :name: fig-bm_convergence_schematic
@@ -249,9 +249,9 @@ $$ (eq-ree_bm)
 
 where $C_\rho = \mathcal{N}_\rho$, $K'_j$ is next-period capital under the network policy, the expectation conditions on $\x_j$, and the $^{-1}$ inverts the marginal-utility relation $u'(c) = 1/c$. The value $e^{\mathrm{REE}} = 10^{-4}$ means the agent's optimal consumption is mispriced by $0.01\%$, independent of units or utility scale. This is the metric reported in Table 3 of {cite:t}`azinovicDEEPEQUILIBRIUMNETS2022`, where the trained DEQN achieves mean relative Euler errors of order $10^{-4}$ on the 113-dimensional 56-agent OLG benchmark.
 
-```{prf:remark}
+```{prf:remark} Why does this work so well?
 
-The success of the DEQN approach rests on three pillars. First, neural networks are universal function approximators that can represent the smooth policy functions arising in most economic models. Second, the training distribution is endogenous: the network learns on the model's own ergodic distribution, concentrating computational effort precisely where it matters. Third, stochastic gradient descent operates directly on the economic equilibrium conditions, so the loss function has a clear economic interpretation: a pointwise relative Euler error of $10^{-4}$ means the consumption level implied by the Euler equation differs from the network's consumption by about $0.01\%$.
+ The success of the DEQN approach rests on three pillars. First, neural networks are universal function approximators that can represent the smooth policy functions arising in most economic models. Second, the training distribution is endogenous: the network learns on the model's own ergodic distribution, concentrating computational effort precisely where it matters. Third, stochastic gradient descent operates directly on the economic equilibrium conditions, so the loss function has a clear economic interpretation: a pointwise relative Euler error of $10^{-4}$ means the consumption level implied by the Euler equation differs from the network's consumption by about $0.01\%$.
 ```
 
 
@@ -287,7 +287,7 @@ Soft constraint, minimized in the loss.
 : The only equilibrium condition that cannot be enforced analytically is the *Euler equation* {eq}`eq-bm_euler`. The squared relative Euler error {eq}`eq-ree_bm` is averaged over the mini-batch and driven toward zero by stochastic gradient descent.
 
 
-This split is pedagogically important for three reasons: (i) only the genuinely non-closed-form conditions enter the loss, which speeds up training; (ii) it eliminates a family of bad local minima in which the network produces, e.g., slightly negative consumption or infeasible states; and (iii) it explains why the loss typically converges to a small but nonzero value even at the optimum, since the Euler residual is intrinsic and cannot be removed by re-parameterization. Figure {numref}`fig-hard_soft` summarizes this construction for Brock--Mirman.
+This split is pedagogically important for three reasons: (i) only the genuinely non-closed-form conditions enter the loss, which speeds up training; (ii) it eliminates a family of bad local minima in which the network produces, e.g., slightly negative consumption or infeasible states; and (iii) it explains why the loss typically converges to a small but nonzero value even at the optimum, since the Euler residual is intrinsic and cannot be removed by re-parameterization. {numref}`fig-hard_soft` summarizes this construction for Brock--Mirman.
 
 ```{figure} figures/fig-hard_soft.svg
 :name: fig-hard_soft
@@ -313,7 +313,7 @@ Sooner or later, every dynamic stochastic model in this script presents the same
 
 ##### Picture 1: a definite integral as area, and the Riemann/midpoint sum.
 
-Strip away the economics. A definite integral $\int_a^b f(x)\,dx$ is the (signed) area between the graph of $f$ and the $x$-axis on $[a,b]$. The simplest deterministic numerical rule, the *midpoint rule*, replaces this area by a stack of $N$ rectangles of equal width $\Delta x = (b-a)/N$, each one as tall as $f$ at the midpoint of its base (Figure {numref}`fig-integration_primer`, left). Adding the rectangle areas yields
+Strip away the economics. A definite integral $\int_a^b f(x)\,dx$ is the (signed) area between the graph of $f$ and the $x$-axis on $[a,b]$. The simplest deterministic numerical rule, the *midpoint rule*, replaces this area by a stack of $N$ rectangles of equal width $\Delta x = (b-a)/N$, each one as tall as $f$ at the midpoint of its base ({numref}`fig-integration_primer`, left). Adding the rectangle areas yields
 
 $$
 I_N = \Delta x \sum_{i=1}^{N} f\bigl(x_i^{\text{mid}}\bigr)
@@ -334,7 +334,7 @@ $$
 \widehat{\pi}_N \;=\; 4\cdot \frac{N_{\mathrm{in}}}{N},
 $$ (eq-pi_mc)
 
-where $N_{\mathrm{in}}$ counts how many of the $N$ uniform "darts" land inside the quarter-circle $x^2+y^2 \leq 1$ (Figure {numref}`fig-integration_primer`, right). With $N=100$ a typical run gives $\widehat{\pi}_{100} \approx 3.04$ (about 3% off); with $N=10^6$ a typical run gives $\widehat{\pi}_{10^6} \approx 3.1417$ (about $10^{-4}$ off). The error shrinks as $\mathcal{O}(1/\sqrt{N})$, requiring a hundredfold increase in $N$ to gain one extra decimal of accuracy, which is glacially slow compared to $\mathcal{O}(N^{-4})$ for Simpson's rule on a smooth 1D integrand. But the MC *rate* has no dependence on the dimension of the domain: replacing the quarter-disc by a $d$-dimensional unit ball would leave the rate untouched, while the deterministic grid would suffer the $N^d$ cost explosion of the curse of dimensionality. This is what makes MC and its quasi-random refinement (QMC, {ref}`sec-qmc_cdf`) the natural tools for the conditional expectations encountered in DEQNs at $d \gtrsim 10$.
+where $N_{\mathrm{in}}$ counts how many of the $N$ uniform "darts" land inside the quarter-circle $x^2+y^2 \leq 1$ ({numref}`fig-integration_primer`, right). With $N=100$ a typical run gives $\widehat{\pi}_{100} \approx 3.04$ (about 3% off); with $N=10^6$ a typical run gives $\widehat{\pi}_{10^6} \approx 3.1417$ (about $10^{-4}$ off). The error shrinks as $\mathcal{O}(1/\sqrt{N})$, requiring a hundredfold increase in $N$ to gain one extra decimal of accuracy, which is glacially slow compared to $\mathcal{O}(N^{-4})$ for Simpson's rule on a smooth 1D integrand. But the MC *rate* has no dependence on the dimension of the domain: replacing the quarter-disc by a $d$-dimensional unit ball would leave the rate untouched, while the deterministic grid would suffer the $N^d$ cost explosion of the curse of dimensionality. This is what makes MC and its quasi-random refinement (QMC, {ref}`sec-qmc_cdf`) the natural tools for the conditional expectations encountered in DEQNs at $d \gtrsim 10$.
 
 ```{figure} figures/fig-integration_primer.svg
 :name: fig-integration_primer
@@ -344,7 +344,7 @@ Two paradigms for numerical integration that underlie every rule in this section
 
 ##### Where the rest of this section is going.
 
-With this picture in hand, the design of every quadrature rule in the literature can be read as an answer to two questions: (i) where do we place the nodes $\bm\varepsilon_q$, and (ii) what weights $w_q$ do we attach to them? Tensor-product Gauss--Hermite ({ref}`sec-gh_tensor_product`) places nodes deterministically on a Cartesian grid of Hermite roots; the Stroud-3 monomial rule of {ref}`sec-monomial_cubature` places only $2d$ nodes on the principal axes and accepts a controlled bias on fourth-order moments in exchange for linear-in-$d$ scaling; the QMC construction of {ref}`sec-qmc_cdf` places nodes from a low-discrepancy sequence in the unit cube and pulls them back through the inverse CDF. The cost--accuracy trade-offs differ dramatically with $d$, as Table {numref}`tab-quadrature_costs` (page ) makes concrete. Chapter {ref}`ch-irbc` returns to these numbers when scaling DEQNs to multi-country economies.
+With this picture in hand, the design of every quadrature rule in the literature can be read as an answer to two questions: (i) where do we place the nodes $\bm\varepsilon_q$, and (ii) what weights $w_q$ do we attach to them? Tensor-product Gauss--Hermite ({ref}`sec-gh_tensor_product`) places nodes deterministically on a Cartesian grid of Hermite roots; the Stroud-3 monomial rule of {ref}`sec-monomial_cubature` places only $2d$ nodes on the principal axes and accepts a controlled bias on fourth-order moments in exchange for linear-in-$d$ scaling; the QMC construction of {ref}`sec-qmc_cdf` places nodes from a low-discrepancy sequence in the unit cube and pulls them back through the inverse CDF. The cost--accuracy trade-offs differ dramatically with $d$, as {numref}`tab-quadrature_costs` (page ) makes concrete. Chapter {ref}`ch-irbc` returns to these numbers when scaling DEQNs to multi-country economies.
 
 (sec-gh_tensor_product)=
 ### Tensor-Product Gauss--Hermite
@@ -399,7 +399,7 @@ Rule {eq}`eq-stroud3` integrates every monomial in $\bm\varepsilon'$ of total d
 
 ##### Cost comparison.
 
-At $Q=3$ nodes per dimension, the tensor-product rule of {ref}`sec-gh_tensor_product` costs $3^{d}$ evaluations per state, while {eq}`eq-stroud3` costs $2d$. Table {numref}`tab-quadrature_costs` contrasts the two for the dimensionalities encountered later in the script. The monomial rule is the default integration scheme behind the production DEQN code for IRBC-type models in Chapter {ref}`ch-irbc` once the shock dimension exceeds about five, dropped in by replacing a single quadrature kernel.
+At $Q=3$ nodes per dimension, the tensor-product rule of {ref}`sec-gh_tensor_product` costs $3^{d}$ evaluations per state, while {eq}`eq-stroud3` costs $2d$. {numref}`tab-quadrature_costs` contrasts the two for the dimensionalities encountered later in the script. The monomial rule is the default integration scheme behind the production DEQN code for IRBC-type models in Chapter {ref}`ch-irbc` once the shock dimension exceeds about five, dropped in by replacing a single quadrature kernel.
 
 ````{table}
 :name: tab-quadrature_costs
@@ -447,12 +447,12 @@ $$
 \;=\; f'(x_0) \;+\; \tfrac{1}{6}\,f'''(x_0)\,h^2 \;+\; \mathcal{O}(h^4).
 $$ (eq-fd_central)
 
-The geometric content of this formula is the mundane fact that the slope of a smooth curve at a point can be approximated by the slope of a nearby *secant line*. Figure {numref}`fig-fd_geometry` makes this concrete: the true tangent at $x_0$ (red) is approximated by the secant connecting $(x_0 - h, f(x_0-h))$ to $(x_0+h, f(x_0+h))$ (blue dashed). As $h$ shrinks the secant rotates toward the tangent, and its slope converges to $f'(x_0)$; taking $h$ too small, however, forces the numerator $f(x_0+h) - f(x_0-h)$ to become the difference of two nearly equal floating-point numbers, at which point catastrophic cancellation dominates.
+The geometric content of this formula is the mundane fact that the slope of a smooth curve at a point can be approximated by the slope of a nearby *secant line*. {numref}`fig-fd_geometry` makes this concrete: the true tangent at $x_0$ (red) is approximated by the secant connecting $(x_0 - h, f(x_0-h))$ to $(x_0+h, f(x_0+h))$ (blue dashed). As $h$ shrinks the secant rotates toward the tangent, and its slope converges to $f'(x_0)$; taking $h$ too small, however, forces the numerator $f(x_0+h) - f(x_0-h)$ to become the difference of two nearly equal floating-point numbers, at which point catastrophic cancellation dominates.
 
 ```{figure} figures/fig-fd_geometry.svg
 :name: fig-fd_geometry
 
-Geometric meaning of a central finite difference. The derivative $f'(x_0)$ is the slope of the tangent to $f$ at $x_0$ (red). Finite differences replace this slope by the slope of the secant through the two nearby points $(x_0 - h, f(x_0-h))$ and $(x_0 + h, f(x_0+h))$ (blue, dashed). For small $h$, the secant approaches the tangent at rate $\mathcal{O}(h^2)$; for $h$ too small, the subtraction in the numerator becomes unreliable in finite-precision arithmetic and the approximation degrades. Figure {numref}`fig-fd_ucurve` plots the resulting error against $h$.
+Geometric meaning of a central finite difference. The derivative $f'(x_0)$ is the slope of the tangent to $f$ at $x_0$ (red). Finite differences replace this slope by the slope of the secant through the two nearby points $(x_0 - h, f(x_0-h))$ and $(x_0 + h, f(x_0+h))$ (blue, dashed). For small $h$, the secant approaches the tangent at rate $\mathcal{O}(h^2)$; for $h$ too small, the subtraction in the numerator becomes unreliable in finite-precision arithmetic and the approximation degrades. {numref}`fig-fd_ucurve` plots the resulting error against $h$.
 ```
 
 Two sources of error compete as $h$ changes. The *truncation error* $\tfrac{1}{6}f'''(x_0)\,h^2$ shrinks as $h$ decreases; the *rounding error* associated with computing the near-zero subtraction $f(x_0+h)-f(x_0-h)$ in floating-point arithmetic grows as $\epsilon/h$, where $\epsilon \approx 2.2\cdot 10^{-16}$ is machine precision in double precision. The total error is minimized at the step size that balances the two,
@@ -461,7 +461,7 @@ $$
 h^\star \sim \epsilon^{1/3},\qquad\text{minimum error}\quad \sim \epsilon^{2/3} \approx 10^{-11}.
 $$
 
-The practical consequence is that central FD loses roughly *five digits of precision* relative to the input precision. For second derivatives the loss is worse: Hessians obtained by FD are usually unusable for precision-critical work. FD has one undeniable advantage: it treats $f$ as a black box, requiring only the ability to evaluate $f$. For debugging or for a one-off comparative-statics check it is fine. For *training* a DEQN, where the gradient is used millions of times, it is badly suboptimal. Figure {numref}`fig-fd_ucurve` makes the trade-off visible.
+The practical consequence is that central FD loses roughly *five digits of precision* relative to the input precision. For second derivatives the loss is worse: Hessians obtained by FD are usually unusable for precision-critical work. FD has one undeniable advantage: it treats $f$ as a black box, requiring only the ability to evaluate $f$. For debugging or for a one-off comparative-statics check it is fine. For *training* a DEQN, where the gradient is used millions of times, it is badly suboptimal. {numref}`fig-fd_ucurve` makes the trade-off visible.
 
 ```{figure} figures/fig-fd_ucurve.svg
 :name: fig-fd_ucurve
@@ -475,7 +475,7 @@ exploits the fact that every piece of Python (or any other imperative language) 
 
 ##### Where do local derivatives come from? A tiny built-in table.
 
-It is worth pausing on a question that beginners reasonably ask: *"How does the computer know that the derivative of $\sin(x)$ is $\cos(x)$?"* The answer is deflating but honest: it does not compute this from first principles. Every autodiff framework ships with a short, hand-written table of derivatives for the elementary operations it supports, a few dozen entries such as those in Table {numref}`tab-ad_primitives`. When your program executes $y = \sin(x)$, the framework looks up the rule "gradient of $\sin$ is $\cos$" in that table and records $\cos(x)$ on the edge of the computational graph. The chain rule then composes those table entries. *Autodiff is not a theorem prover*; it is a library of primitive rules plus an automatic application of the chain rule. This explains both its power (every program expressible in terms of these primitives is differentiable) and its limits (genuinely new functions require extending the table).
+It is worth pausing on a question that beginners reasonably ask: *"How does the computer know that the derivative of $\sin(x)$ is $\cos(x)$?"* The answer is deflating but honest: it does not compute this from first principles. Every autodiff framework ships with a short, hand-written table of derivatives for the elementary operations it supports, a few dozen entries such as those in {numref}`tab-ad_primitives`. When your program executes $y = \sin(x)$, the framework looks up the rule "gradient of $\sin$ is $\cos$" in that table and records $\cos(x)$ on the edge of the computational graph. The chain rule then composes those table entries. *Autodiff is not a theorem prover*; it is a library of primitive rules plus an automatic application of the chain rule. This explains both its power (every program expressible in terms of these primitives is differentiable) and its limits (genuinely new functions require extending the table).
 
 ````{table}
 :name: tab-ad_primitives
@@ -499,7 +499,7 @@ This explanation also makes the *limits* of AD concrete. Operations absent from 
 (sec-ad_modes)=
 ### Computational graph; forward and reverse modes
 Every numerical function, once evaluated, corresponds to a directed acyclic *computational graph* whose nodes are elementary operations and whose edges carry intermediate values. Take the toy example $y = f(x) = x^2 + \sin(x)$ evaluated at $x_0=2$: $$x \;\to\; v_1 = x^2 \;\to\; y = v_1 + v_2,\qquad
-x \;\to\; v_2 = \sin(x) \;\to\; y = v_1 + v_2.$$ The values along the graph are $v_1=4$, $v_2=\sin(2) \approx 0.909$, $y \approx 4.909$. The *edges* carry local derivatives: $\partial v_1/\partial x = 2x = 4$, $\partial v_2/\partial x = \cos(x) \approx -0.416$, $\partial y/\partial v_1 = \partial y/\partial v_2 = 1$. AD combines the edge derivatives by the chain rule in one of two traversal orders. Figure {numref}`fig-ad_graph` shows the graph together with both traversals.
+x \;\to\; v_2 = \sin(x) \;\to\; y = v_1 + v_2.$$ The values along the graph are $v_1=4$, $v_2=\sin(2) \approx 0.909$, $y \approx 4.909$. The *edges* carry local derivatives: $\partial v_1/\partial x = 2x = 4$, $\partial v_2/\partial x = \cos(x) \approx -0.416$, $\partial y/\partial v_1 = \partial y/\partial v_2 = 1$. AD combines the edge derivatives by the chain rule in one of two traversal orders. {numref}`fig-ad_graph` shows the graph together with both traversals.
 
 ```{figure} figures/fig-ad_graph.svg
 :name: fig-ad_graph
@@ -604,7 +604,7 @@ Operations such as $\max(0,x)$ (ReLU), $|x|$, $\min$, $\max$, `argmax`, $\mathrm
 
 The Brock--Mirman loss contains $\log C_t$ and hence $1/C_t$. If the network's output happens to drive $C_t$ close to zero during training, AD dutifully returns a very large gradient; SGD then takes a very large step and the network explodes or produces `NaN`. Two cures of different quality are in wide use:
 
-- *Reparameterize so the domain is respected by architecture.* In the Brock--Mirman notebooks, the network outputs the *savings share* $s \in (0,1)$ through a sigmoid; this guarantees $C_t > 0$ *and* $K_{t+1} > 0$ simultaneously, at every training iteration, with no penalty term. This is the hard/soft constraint split of Figure {numref}`fig-hard_soft`.
+- *Reparameterize so the domain is respected by architecture.* In the Brock--Mirman notebooks, the network outputs the *savings share* $s \in (0,1)$ through a sigmoid; this guarantees $C_t > 0$ *and* $K_{t+1} > 0$ simultaneously, at every training iteration, with no penalty term. This is the hard/soft constraint split of {numref}`fig-hard_soft`.
 
 - *Use numerically stable primitives.* Prefer `tf.math.log1p(x)` to `log(1+x)`, `tf.math.softplus` to a hand-coded $\log(1 + e^x)$, and `tf.math.xlogy(a,b)` to $a\log b$ when the $a=0$ convention matters. AD does not see the cancellations these functions implement; the human must.
 
@@ -636,14 +636,15 @@ Three notebooks (in the autodiff chapter's code folder) put the above into pract
 
 For very large-scale applications (e.g., $N \geq 50$ countries in the IRBC model of Chapter {ref}`ch-irbc`), training can be accelerated by distributing the gradient computation across multiple GPUs or compute nodes. The standard approach uses synchronous data parallelism via MPI `Allreduce`; in the DEQN paper the corresponding implementation is built on *Horovod* {cite:p}`sergeev2018horovod`, which wraps `Allreduce` into a drop-in replacement for the training optimizer.
 
-```{prf:definition}
+```{prf:definition} Data-Parallel DEQN Training
 
 - **Input:** $P$ workers, each with local copy of $\mathcal{N}_\rho$
-- for each training iteration:
+- for each training iteration do
   - Each worker $p$ draws local mini-batch $\mathcal{B}_p$ from simulation
   - Each worker computes local gradient: $\bm{g}_p = \nabla_\rho \ell(\mathcal{B}_p)$
   - **MPI\_Allreduce:** $\bar{\bm{g}} = \frac{1}{P}\sum_{p=1}^P \bm{g}_p$
   - Each worker updates: $\rho \leftarrow \rho - \eta\,\bar{\bm{g}}$
+- end
 ```
 
 
@@ -671,10 +672,11 @@ We compare:
 
 ##### Convergence behavior.
 
-Figure {numref}`fig-loss_kernels` shows the mean, $p_{90}$, and $p_{99}$ of the absolute relative Euler error on a fixed evaluation grid as a function of the training episode, for each of the six kernels. Three patterns are immediate.
+{numref}`fig-loss_kernels` shows the mean, $p_{90}$, and $p_{99}$ of the absolute relative Euler error on a fixed evaluation grid as a function of the training episode, for each of the six kernels. Three patterns are immediate.
 
 ```{figure} figures/loss_kernel_convergence.png
 :name: fig-loss_kernels
+:width: 100%
 
 Convergence of the relative Euler-error distribution under six different loss kernels on the stochastic Brock--Mirman model with full depreciation. Same network (2$\times$32 swish, sigmoid head), same Adam optimizer, same CRN training stream; only the loss kernel changes. Left: mean $|r|$. Middle: $p_{90}\,|r|$. Right: $p_{99}\,|r|$. All on a log scale. Closed-form benchmark: $s^\star = \alpha\beta$.
 ```
@@ -687,7 +689,7 @@ Of the six kernels, log-cosh is the one whose convergence curve is essentially m
 
 ##### Why this is an *economic* comparison.
 
-The relative Euler-equation residual already has a direct economic interpretation: a $1\%$ relative Euler error translates approximately into a $1\%$ per-period consumption error along the simulated path {cite:p}`judd1998numerical`. The mean / $p_{90}$ / $p_{99}$ panels of Figure {numref}`fig-loss_kernels` therefore measure, in interpretable units, the average and tail consumption mistakes that each loss kernel leaves behind. The point of the experiment is that *the training-loss ranking is not the same as the ranking on this economic metric*: a kernel that achieves a slightly higher *mean* residual but a much narrower *tail* produces smaller worst-case consumption errors, which is what matters when rare states are economically consequential (occasionally binding constraints, fat-tailed shocks, tipping risks). The training loss is the instrument; the relative Euler error along simulated paths is the criterion. Choosing the kernel with that hierarchy in mind is part of the modeling decision. The companion notebook pushes this one step further by collapsing the per-period error distribution into a single consumption-equivalent welfare loss against $s^\star$; readers who want a single-number summary of the trade-off should consult that table directly.
+The relative Euler-equation residual already has a direct economic interpretation: a $1\%$ relative Euler error translates approximately into a $1\%$ per-period consumption error along the simulated path {cite:p}`judd1998numerical`. The mean / $p_{90}$ / $p_{99}$ panels of {numref}`fig-loss_kernels` therefore measure, in interpretable units, the average and tail consumption mistakes that each loss kernel leaves behind. The point of the experiment is that *the training-loss ranking is not the same as the ranking on this economic metric*: a kernel that achieves a slightly higher *mean* residual but a much narrower *tail* produces smaller worst-case consumption errors, which is what matters when rare states are economically consequential (occasionally binding constraints, fat-tailed shocks, tipping risks). The training loss is the instrument; the relative Euler error along simulated paths is the criterion. Choosing the kernel with that hierarchy in mind is part of the modeling decision. The companion notebook pushes this one step further by collapsing the per-period error distribution into a single consumption-equivalent welfare loss against $s^\star$; readers who want a single-number summary of the trade-off should consult that table directly.
 
 The full experiment, including a path-residual histogram, a policy-error heatmap on the $(z, \log K)$ plane, and a CE-welfare-loss summary table, is in the companion notebook `05_StochasticBM_LossComparison.ipynb`.
 
@@ -709,7 +711,7 @@ The following Jupyter notebooks implement and extend the material in this chapte
 
 - `05_StochasticBM_LossComparison.ipynb`: the stochastic Brock--Mirman is re-solved six times with identical network, optimizer, and CRN training data, and only the loss kernel changes (MSE, MAE, Huber, quantile pinball, CVaR, log-cosh). The notebook switches to full depreciation $\delta=1$ so that the closed-form optimal savings rate $s^\star=\alpha\beta$ is available, then evaluates each trained policy on the *economic* metric: the relative Euler-equation error along a simulated path, plus the consumption-equivalent welfare loss against $s^\star$. The exercise makes concrete that the choice of training loss and the convergence of the metric we ultimately care about are not the same thing, and that tail-aware kernels (Huber, CVaR, quantile pinball) trade a small loss in the bulk for a much cleaner $p_{99}$.
 
-```{prf:remark}
+```{prf:remark} Chapter Summary
 
 - DEQNs solve dynamic-equilibrium models by treating the equilibrium conditions $G(\x_t, p(\x_t), \mathbb{E}_t[H(\cdot)]) = 0$ as a residual loss; SGD on this loss replaces the traditional fixed-point iteration {cite:p}`azinovicDEEPEQUILIBRIUMNETS2022`.
 

@@ -7,7 +7,7 @@ With the GP machinery of Chapter {ref}`ch-gp` in hand, this chapter builds the 
 
 Before the current deep-learning boom, neural networks were already studied as nonlinear *sieve* estimators in econometrics, with a rigorous asymptotic theory developed in parallel with the approximation-theory results of Chapter {ref}`ch-intro`. {cite:t}`chenwhite1999improved` establish convergence rates and asymptotic normality for single-hidden-layer network estimators, and {cite:t}`chen2007sieve` integrates that line into the broader sieve treatment of semi-nonparametric models defined by conditional moment restrictions, which is precisely the structural-estimation setting of this chapter. The modern continuation of this program uses deep architectures for efficient estimation in nonparametric instrumental-variable models {cite:p}`chenChristensenKankanala2021npiv`. The pipelines developed below should be read as the implementation-side companion to that theoretical tradition: the sieve literature tells us *when* neural-network estimators consistently identify deep structural parameters; the surrogate pipelines tell us *how* to make the resulting estimators cheap enough to deploy at research scale.
 
-```{prf:remark}
+```{prf:remark} Two ideas hold this chapter together
 
 1.  **The pseudo-state trick.** Concatenate the structural parameter $\theta$ into the network input, $(s, \theta) \mapsto \mathcal{N}_\rho(s, \theta)$, and train one network that encodes a *family* of policies indexed by $\theta$. Each new $\theta$ evaluation then requires a single forward pass through the trained network, not a re-solve of the dynamic program; this is what makes SMM with a deep structural model tractable.
 
@@ -25,7 +25,7 @@ The key insight is that since we *own* the structural model, we can generate tra
 
 ##### Cutting out the outer loop.
 
-The point of a surrogate is to break this nesting. One pays a one-time offline cost: pick a design of experiments $\theta^{(1)},\dots,\theta^{(N)}$, solve the model at those $N$ configurations, and fit a surrogate $\phi(s,\theta)$ to the results. From then on the expensive inner solve is gone, and the estimation, uncertainty-quantification, or policy-search outer loop evaluates a function that costs microseconds and returns exact gradients, so it can run at the $10^3$ to $10^6$ scale those tasks need. The model is solved at a handful of configurations and the surrogate *interpolates between them*, which is almost always far cheaper than re-solving at every new $\theta$; Figure {numref}`fig-surrogate_outer_loop` contrasts the two workflows. The surrogate-based SMM estimation developed below and the surrogate-then-optimize policy search of Chapter {ref}`ch-climate` are both instances of this move, as is the GP value-function iteration of {ref}`sec-gp_dp` in Chapter {ref}`ch-gp`, where the "outer loop" is the Bellman iteration itself; there the surrogate is refit every Bellman step and the "offline" phase becomes a per-iteration update.
+The point of a surrogate is to break this nesting. One pays a one-time offline cost: pick a design of experiments $\theta^{(1)},\dots,\theta^{(N)}$, solve the model at those $N$ configurations, and fit a surrogate $\phi(s,\theta)$ to the results. From then on the expensive inner solve is gone, and the estimation, uncertainty-quantification, or policy-search outer loop evaluates a function that costs microseconds and returns exact gradients, so it can run at the $10^3$ to $10^6$ scale those tasks need. The model is solved at a handful of configurations and the surrogate *interpolates between them*, which is almost always far cheaper than re-solving at every new $\theta$; {numref}`fig-surrogate_outer_loop` contrasts the two workflows. The surrogate-based SMM estimation developed below and the surrogate-then-optimize policy search of Chapter {ref}`ch-climate` are both instances of this move, as is the GP value-function iteration of {ref}`sec-gp_dp` in Chapter {ref}`ch-gp`, where the "outer loop" is the Bellman iteration itself; there the surrogate is refit every Bellman step and the "offline" phase becomes a per-iteration update.
 
 ```{figure} figures/fig-surrogate_outer_loop.svg
 :name: fig-surrogate_outer_loop
@@ -53,11 +53,11 @@ Two complementary surrogate strategies. DNN surrogates are attractive when the i
 | Key advantage | scales to very high $d$ via SGD | built-in UQ and active learning |
 ````
 
-Table {numref}`tab-surrogate_strategy_comparison` summarizes the main trade-off. The two approaches are not mutually exclusive: one can use a GP to build an initial low-data surrogate with uncertainty estimates, and later switch to a DNN when more training data becomes available. A detailed comparison covering computational cost, gradient access, and further trade-offs is given in Section {ref}`sec-gp_vs_dnn` of Chapter {ref}`ch-gp`, where it sits naturally alongside the GP machinery itself.
+{numref}`tab-surrogate_strategy_comparison` summarizes the main trade-off. The two approaches are not mutually exclusive: one can use a GP to build an initial low-data surrogate with uncertainty estimates, and later switch to a DNN when more training data becomes available. A detailed comparison covering computational cost, gradient access, and further trade-offs is given in Section {ref}`sec-gp_vs_dnn` of Chapter {ref}`ch-gp`, where it sits naturally alongside the GP machinery itself.
 
 ##### Speed gains.
 
-This is the payoff sketched in Figure {numref}`fig-surrogate_outer_loop`: regardless of whether a DNN or GP is used, once the surrogate is trained the per-iteration cost of the downstream outer loop, estimation, sensitivity analysis, or optimal policy design, collapses to a function evaluation. {cite:t}`chen2026Deep` report speedups of several orders of magnitude for option pricing, where evaluating the DNN surrogate replaces expensive FFT-based Fourier inversion (their Bates-model benchmark documents two-to-three orders of magnitude over the numerical pricing baseline). As a rough rule of thumb, the gain scales with the cost of the underlying pricing routine: the orders-of-magnitude gains arise for models requiring a PDE solve (roughly $1$ ms/eval $\to$ $1$ $\mu$s/eval through a surrogate) or high-dimensional Monte Carlo, regimes in which $10^3$--$10^4\times$ speedups are typical. The gains are even larger for gradient computations: while finite-difference gradients require $d+1$ model evaluations (one per parameter), the gradient through the surrogate (autograd for DNNs, closed-form for GPs) requires only a single pass, regardless of the number of parameters.
+This is the payoff sketched in {numref}`fig-surrogate_outer_loop`: regardless of whether a DNN or GP is used, once the surrogate is trained the per-iteration cost of the downstream outer loop, estimation, sensitivity analysis, or optimal policy design, collapses to a function evaluation. {cite:t}`chen2026Deep` report speedups of several orders of magnitude for option pricing, where evaluating the DNN surrogate replaces expensive FFT-based Fourier inversion (their Bates-model benchmark documents two-to-three orders of magnitude over the numerical pricing baseline). As a rough rule of thumb, the gain scales with the cost of the underlying pricing routine: the orders-of-magnitude gains arise for models requiring a PDE solve (roughly $1$ ms/eval $\to$ $1$ $\mu$s/eval through a surrogate) or high-dimensional Monte Carlo, regimes in which $10^3$--$10^4\times$ speedups are typical. The gains are even larger for gradient computations: while finite-difference gradients require $d+1$ model evaluations (one per parameter), the gradient through the surrogate (autograd for DNNs, closed-form for GPs) requires only a single pass, regardless of the number of parameters.
 
 ## Pseudo-States: Parameters as "State" Variables
 
@@ -73,13 +73,13 @@ $$
 Pseudo-state surrogate architecture. Economic states $s$ and model parameters $\theta$ are concatenated into the augmented input $\tilde{\x} = (s, \theta)$ and fed to a single approximator $\phi(\tilde{\x}\,|\,\theta_\mathrm{NN})$ with weights $\theta_\mathrm{NN}$, yielding a target quantity $y$ (price, policy, moment) as a continuous, differentiable function of both the state and the parameter vector. After one offline training pass, the surrogate is queried instantly across the parameter space without re-solving the original model.
 ```
 
-The surrogate is trained once over the full augmented space and can then be queried instantly for any parameter configuration, without re-solving the model. This is fundamentally different from simply re-running the model: the surrogate provides a continuous, differentiable mapping from parameters to outputs, enabling gradient-based optimization and uncertainty propagation that would be impossible with the original model. Figure {numref}`fig-pseudo_state_surrogate` sketches this concatenated input.
+The surrogate is trained once over the full augmented space and can then be queried instantly for any parameter configuration, without re-solving the model. This is fundamentally different from simply re-running the model: the surrogate provides a continuous, differentiable mapping from parameters to outputs, enabling gradient-based optimization and uncertainty propagation that would be impossible with the original model. {numref}`fig-pseudo_state_surrogate` sketches this concatenated input.
 
 {cite:t}`scheideggertreccani_2018` achieve the surrogate-for-finance idea with adaptive sparse grids; {cite:t}`friedlDeep2023` apply the surrogate idea to uncertainty quantification in integrated assessment models of climate change; {cite:t}`chen2026Deep` demonstrate speedups of several orders of magnitude for option pricing with the deep-surrogate approach.
 
 ##### Comparison of approximation methods.
 
-The surrogate approach is one of several function approximation strategies used in computational economics. Table {numref}`tab-approximation_methods_comparison` situates it relative to alternatives.
+The surrogate approach is one of several function approximation strategies used in computational economics. {numref}`tab-approximation_methods_comparison` situates it relative to alternatives.
 
 ````{table}
 :name: tab-approximation_methods_comparison
@@ -252,7 +252,7 @@ The joint notebook maps the 2D criterion on a grid, then refines from the grid m
 
 ##### Interpretation.
 
-If the moments are informative about $\theta$, the objective should be minimized close to the synthetic truth. In the scalar notebook, $\hat\varrho$ is very close to $0.90$ and the fitted policy functions at $\varrho_{\mathrm{true}}$ and $\hat\varrho$ nearly overlap. The joint notebook shows the additional lesson: point estimates can be accurate while the criterion still has weak curvature along one parameter direction, which is why contour plots and Jacobian diagnostics matter. Figure {numref}`fig-smm_2d_criterion` in {ref}`sec-smm_gp_moments` below visualizes both specifications and is worth looking at now to fix the geometric picture in mind.
+If the moments are informative about $\theta$, the objective should be minimized close to the synthetic truth. In the scalar notebook, $\hat\varrho$ is very close to $0.90$ and the fitted policy functions at $\varrho_{\mathrm{true}}$ and $\hat\varrho$ nearly overlap. The joint notebook shows the additional lesson: point estimates can be accurate while the criterion still has weak curvature along one parameter direction, which is why contour plots and Jacobian diagnostics matter. {numref}`fig-smm_2d_criterion` in {ref}`sec-smm_gp_moments` below visualizes both specifications and is worth looking at now to fix the geometric picture in mind.
 
 ## Practical Considerations
 
@@ -299,9 +299,9 @@ If the smallest singular values of $\hat{M}$ are close to zero, inference based 
 
 (sec-smm_gp_moments)=
 ## GP Surrogate over the Moment Map
-```{prf:remark}
+```{prf:remark} Scope of this section
 
-The simplified core notebooks `lecture_15_03_Structural_Estimation_BM.ipynb` and `lecture_15_03b_Structural_Estimation_BM_Joint.ipynb` stop after the direct surrogate-based SMM estimator and its identification diagnostics; they do *not* implement the second-layer Gaussian-process moment surrogate, leave-one-out validation, or Bayesian active learning described below. This section sketches the research-scale extension that a separate companion notebook would add on top of the policy surrogate, and that motivates the GP active-learning workflow used in Chapter {ref}`ch-climate`.
+ The simplified core notebooks `lecture_15_03_Structural_Estimation_BM.ipynb` and `lecture_15_03b_Structural_Estimation_BM_Joint.ipynb` stop after the direct surrogate-based SMM estimator and its identification diagnostics; they do *not* implement the second-layer Gaussian-process moment surrogate, leave-one-out validation, or Bayesian active learning described below. This section sketches the research-scale extension that a separate companion notebook would add on top of the policy surrogate, and that motivates the GP active-learning workflow used in Chapter {ref}`ch-climate`.
 ```
 
 
@@ -317,7 +317,7 @@ $$
 \widehat m_j(\theta) \;\sim\; \mathrm{GP}\bigl(0,\, k_j(\cdot, \cdot)\bigr), \qquad j = 1, \ldots, q,
 $$ (eq-moment_gp)
 
-one independent GP per moment, with its own kernel and length-scale hyperparameters learned by maximising marginal likelihood on a small design $\{(\theta^{(i)},\, m(\theta^{(i)}))\}_{i=1}^n$. Once trained, evaluating the SMM objective at any candidate $\theta$ is a single GP forward pass per moment, no simulation required. Bootstrapped CIs and any subsequent Bayesian post-processing then run on the GP, not on the simulator. Figure {numref}`fig-smm_two_layer_surrogate` reads the architecture top-to-bottom. A candidate $\theta$ is fed into the DEQN policy net of {ref}`sec-smm_method`, which is rolled forward for $T$ periods to produce a simulated path and its moment vector $m(\theta)\in\R^q$; a small design $\{(\theta^{(i)},\,m(\theta^{(i)}))\}_{i=1}^n$ of those simulator labels then trains the second layer of $q$ independent moment GPs, after which the SMM criterion $Q(\theta)$ is a closed-form quadratic in the GP posterior means. The right-hand column traces the per-$\theta$ cost cascade from seconds-to-hours down to microseconds.
+one independent GP per moment, with its own kernel and length-scale hyperparameters learned by maximising marginal likelihood on a small design $\{(\theta^{(i)},\, m(\theta^{(i)}))\}_{i=1}^n$. Once trained, evaluating the SMM objective at any candidate $\theta$ is a single GP forward pass per moment, no simulation required. Bootstrapped CIs and any subsequent Bayesian post-processing then run on the GP, not on the simulator. {numref}`fig-smm_two_layer_surrogate` reads the architecture top-to-bottom. A candidate $\theta$ is fed into the DEQN policy net of {ref}`sec-smm_method`, which is rolled forward for $T$ periods to produce a simulated path and its moment vector $m(\theta)\in\R^q$; a small design $\{(\theta^{(i)},\,m(\theta^{(i)}))\}_{i=1}^n$ of those simulator labels then trains the second layer of $q$ independent moment GPs, after which the SMM criterion $Q(\theta)$ is a closed-form quadratic in the GP posterior means. The right-hand column traces the per-$\theta$ cost cascade from seconds-to-hours down to microseconds.
 
 ```{figure} figures/fig-smm_two_layer_surrogate.svg
 :name: fig-smm_two_layer_surrogate
@@ -361,7 +361,7 @@ At a fixed design budget, one can compare pilot grid / naive Latin-hypercube / B
 
 ### The 2D SMM Criterion Surface and Partial Identification
 
-Figure {numref}`fig-smm_2d_criterion` shows the direct SMM criterion on the joint rectangle. Two features are visible.
+{numref}`fig-smm_2d_criterion` shows the direct SMM criterion on the joint rectangle. Two features are visible.
 
 First, the criterion has a long, shallow ridge along the $\beta$ direction in the just-identified specification: the data are nearly uninformative about $\beta$ once $\varrho$ is fixed, so a wide range of $\beta$-values fits almost equally well. This is partial identification, in textbook form, visualised on the criterion surface. Economically, $\beta$ and $\varrho$ both shift the consumption-smoothing motive in similar directions on long horizons: raising patience and raising persistence each raise the mean savings rate and dampen consumption-growth autocorrelation, so a two-moment specification built from those two moments leaves the $(\beta,\varrho)$ ratio under-determined and produces the ridge.
 
@@ -369,15 +369,16 @@ Second, the ridge collapses to a localized minimum in the over-identified specif
 
 ```{figure} figures/joint_criterion_contour.pdf
 :name: fig-smm_2d_criterion
+:width: 92%
 
 Direct SMM criterion for the joint Brock--Mirman estimation. The left panel uses the just-identified two-moment specification and displays a shallow ridge along $\beta$, signalling that patience is only partially identified by those two moments. The right panel uses the over-identified four-moment specification, which adds volatility and output-persistence information and produces a localized minimum near the synthetic truth. Generated by notebook 03b.
 ```
 
-In the research-scale extension, the second-layer GP fitted to the joint moment map provides a closed-form, microseconds-per-call substitute for forward simulation: subsequent SMM evaluations, bootstrap replications, and Bayesian post-processing run on the GP rather than on the simulator. The TikZ architecture diagram in Figure {numref}`fig-smm_two_layer_surrogate` already encodes the cost cascade; the rendered GP-objective surface itself is not produced by the core notebooks and is therefore not displayed here.
+In the research-scale extension, the second-layer GP fitted to the joint moment map provides a closed-form, microseconds-per-call substitute for forward simulation: subsequent SMM evaluations, bootstrap replications, and Bayesian post-processing run on the GP rather than on the simulator. The TikZ architecture diagram in {numref}`fig-smm_two_layer_surrogate` already encodes the cost cascade; the rendered GP-objective surface itself is not produced by the core notebooks and is therefore not displayed here.
 
-```{prf:remark}
+```{prf:remark} Hands-on
 
-Notebook `lecture_15_03_Structural_Estimation_BM.ipynb` fits the scalar persistence exercise: a 3-input pseudo-state policy net, common-random-number simulation across a $\varrho$-grid, and an interior SMM estimate with a moment-Jacobian diagnostic. Notebook `lecture_15_03b_Structural_Estimation_BM_Joint.ipynb` performs joint $(\beta,\varrho)$ estimation and visualises the partial-identification ridge of Figure {numref}`fig-smm_2d_criterion` for the shallow-ridge two-moment specification and the over-identified specification. The second-layer GP-moment-map extension above is left as a research-scale companion.
+ Notebook `lecture_15_03_Structural_Estimation_BM.ipynb` fits the scalar persistence exercise: a 3-input pseudo-state policy net, common-random-number simulation across a $\varrho$-grid, and an interior SMM estimate with a moment-Jacobian diagnostic. Notebook `lecture_15_03b_Structural_Estimation_BM_Joint.ipynb` performs joint $(\beta,\varrho)$ estimation and visualises the partial-identification ridge of {numref}`fig-smm_2d_criterion` for the shallow-ridge two-moment specification and the over-identified specification. The second-layer GP-moment-map extension above is left as a research-scale companion.
 ```
 
 
@@ -399,7 +400,7 @@ In settings where the simulator is differentiable or fast but the likelihood $p(
 
 Climate--economy integrated assessment models (Chapter {ref}`ch-climate`) are the prototypical setting where surrogate-based estimation pays off. Credible policy analysis requires evaluating the model over many climate-sensitivity, damage-elasticity, and discount-rate scenarios. Treating the parameter vector as a pseudo-state and training a single deep surrogate, exactly as in the SMM exercise above, turns repeated re-solves into repeated forward passes and is the technical bridge between this chapter and the next.
 
-```{prf:remark}
+```{prf:remark} Chapter Summary
 
 - SMM matches simulated moments to data moments by minimizing a weighted quadratic objective; it is GMM with simulation {cite:p}`mcfadden1989method,pakes1989simulation`.
 

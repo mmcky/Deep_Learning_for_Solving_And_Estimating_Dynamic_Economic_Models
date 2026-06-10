@@ -21,7 +21,7 @@ The squared-exponential kernel {eq}`eq-nas_kse` of {ref}`sec-nas_gp_primer` rema
 Squared-exponential kernel as a function of distance for three length scales. Small $\ell$ makes correlations decay quickly and produces rougher, more local fits; large $\ell$ couples distant points and imposes smoother functions.
 ```
 
-Figure {numref}`fig-rbf_length_scale` shows how the RBF length scale controls the distance over which observations remain informative. For any training dataset $\mathcal{D} = \{(\x_i, y_i)\}_{i=1}^n$, the GP posterior at a test point $\x_*$ has the closed-form mean $\bar{f}_*$ and variance $\sigma_{f,*}^2$ stated in {eq}`eq-nas_gp_mean`--{eq}`eq-nas_gp_var`, with $K_{ij} = k(\x_i,\x_j)$ the kernel matrix on training inputs, $K_y = K + \sigma_y^2 I$ its noise-augmented version, $\bm{\mu}_X$ the prior-mean vector at training inputs, and $\bm{k}_*$ the cross-covariance whose $i$-th entry is $k(\x_*, \x_i)$. For a noisy future observation $y_*$ the predictive variance is $\sigma_{y,*}^2 = \sigma_{f,*}^2 + \sigma_y^2$, and the common zero-mean formulas are recovered by centering outputs or setting $\mu \equiv 0$.
+{numref}`fig-rbf_length_scale` shows how the RBF length scale controls the distance over which observations remain informative. For any training dataset $\mathcal{D} = \{(\x_i, y_i)\}_{i=1}^n$, the GP posterior at a test point $\x_*$ has the closed-form mean $\bar{f}_*$ and variance $\sigma_{f,*}^2$ stated in {eq}`eq-nas_gp_mean`--{eq}`eq-nas_gp_var`, with $K_{ij} = k(\x_i,\x_j)$ the kernel matrix on training inputs, $K_y = K + \sigma_y^2 I$ its noise-augmented version, $\bm{\mu}_X$ the prior-mean vector at training inputs, and $\bm{k}_*$ the cross-covariance whose $i$-th entry is $k(\x_*, \x_i)$. For a noisy future observation $y_*$ the predictive variance is $\sigma_{y,*}^2 = \sigma_{f,*}^2 + \sigma_y^2$, and the common zero-mean formulas are recovered by centering outputs or setting $\mu \equiv 0$.
 
 ##### A hand-traceable 1D example.
 
@@ -33,7 +33,7 @@ To make {eq}`eq-nas_gp_mean`--{eq}`eq-nas_gp_var` concrete, take $f(x) = \sin x
 \;\approx\;
 \begin{pmatrix} 0.2910 \\ 0.2910 \end{pmatrix},$$ since $x_\star = \pi/2$ is equidistant from $0$ and $\pi$. Because $\bm y = (0,0)^\top$, the posterior mean {eq}`eq-nas_gp_mean` is exactly $\bar f_\star = 0$. For the variance, $$(K + \sigma_y^2 I)^{-1} \bm k_\star \;\approx\; \tfrac{0.2910}{1 + 0.00719}\,(1, 1)^\top \;\approx\; (0.2890, 0.2890)^\top,$$ so $\bm k_\star^\top (K + \sigma_y^2 I)^{-1} \bm k_\star \approx 2 \cdot 0.2910 \cdot 0.2890 \approx 0.1682$, giving $\sigma_\star^2 \approx 1 - 0.1682 \approx 0.832$ and a posterior standard deviation $\sigma_\star \approx 0.91$. The GP predicts zero at the midpoint, with substantial residual uncertainty, consistent with the fact that $\sin(\pi/2) = 1$ is not pinned down by the two boundary observations under this length scale.
 
-Figure {numref}`fig-gp_prior_posterior` illustrates the GP prior and posterior for a simple one-dimensional regression problem. Before observing data, the GP prior has constant mean and uniform uncertainty. After conditioning on five observations, the posterior mean interpolates the data and the uncertainty bands collapse near the observations while remaining wide in unexplored regions.
+{numref}`fig-gp_prior_posterior` illustrates the GP prior and posterior for a simple one-dimensional regression problem. Before observing data, the GP prior has constant mean and uniform uncertainty. After conditioning on five observations, the posterior mean interpolates the data and the uncertainty bands collapse near the observations while remaining wide in unexplored regions.
 
 ```{figure} figures/fig-gp_prior_posterior.svg
 :name: fig-gp_prior_posterior
@@ -41,9 +41,9 @@ Figure {numref}`fig-gp_prior_posterior` illustrates the GP prior and posterior 
 Gaussian-process prior and posterior on a 1D regression problem. *Left:* the prior has constant mean (here zero) and uniform uncertainty; the shaded bands show the $68\%$ and $95\%$ credible intervals, and the thin grey curves are three sample paths drawn from the prior. *Right:* after conditioning on five observations (black dots), the posterior mean (red curve) interpolates the data exactly, and the credible band collapses near the observed points while widening in unexplored regions away from the data, giving the GP its built-in uncertainty quantification.
 ```
 
-```{prf:remark}
+```{prf:remark} Built-in uncertainty quantification
 
-The posterior variance $\sigma_*^2$ is small near observed data (the GP is confident) and large far from observed data (the GP is uncertain). This property is the foundation of Bayesian active learning.
+ The posterior variance $\sigma_*^2$ is small near observed data (the GP is confident) and large far from observed data (the GP is uncertain). This property is the foundation of Bayesian active learning.
 ```
 
 
@@ -59,7 +59,7 @@ where $K_y = K + \sigma_y^2 I$ and $\bm{\mu}_X$ is the prior mean evaluated on t
 
 ##### Why marginal likelihood?
 
-The log evidence $\log p(\bm y \mid \X, \bm\vartheta)$ encodes both data fit *and* an automatic complexity penalty in a single closed-form expression. The quadratic form $-\tfrac{1}{2}\bm y^\top K_y^{-1}\bm y$ rewards hyperparameters that explain the centered observations with a small inverse-covariance norm, while the log-determinant term $-\tfrac{1}{2}\log|K_y|$ penalises overly flexible kernels that admit too many possible functions, giving Bayesian Occam's razor {cite:p}`Rasmussen:2005:GPM:1162254`. Compared with cross-validated MSE, this approach requires no held-out split, makes use of all $n$ observations, and exposes a closed-form gradient with respect to $\bm\vartheta$, which is essential for L-BFGS-style optimization in scikit-learn / GPyTorch. The maximum is reached at the kernel that is just expressive enough to fit the data but no more (Figure {numref}`fig-occam_marginal_likelihood`).
+The log evidence $\log p(\bm y \mid \X, \bm\vartheta)$ encodes both data fit *and* an automatic complexity penalty in a single closed-form expression. The quadratic form $-\tfrac{1}{2}\bm y^\top K_y^{-1}\bm y$ rewards hyperparameters that explain the centered observations with a small inverse-covariance norm, while the log-determinant term $-\tfrac{1}{2}\log|K_y|$ penalises overly flexible kernels that admit too many possible functions, giving Bayesian Occam's razor {cite:p}`Rasmussen:2005:GPM:1162254`. Compared with cross-validated MSE, this approach requires no held-out split, makes use of all $n$ observations, and exposes a closed-form gradient with respect to $\bm\vartheta$, which is essential for L-BFGS-style optimization in scikit-learn / GPyTorch. The maximum is reached at the kernel that is just expressive enough to fit the data but no more ({numref}`fig-occam_marginal_likelihood`).
 
 ```{figure} figures/fig-occam_marginal_likelihood.svg
 :name: fig-occam_marginal_likelihood
@@ -107,7 +107,7 @@ When model evaluations are expensive, we wish to select training points that pro
 
 BAL is the active-learning twin of the Bayesian-optimization (BO) recipe introduced in Chapter {ref}`ch-nas`: same GP surrogate, same acquisition-function machinery. The difference is the target. BO seeks a *scalar optimum* of the surrogate (e.g. Expected Improvement steers samples toward $\argmax \hat f$), so its acquisition trades exploration against the chance of beating the current best. BAL instead targets *global function approximation*: it allocates samples wherever posterior variance is largest, irrespective of the predicted value. Both reduce to the same primitive (fit GP, maximise acquisition, evaluate, refit), but the choice of acquisition reflects whether one wants the best point or the best surrogate.
 
-```{prf:definition}
+```{prf:definition} BAL Acquisition Function
 
 $$
 U(\x) = w_{\mathrm{obj}} \cdot \mu(\x) + \frac{w_{\mathrm{var}}}{2}\log\sigma^2(\x),
@@ -116,33 +116,35 @@ where $\mu(\x)$ and $\sigma^2(\x)$ are the GP posterior mean and variance, $w_{\
 ```
 
 
-```{prf:definition}
+```{prf:definition} Algorithm: Bayesian Active Learning
 
 - **Input:** Initial design $\mathcal{D}_0 = \{(\x_i, y_i)\}_{i=1}^{n_0}$, budget $N$, kernel $k$, acquisition weights $(w_{\mathrm{obj}}, w_{\mathrm{var}})$
 - Fit GP on $\mathcal{D}_0$: learn hyperparameters via marginal likelihood
-- for $n = n_0+1, \ldots, N$:
+- for $n = n_0+1, \ldots, N$ do
   - Compute acquisition function: $U(\x) = w_{\mathrm{obj}} \cdot \mu_{n-1}(\x) + \frac{w_{\mathrm{var}}}{2}\log\sigma_{n-1}^2(\x)$
   - Select next point: $\x_n = \argmax_{\x} U(\x)$
   - Evaluate expensive model: $y_n = f(\x_n)$
   - Update dataset: $\mathcal{D}_n = \mathcal{D}_{n-1} \cup \{(\x_n, y_n)\}$
   - Re-fit GP on $\mathcal{D}_n$ (update hyperparameters every $k$ iterations)
+- end
 - **Output:** Trained GP surrogate $\hat{f}(\cdot)$ with posterior mean $\mu_N$ and variance $\sigma_N^2$
 ```
 
 
 The BAL algorithm concentrates training points near kinks, boundary layers, and other regions where the function is hardest to approximate, achieving the same accuracy as uniform sampling with far fewer evaluations {cite:p}`rennerscheidegger_2018`. The exploration--exploitation trade-off controlled by $(w_{\mathrm{obj}}, w_{\mathrm{var}})$ ensures that the algorithm balances refining the approximation in already well-sampled regions against exploring uncharted territory.
 
-The intuition behind the acquisition function is as follows. The first term $w_{\mathrm{obj}} \cdot \mu(\x)$ favors regions where the predicted function value is large (exploitation: sample where the function is interesting). The second term $\frac{w_{\mathrm{var}}}{2}\log\sigma^2(\x)$ favors regions of high uncertainty (exploration: sample where we know least). This acquisition function belongs to the Upper Confidence Bound (UCB) family {cite:p}`srinivas2010gaussian`: with $w_{\mathrm{obj}} = 0$ it has the same maximizers as pure posterior-variance sampling, while the logarithmic variance weighting provides a more conservative exploration bonus than the standard-deviation weighting used in GP-UCB when it is combined with exploitation. By adjusting $w_{\mathrm{obj}}$ and $w_{\mathrm{var}}$, the practitioner can control the balance. For economic applications where the entire domain is relevant (e.g., approximating a policy function), a pure exploration strategy ($w_{\mathrm{obj}} = 0$, $w_{\mathrm{var}} > 0$) is often appropriate, reducing BAL to an uncertainty sampling scheme that minimizes the integrated posterior variance. Figure {numref}`fig-bal-iterations` illustrates two BAL iterations on a 1D toy.
+The intuition behind the acquisition function is as follows. The first term $w_{\mathrm{obj}} \cdot \mu(\x)$ favors regions where the predicted function value is large (exploitation: sample where the function is interesting). The second term $\frac{w_{\mathrm{var}}}{2}\log\sigma^2(\x)$ favors regions of high uncertainty (exploration: sample where we know least). This acquisition function belongs to the Upper Confidence Bound (UCB) family {cite:p}`srinivas2010gaussian`: with $w_{\mathrm{obj}} = 0$ it has the same maximizers as pure posterior-variance sampling, while the logarithmic variance weighting provides a more conservative exploration bonus than the standard-deviation weighting used in GP-UCB when it is combined with exploitation. By adjusting $w_{\mathrm{obj}}$ and $w_{\mathrm{var}}$, the practitioner can control the balance. For economic applications where the entire domain is relevant (e.g., approximating a policy function), a pure exploration strategy ($w_{\mathrm{obj}} = 0$, $w_{\mathrm{var}} > 0$) is often appropriate, reducing BAL to an uncertainty sampling scheme that minimizes the integrated posterior variance. {numref}`fig-bal-iterations` illustrates two BAL iterations on a 1D toy.
 
 ```{figure} figures/gp_active_learning.pdf
 :name: fig-bal-iterations
+:width: 100%
 
 Bayesian Active Learning in action. **(a)** Starting from three initial observations (red dots), the GP posterior mean (blue line) deviates from the true function (dashed black) in the data-sparse region, where the 95% credible band (blue shading) is wide. **(b)** The acquisition function selects the point of maximum posterior variance (green diamond); after evaluation, the posterior tightens locally and the mean improves. **(c)** A second active-learning iteration fills the remaining gap. With only five strategically chosen points, the GP posterior closely tracks the true function across the entire domain.
 ```
 
 (sec-gp_vs_dnn)=
 ## When to Use GPs vs. DNNs
-Now that the GP machinery (posterior inference, kernel design, and BAL) has been introduced, we can give a more detailed comparison than the overview in Table {numref}`tab-surrogate_strategy_comparison`. Active subspaces, introduced in Section {ref}`sec-active_subspaces`, are the main tool for pushing GP surrogates beyond the moderate-dimensional regime. Table {numref}`tab-gp_vs_dnn_surrogates` extends Table {numref}`tab-surrogate_strategy_comparison` with the GP-specific items (LOO diagnostics, marginal-likelihood Occam, BAL).
+Now that the GP machinery (posterior inference, kernel design, and BAL) has been introduced, we can give a more detailed comparison than the overview in {numref}`tab-surrogate_strategy_comparison`. Active subspaces, introduced in Section {ref}`sec-active_subspaces`, are the main tool for pushing GP surrogates beyond the moderate-dimensional regime. {numref}`tab-gp_vs_dnn_surrogates` extends {numref}`tab-surrogate_strategy_comparison` with the GP-specific items (LOO diagnostics, marginal-likelihood Occam, BAL).
 
 ````{table}
 :name: tab-gp_vs_dnn_surrogates
@@ -175,11 +177,11 @@ In code, GP regression is a one-liner once the kernel is chosen. In scikit-learn
 
 GPs are particularly well suited as surrogates for derivative pricing models. For example, one can train a GP on as few as 5--50 Black--Scholes option prices (evaluated at different spot prices or parameter configurations) and obtain a surrogate that accurately reproduces the pricing surface with calibrated uncertainty bands. The posterior variance immediately quantifies the interpolation uncertainty at each query point. This idea extends naturally to stochastic volatility models such as Heston, where the analytical pricing formula is expensive to evaluate. Furthermore, because GP predictions are linear in the training targets, the uncertainty of a *portfolio* of GP-priced instruments propagates analytically: for a linear portfolio $\sum_i w_i \hat{V}_i$ with vector of weights $\bm{w}$ and joint posterior covariance $\Sigma_{\hat{V}}$, $\mathrm{Var}(\bm{w}^\top \hat{V}) = \bm{w}^\top \Sigma_{\hat{V}} \bm{w}$. When the surrogate errors are independent across instruments, $\Sigma_{\hat{V}}$ is diagonal with entries $\sigma_i^2$ and the formula reduces to $\sum_i w_i^2 \sigma_i^2$; otherwise the off-diagonal cross-instrument covariances must be retained, e.g. via a multi-output GP. Either way the assessment is instant.
 
-```{prf:remark}
+```{prf:remark} Computational scaling of GPs
 
-The main limitation of GPs is their $\mathcal{O}(n^3)$ training cost, arising from the inversion of the $n \times n$ kernel matrix. For $n > 10{,}000$, exact GP inference becomes impractical. Approximate methods, such as variational sparse GPs with inducing points {cite:p}`titsias2009variational`, stochastic-variational GPs {cite:p}`hensman2013gaussian`, random Fourier features, and structured kernel interpolation, can extend the range to $n \sim 10^5$, but for truly large-scale problems, deep neural networks remain the method of choice. The BAL framework mitigates this limitation by keeping $n$ small through intelligent sample selection.
+ The main limitation of GPs is their $\mathcal{O}(n^3)$ training cost, arising from the inversion of the $n \times n$ kernel matrix. For $n > 10{,}000$, exact GP inference becomes impractical. Approximate methods, such as variational sparse GPs with inducing points {cite:p}`titsias2009variational`, stochastic-variational GPs {cite:p}`hensman2013gaussian`, random Fourier features, and structured kernel interpolation, can extend the range to $n \sim 10^5$, but for truly large-scale problems, deep neural networks remain the method of choice. The BAL framework mitigates this limitation by keeping $n$ small through intelligent sample selection.
 
-The *inducing-point* idea (Figure {numref}`fig-inducing_points`) is simple: instead of carrying the full $n\times n$ kernel matrix, summarize the dataset with a much smaller set of $m \ll n$ pseudo-inputs $\bm Z = \{\bm z_1,\dots,\bm z_m\}$ and replace $K_{nn}$ by the Nyström-style low-rank approximation $K_{nm}K_{mm}^{-1}K_{mn}$. Training and prediction then cost about $\mathcal{O}(nm^2 + m^3)$ rather than $\mathcal{O}(n^3)$, with the $m^3$ term coming from the small inducing-point block. The variational formulation of {cite:t}`titsias2009variational` additionally treats $\bm Z$ as parameters to be optimized against the marginal likelihood, so the inducing inputs migrate to wherever the GP actually needs resolution.
+The *inducing-point* idea ({numref}`fig-inducing_points`) is simple: instead of carrying the full $n\times n$ kernel matrix, summarize the dataset with a much smaller set of $m \ll n$ pseudo-inputs $\bm Z = \{\bm z_1,\dots,\bm z_m\}$ and replace $K_{nn}$ by the Nyström-style low-rank approximation $K_{nm}K_{mm}^{-1}K_{mn}$. Training and prediction then cost about $\mathcal{O}(nm^2 + m^3)$ rather than $\mathcal{O}(n^3)$, with the $m^3$ term coming from the small inducing-point block. The variational formulation of {cite:t}`titsias2009variational` additionally treats $\bm Z$ as parameters to be optimized against the marginal likelihood, so the inducing inputs migrate to wherever the GP actually needs resolution.
 ```
 
 
@@ -254,7 +256,7 @@ The full dimension-reduction pipeline consists of three steps:
 
 1.  **Gradient sampling:** Draw $N_g$ points $\x_i \sim \pi(\x)$ and compute $\nabla f(\x_i)$ at each. Form the empirical estimate $\hat{C}$ via {eq}`eq-empirical_C`.
 
-2.  **Eigendecomposition and dimension selection:** Compute $\hat{C} = \hat{U}\hat{\Lambda}\hat{U}^\top$. Inspect the eigenvalue decay, as in Figure {numref}`fig-active_subspace_spectrum`, and choose $m$ at the spectral gap.
+2.  **Eigendecomposition and dimension selection:** Compute $\hat{C} = \hat{U}\hat{\Lambda}\hat{U}^\top$. Inspect the eigenvalue decay, as in {numref}`fig-active_subspace_spectrum`, and choose $m$ at the spectral gap.
 
 3.  **GP in reduced space:** Project all training inputs onto the active subspace: $\tilde{\x}_i = \hat{U}_m^\top \x_i \in \R^m$. Fit a standard GP on the $m$-dimensional projected data.
 
@@ -266,7 +268,7 @@ When combined with BAL, the GP adaptively selects training points in the reduced
 Linear active-subspace pipeline. Gradient samples identify the dominant eigenspace of the gradient outer-product matrix, all simulator inputs are projected to the reduced coordinates $\tilde{\x}=U_m^\top \x$, and the GP/BAL loop is then run in the low-dimensional active subspace.
 ```
 
-Figure {numref}`fig-active_subspace_pipeline` summarizes the linear active-subspace workflow used before fitting the GP.
+{numref}`fig-active_subspace_pipeline` summarizes the linear active-subspace workflow used before fitting the GP.
 
 ##### Application to dynamic stochastic economies.
 
@@ -336,7 +338,7 @@ Crucially, *no gradient samples of $f$* are required: $\theta$ is learned from t
 
 ##### Choosing the latent dimension $d$.
 
-The spectral gap of $C$ is no longer available -- the encoder is nonlinear -- so $d$ is chosen by a *validation-MSE elbow*: hold out an independent fraction of the sample, train a small family of models with $d = 1, 2, 3, \ldots$, and pick the smallest $d$ beyond which held-out error no longer drops significantly. An operational rule of thumb is to stop at the first $d$ for which the MSE improvement from $d$ to $d+1$ is less than a factor of two: smaller gains are typically driven by optimization slack, not by new latent structure. On curved problems this elbow lies *strictly below* the linear-AS spectral gap: the deep encoder collapses two linear features into a single nonlinear aggregate (notebook `09_Deep_Active_Subspace_Ridge` gives a reproducible instance in $D = 20$). On nearly-linear problems the two criteria agree qualitatively, and at small training-set sizes a polynomial link on top of a two-dimensional linear AS can in fact be more data-efficient than the deep encoder (notebook `10_Deep_AS_vs_Linear_AS_Borehole`, the canonical borehole benchmark with $D = 8$ and $N = 500$). Figure {numref}`fig-deep_as_elbow` contrasts the elbow rule with the linear-AS spectral gap on the radial-ridge target.
+The spectral gap of $C$ is no longer available -- the encoder is nonlinear -- so $d$ is chosen by a *validation-MSE elbow*: hold out an independent fraction of the sample, train a small family of models with $d = 1, 2, 3, \ldots$, and pick the smallest $d$ beyond which held-out error no longer drops significantly. An operational rule of thumb is to stop at the first $d$ for which the MSE improvement from $d$ to $d+1$ is less than a factor of two: smaller gains are typically driven by optimization slack, not by new latent structure. On curved problems this elbow lies *strictly below* the linear-AS spectral gap: the deep encoder collapses two linear features into a single nonlinear aggregate (notebook `09_Deep_Active_Subspace_Ridge` gives a reproducible instance in $D = 20$). On nearly-linear problems the two criteria agree qualitatively, and at small training-set sizes a polynomial link on top of a two-dimensional linear AS can in fact be more data-efficient than the deep encoder (notebook `10_Deep_AS_vs_Linear_AS_Borehole`, the canonical borehole benchmark with $D = 8$ and $N = 500$). {numref}`fig-deep_as_elbow` contrasts the elbow rule with the linear-AS spectral gap on the radial-ridge target.
 
 ```{figure} figures/fig-deep_as_elbow.svg
 :name: fig-deep_as_elbow
@@ -359,10 +361,10 @@ Sample-budget rule of thumb: $N \approx 50\, d_{\mathrm{nl}}$ to *find* the bott
 ```{figure} figures/fig-deep_as_pipeline.svg
 :name: fig-deep_as_pipeline
 
-Deep active-subspace pipeline. Input--output pairs $(\xi_i, y_i)$ are drawn directly from the simulator (no gradient samples needed); a nonlinear encoder $h_\theta$ compresses the high-dimensional input into a $d$-dimensional latent code, a small link network $g_\theta$ maps the latent code to the response, and an elastic-net / validation-MSE elbow chooses $d$. The trained composition $\hat f_\theta = g_\theta \circ h_\theta$ is the deployed surrogate. Compared with the linear active-subspace pipeline (Figure {numref}`fig-active_subspace_pipeline`), the encoder + link boxes replace the eigendecomposition + linear projection, the elbow box replaces the spectral-gap search, and the gradient-sampling step disappears entirely.
+Deep active-subspace pipeline. Input--output pairs $(\xi_i, y_i)$ are drawn directly from the simulator (no gradient samples needed); a nonlinear encoder $h_\theta$ compresses the high-dimensional input into a $d$-dimensional latent code, a small link network $g_\theta$ maps the latent code to the response, and an elastic-net / validation-MSE elbow chooses $d$. The trained composition $\hat f_\theta = g_\theta \circ h_\theta$ is the deployed surrogate. Compared with the linear active-subspace pipeline ({numref}`fig-active_subspace_pipeline`), the encoder + link boxes replace the eigendecomposition + linear projection, the elbow box replaces the spectral-gap search, and the gradient-sampling step disappears entirely.
 ```
 
-Figure {numref}`fig-deep_as_pipeline` should be compared with the linear pipeline in Figure {numref}`fig-active_subspace_pipeline`: the two blue encoder / link boxes replace "eigendecomposition + project", the "elastic-net + elbow" box replaces "find spectral gap", and the gradient-sampling step is gone entirely. The economic pay-off is the same, a cheap surrogate in $d$ variables where the original has $D$, but the modeling assumption is weaker: curved active manifolds are now admissible.
+{numref}`fig-deep_as_pipeline` should be compared with the linear pipeline in {numref}`fig-active_subspace_pipeline`: the two blue encoder / link boxes replace "eigendecomposition + project", the "elastic-net + elbow" box replaces "find spectral gap", and the gradient-sampling step is gone entirely. The economic pay-off is the same, a cheap surrogate in $d$ variables where the original has $D$, but the modeling assumption is weaker: curved active manifolds are now admissible.
 
 ##### When is the extra machinery worth it?
 
@@ -384,7 +386,7 @@ Before stating the algorithm, it helps to see VFI through a supervised-learning 
 
 This is exactly the regime where Gaussian processes shine. Three properties make them the natural surrogate class:
 
-1.  **Sample efficiency under an expensive oracle.** The marginal-likelihood Occam's razor of {ref}`sec-gp_kernels` delivers calibrated fits at $n \sim 10^2$--$10^3$ design points, well below the $n \gg 10^4$ regime in which deep-network surrogates start to dominate (Table {numref}`tab-gp_vs_bnn`).
+1.  **Sample efficiency under an expensive oracle.** The marginal-likelihood Occam's razor of {ref}`sec-gp_kernels` delivers calibrated fits at $n \sim 10^2$--$10^3$ design points, well below the $n \gg 10^4$ regime in which deep-network surrogates start to dominate ({numref}`tab-gp_vs_bnn`).
 
 2.  **Built-in uncertainty quantification.** The GP posterior variance $\sigma_\mathrm{GP}^2(\x)$ tells us, at every state, how much the current surrogate trusts its own prediction. This is the input that turns a passive interpolant into an *adaptive* one ({ref}`sec-gp_dp_bal_inside`).
 
@@ -506,10 +508,11 @@ A UCB-style acquisition would bias the design toward states with high *value*, w
 
 ##### Empirical impact.
 
-The companion notebook compares a same-budget fixed Latin-hypercube design with an active design inside the one-dimensional GP-VFI loop. Both designs use Bellman labels; the active design starts from a small initial set and adds states by maximising the GP posterior standard deviation {eq}`eq-bal_vfi` subject to a spacing rule. At the same final number of labels, the active design lowers posterior uncertainty and achieves a comparable or smaller dense-grid Bellman residual (Figure {numref}`fig-gp_vfi_active_1d`). The figure is one-dimensional by design: the goal is to show active enrichment inside a genuine Bellman iteration, not to use a separable interpolation toy as a proxy for multidimensional dynamic programming.
+The companion notebook compares a same-budget fixed Latin-hypercube design with an active design inside the one-dimensional GP-VFI loop. Both designs use Bellman labels; the active design starts from a small initial set and adds states by maximising the GP posterior standard deviation {eq}`eq-bal_vfi` subject to a spacing rule. At the same final number of labels, the active design lowers posterior uncertainty and achieves a comparable or smaller dense-grid Bellman residual ({numref}`fig-gp_vfi_active_1d`). The figure is one-dimensional by design: the goal is to show active enrichment inside a genuine Bellman iteration, not to use a separable interpolation toy as a proxy for multidimensional dynamic programming.
 
 ```{figure} figures/gp_vfi_active_learning_1d.png
 :name: fig-gp_vfi_active_1d
+:width: 100%
 
 Same-budget active enrichment inside one-dimensional GP value-function iteration. The left panel compares the GP posterior means from a fixed Latin-hypercube design and an active design against a reference GP-VFI solution. The middle panel shows the posterior standard deviation and the states added by the active rule {eq}`eq-bal_vfi`, marked as triangles on the horizontal axis. The right panel reports the dense-grid Bellman residual. Unlike the previously used two-dimensional separable interpolation benchmark, every plotted training value here is generated by a Bellman maximization. Generated by notebook `lecture_14_04_GP_Value_Function_Iteration.ipynb`.
 ```
@@ -544,7 +547,7 @@ Many economic models have irregularly shaped ergodic sets (ellipsoids or manifol
 
 ### Comparison: GPs vs. DEQNs for Solving Dynamic Models
 
-Both GPs (this chapter) and DEQNs (Chapters {ref}`ch-deqn`--{ref}`ch-olg`) solve dynamic stochastic models, but with different trade-offs (Table {numref}`tab-gp_vs_deqn_dynamic_models`):
+Both GPs (this chapter) and DEQNs (Chapters {ref}`ch-deqn`--{ref}`ch-olg`) solve dynamic stochastic models, but with different trade-offs ({numref}`tab-gp_vs_deqn_dynamic_models`):
 
 ````{table}
 :name: tab-gp_vs_deqn_dynamic_models
@@ -564,9 +567,9 @@ GP/ASGP and DEQN solvers for dynamic models. The table distinguishes exact fixed
 
 **When to use which:** GPs when the effective dimension is moderate ($D \lesssim 15$, or a few hundred only when active-subspace structure is strong) and uncertainty quantification or sensitivity analysis is required; DEQNs when $D$ is very large, GPU hardware is available, or the model involves complicated market-clearing conditions that are more naturally expressed as Euler equation residuals than as Bellman maximization.
 
-```{prf:remark}
+```{prf:remark} Hands-on
 
-Notebook `04_GP_Value_Function_Iteration.ipynb` implements GP-based VFI for the one-dimensional stochastic growth model. It shows convergence of the GP-VFI outer loop, posterior credible bands for the value-function interpolant, Cholesky-based LOO-RMSE {eq}`eq-gp_loo`, dense-grid Bellman residuals, active enrichment of the Bellman design {eq}`eq-bal_vfi`, policy recovery, and a deterministic full-depreciation verification ($\delta = 1$ and $\sigma = 0$) against the closed-form Brock--Mirman solution. The multidimensional ASGP extension is discussed in the literature summary above and illustrated separately by the active-subspace notebooks, `05_Active_Subspace_2D.ipynb`, `06_Active_Subspace_10D.ipynb`, and `07_Active_Subspace_Nonlinear.ipynb`, on 2D, 10D, and nonlinear test functions.
+ Notebook `04_GP_Value_Function_Iteration.ipynb` implements GP-based VFI for the one-dimensional stochastic growth model. It shows convergence of the GP-VFI outer loop, posterior credible bands for the value-function interpolant, Cholesky-based LOO-RMSE {eq}`eq-gp_loo`, dense-grid Bellman residuals, active enrichment of the Bellman design {eq}`eq-bal_vfi`, policy recovery, and a deterministic full-depreciation verification ($\delta = 1$ and $\sigma = 0$) against the closed-form Brock--Mirman solution. The multidimensional ASGP extension is discussed in the literature summary above and illustrated separately by the active-subspace notebooks, `05_Active_Subspace_2D.ipynb`, `06_Active_Subspace_10D.ipynb`, and `07_Active_Subspace_Nonlinear.ipynb`, on 2D, 10D, and nonlinear test functions.
 ```
 
 
@@ -620,9 +623,9 @@ Two simple examples highlight when DKL provides a qualitative advantage over sta
 
 - **Anisotropic boundaries in 2D.** Standard stationary kernels (RBF, Matérn) are isotropic: they measure distance with circular level sets. When the target function has a discontinuity along a *diagonal* or curved boundary, common in portfolio problems with no-trade regions or in models with regime-dependent policies, the isotropic kernel cannot adapt. DKL learns a nonlinear coordinate transformation that aligns the kernel's smoothness assumptions with the function's actual structure, capturing diagonal and curved boundaries that would require an impractical number of training points with a standard kernel.
 
-```{prf:remark}
+```{prf:remark} Hands-on
 
-The companion notebook `08_Deep_Kernel_Learning.ipynb` implements a simplified DKL pipeline (a supervised feature extractor stacked with a scikit-learn GP head) and compares the learned deep kernel against standard RBF and Matérn GPs on function approximation tasks; the full GPyTorch joint marginal-likelihood training of {eq}`eq-dkl_kernel` is left as an extension.
+ The companion notebook `08_Deep_Kernel_Learning.ipynb` implements a simplified DKL pipeline (a supervised feature extractor stacked with a scikit-learn GP head) and compares the learned deep kernel against standard RBF and Matérn GPs on function approximation tasks; the full GPyTorch joint marginal-likelihood training of {eq}`eq-dkl_kernel` is left as an extension.
 ```
 
 
@@ -657,7 +660,7 @@ Three uncertainty-quantification recipes compared on the dimensions that drive m
 
 In our experience the right method follows from the application: *(i)* plain GPs for moderate $d$ ($\lesssim 10$--$20$) with a smooth target and an expensive simulator, when calibrated uncertainty is the goal; *(ii)* deep kernels (Wilson & al., {cite:year}`wilson2016deep`) when the input geometry is non-trivial (regime switches, manifold structure, image-like inputs); *(iii)* deep ensembles or MC dropout for high-$d$ regression where calibrated uncertainty is desirable but exact GP inference is infeasible; *(iv)* sparse GPs ({cite:t}`titsias2009variational` {cite}`hensman2013gaussian`) for $n \gtrsim 10^4$ when the target stays smooth. The summary frame in the companion deck ("Toolbox: When to Use What") gives the same decomposition visually.
 
-```{prf:remark}
+```{prf:remark} Chapter Summary
 
 - Gaussian processes attach calibrated uncertainty to non-parametric regression at $\mathcal{O}(n^3)$ cost; the marginal likelihood implements an automatic Occam's razor that chooses model complexity without held-out validation.
 
