@@ -3,11 +3,11 @@ title: "Overlapping Generations Models with DEQNs"
 label: ch-olg
 ---
 
-In Chapters {ref}`ch-deqn`--{ref}`ch-irbc` all agents were infinitely lived. We now extend the DEQN framework to *overlapping generations* (OLG) models {cite:p}`diamond1965national`, where $A$ finitely-lived cohorts coexist in every period. OLG models introduce lifecycle savings, intergenerational transfers, age-dependent heterogeneity, and inequality constraints on portfolio choices, phenomena that are central to fiscal policy analysis, pension reform, and demographic modeling. We proceed in two stages. We first solve a deliberately small 6-agent OLG that admits a *closed-form solution* {cite:p}`Krueger20041411`, which gives a clean ground truth against which to validate the neural-network solver. We then scale up to the 56-agent research benchmark of {cite:t}`azinovicDEEPEQUILIBRIUMNETS2022`, where the no-short-sale-of-capital constraint $k'^h\ge 0$ binds on a non-trivial slice of the ergodic set; that constraint introduces a kink, the main new computational challenge of the benchmark, and we handle it by combining softplus output activations (for non-negativity) with squared product residuals for the orthogonality conditions in the loss. The model also carries a collateral constraint $k'^h+\kappa\,b'^h\ge 0$ that the current notebook parameterization of $\hat q^h$ keeps slack on the learned ergodic set; we develop both constraints below so that the architecture is in place when a future calibration makes the collateral side bind.
+In Chapters {ref}`ch-deqn`–{ref}`ch-irbc` all agents were infinitely lived. We now extend the DEQN framework to *overlapping generations* (OLG) models {cite:p}`diamond1965national`, where $A$ finitely-lived cohorts coexist in every period. OLG models introduce lifecycle savings, intergenerational transfers, age-dependent heterogeneity, and inequality constraints on portfolio choices, phenomena that are central to fiscal policy analysis, pension reform, and demographic modeling. We proceed in two stages. We first solve a deliberately small 6-agent OLG that admits a *closed-form solution* {cite:p}`Krueger20041411`, which gives a clean ground truth against which to validate the neural-network solver. We then scale up to the 56-agent research benchmark of {cite:t}`azinovicDEEPEQUILIBRIUMNETS2022`, where the no-short-sale-of-capital constraint $k'^h\ge 0$ binds on a non-trivial slice of the ergodic set; that constraint introduces a kink, the main new computational challenge of the benchmark, and we handle it by combining softplus output activations (for non-negativity) with squared product residuals for the orthogonality conditions in the loss. The model also carries a collateral constraint $k'^h+\kappa\,b'^h\ge 0$ that the current notebook parameterization of $\hat q^h$ keeps slack on the learned ergodic set; we develop both constraints below so that the architecture is in place when a future calibration makes the collateral side bind.
 
 (sec-olg_why)=
 ## Why Overlapping Generations?
-In the Brock--Mirman and IRBC models of Chapters {ref}`ch-deqn`--{ref}`ch-irbc`, all agents are infinitely lived. Picture instead a photograph of the economy taken at a single instant: it contains a twenty-something just entering the workforce with no savings, a forty-something at peak earnings putting money aside, and a retiree drawing down a lifetime of accumulated wealth, all making decisions in the same period and all linked through the prices that their collective saving determines. The infinitely-lived-agent assumption collapses this picture and rules out several economically important phenomena:
+In the Brock–Mirman and IRBC models of Chapters {ref}`ch-deqn`–{ref}`ch-irbc`, all agents are infinitely lived. Picture instead a photograph of the economy taken at a single instant: it contains a twenty-something just entering the workforce with no savings, a forty-something at peak earnings putting money aside, and a retiree drawing down a lifetime of accumulated wealth, all making decisions in the same period and all linked through the prices that their collective saving determines. The infinitely-lived-agent assumption collapses this picture and rules out several economically important phenomena:
 
 - **Lifecycle savings.** Agents accumulate wealth when young, draw it down in old age.
 
@@ -23,7 +23,7 @@ An OLG economy consists of $A$ cohorts that coexist in each period: a new cohort
 Stylized lifecycle profiles in an OLG economy (schematic, *not* a solution of the model). Labor income (blue) is hump-shaped, peaking in mid-career, while agents prefer a roughly flat consumption path (green); so they accumulate assets out of income during their high-earning years and run them down near the end of life. The asset profile (red, dashed) is therefore a hump that starts near zero for the newborn cohort, peaks toward the end of working life, and returns to zero for the oldest cohort, which consumes everything. The 6-agent analytic model of {ref}`sec-olg_analytic` is a stripped-down version of this picture (only the youngest cohort earns labor income); the 56-agent benchmark of {ref}`sec-olg_56` reproduces the full hump.
 ```
 
-We develop the OLG framework in two stages. Section {ref}`sec-olg_analytic` works through the 6-agent model with a closed-form solution, maps it to a DEQN ({ref}`sec-olg_deqn`), and validates the trained network against the analytical savings rates; {ref}`sec-olg_fb` then explains how binding borrowing and collateral constraints are encoded, and {ref}`sec-olg_56` solves the 56-agent research benchmark with exactly the same training loop.
+We develop the OLG framework in two stages. {ref}`sec-olg_analytic` works through the 6-agent model with a closed-form solution, maps it to a DEQN ({ref}`sec-olg_deqn`), and validates the trained network against the analytical savings rates; {ref}`sec-olg_fb` then explains how binding borrowing and collateral constraints are encoded, and {ref}`sec-olg_56` solves the 56-agent research benchmark with exactly the same training loop.
 
 (sec-olg_analytic)=
 ## The 6-Agent Analytic OLG Model
@@ -32,7 +32,7 @@ We develop the OLG framework in two stages. Section {ref}`sec-olg_analytic` wor
 
  Before stepping through the formal model, it is worth seeing the full DEQN pipeline in one breath. The same five steps apply to every model in this script.
 
-1.  **State and policy.** Stack the 6 cohort capital holdings, the aggregate $K_t$, prices $(r_t, w_t)$, the TFP shock $\eta_t$, and the depreciation shock $\delta_t$ into a state vector $\x_t$. A single MLP $\mathcal{N}_\theta(\x_t) \to \R^{5}$ outputs the savings of cohorts 1--5 (cohort 6 saves nothing).
+1.  **State and policy.** Stack the 6 cohort capital holdings, the aggregate $K_t$, prices $(r_t, w_t)$, the TFP shock $\eta_t$, and the depreciation shock $\delta_t$ into a state vector $\x_t$. A single MLP $\mathcal{N}_\theta(\x_t) \to \R^{5}$ outputs the savings of cohorts 1–5 (cohort 6 saves nothing).
 
 2.  **Loss.** Stack 5 Euler-equation residuals into a single mean-square loss; a sigmoid savings-fraction head makes each $k'^h \in [0,\mathrm{inc}^h]$, so $k'^h \ge 0$ and $c^h \ge 0$ both hold exactly, and capital-market clearing is satisfied by construction (aggregate $K_{t+1}$ is read off as the sum of cohort savings). Small additive penalties on negative $c$ and $K$ remain in the loss as numerical backstops but are inactive with this head.
 
@@ -50,9 +50,7 @@ The notebook `lecture_08_08_OLG_Analytic_DEQN_persistent.ipynb` ships with a `RU
 
 We instantiate the OLG environment with $A=6$ overlapping cohorts, indexed by age $h \in \{1,\ldots,6\}$. Time is discrete and infinite. The model equations below are written for general $A$ and specialized to $A=6$ in the calibration that follows.
 
-##### Household problem.
-
-An agent of age $h$ at time $t$ maximizes expected lifetime utility:
+**Household problem.** An agent of age $h$ at time $t$ maximizes expected lifetime utility:
 
 $$
 \max_{\{c_{t+j}^{h+j},\, k_{t+j+1}^{h+j+1}\}_{j=0}^{A-h}} \;\mathbb{E}_t\!\left[\sum_{j=0}^{A-h} \beta^j\, u(c_{t+j}^{h+j})\right],
@@ -66,7 +64,7 @@ $$ (eq-olg_budget)
 
 where $k_t^h$ denotes capital holdings, $r_t$ is the gross return on capital, $w_t$ is the wage, $\ell^h$ is an age-dependent labor endowment, and $\mathrm{inc}_t^h$ is total income.
 
-##### Boundary conditions.
+**Boundary conditions.**
 
 - Newborns have no initial wealth: $k_t^1 = 0$.
 
@@ -74,17 +72,13 @@ where $k_t^h$ denotes capital holdings, $r_t$ is the gross return on capital, $w
 
 - Borrowing is not permitted: $k_{t+1}^{h+1} \geq 0$ for all $h$.
 
-##### Euler equations.
-
-The first-order conditions yield $A-1$ Euler equations (for ages $h=1,\ldots,A-1$):
+**Euler equations.** The first-order conditions yield $A-1$ Euler equations (for ages $h=1,\ldots,A-1$):
 
 $$
 u'(c_t^h) = \beta\,\mathbb{E}_t\!\left[r_{t+1}\, u'(c_{t+1}^{h+1})\right].
 $$ (eq-olg_euler)
 
-##### Firm problem and market clearing.
-
-A representative firm operates a Cobb--Douglas technology with value added $F_t = \eta_t K_t^\alpha L_t^{1-\alpha}$, where $\eta_t$ is a TFP shock and $L_t = \sum_{h=1}^A \ell^h$; the gross resource available to households is $Y_t = F_t + (1-\delta_t)K_t = r_t K_t + w_t L_t$ (it is $Y_t$, not $F_t$, that the notebook passes as an engineered feature). Competitive factor markets imply:
+**Firm problem and market clearing.** A representative firm operates a Cobb–Douglas technology with value added $F_t = \eta_t K_t^\alpha L_t^{1-\alpha}$, where $\eta_t$ is a TFP shock and $L_t = \sum_{h=1}^A \ell^h$; the gross resource available to households is $Y_t = F_t + (1-\delta_t)K_t = r_t K_t + w_t L_t$ (it is $Y_t$, not $F_t$, that the notebook passes as an engineered feature). Competitive factor markets imply:
 
 $$
 r_t = \alpha\,\eta_t\, K_t^{\alpha-1}L_t^{1-\alpha} + (1-\delta_t), \qquad
@@ -99,13 +93,9 @@ $$ (eq-olg_mc)
 
 with $k_{t+1}^{1}=0$ as a newborn boundary condition (cohort 1 enters life with no assets), and where $k_{t+1}^{h}$ for $h=2,\dots,A$ is the savings of cohort $h-1$ at date $t$ (which becomes the date-$(t+1)$ holdings of the cohort once it has aged by one period).
 
-##### Calibration.
+**Calibration.** The model has $A=6$ agents with log utility ($\gamma = 1$), Cobb–Douglas production ($\alpha = 0.3$), and discount factor $\beta = 0.7$. Only agent 1 works ($\ell = (1,0,0,0,0,0)$); this stripped-down labor profile is what gives the closed form below, not a realistic lifecycle assumption, and the 56-agent benchmark of {ref}`sec-olg_56` restores a hump-shaped endowment. Four exogenous shock states combine TFP $\eta \in \{0.95,1.05\}$ and depreciation $\delta \in \{0.5,0.9\}$, with i.i.d. transitions ($\pi_{ss'} = 0.25$).
 
-The model has $A=6$ agents with log utility ($\gamma = 1$), Cobb--Douglas production ($\alpha = 0.3$), and discount factor $\beta = 0.7$. Only agent 1 works ($\ell = (1,0,0,0,0,0)$); this stripped-down labor profile is what gives the closed form below, not a realistic lifecycle assumption, and the 56-agent benchmark of {ref}`sec-olg_56` restores a hump-shaped endowment. Four exogenous shock states combine TFP $\eta \in \{0.95,1.05\}$ and depreciation $\delta \in \{0.5,0.9\}$, with i.i.d. transitions ($\pi_{ss'} = 0.25$).
-
-##### Analytical solution.
-
-With log utility and i.i.d. shocks, the optimal savings rate has a closed form. Define the age-dependent savings rate:
+**Analytical solution.** With log utility and i.i.d. shocks, the optimal savings rate has a closed form. Define the age-dependent savings rate:
 
 $$
 \beta_h = \beta \cdot \frac{1 - \beta^{A-h}}{1 - \beta^{A-h+1}}, \qquad h = 1, \ldots, A-1.
@@ -133,11 +123,9 @@ Closed-form savings rates $\beta_h$ from {numref}`tab-olg6_savings_rates` for th
 
 (sec-olg_deqn)=
 ## Mapping the Analytic OLG to a DEQN
-The mapping follows the same "states $\to$ network $\to$ loss" structure as Brock--Mirman (Chapter {ref}`ch-deqn`). We now write each block explicitly for the 6-agent analytic model just set up; this is exactly what slides II.7--II.9 of `lectures/lecture_08_olg_models_deqns/slides/lecture_08_olg_models_deqns.tex` render in pictures. The 56-agent benchmark of {ref}`sec-olg_56` extends the same template with two extra policy blocks (multipliers, bond price) and an additional market-clearing residual; we write that version out there.
+The mapping follows the same "states $\to$ network $\to$ loss" structure as Brock–Mirman (Chapter {ref}`ch-deqn`). We now write each block explicitly for the 6-agent analytic model just set up; this is exactly what slides II.7–II.9 of `lectures/lecture_08_olg_models_deqns/slides/lecture_08_olg_models_deqns.tex` render in pictures. The 56-agent benchmark of {ref}`sec-olg_56` extends the same template with two extra policy blocks (multipliers, bond price) and an additional market-clearing residual; we write that version out there.
 
-##### State $\x_t$ entering the network.
-
-What does the network actually need to know? The *informational* state of the analytic model is just the pair
+**State $\x_t$ entering the network.** What does the network actually need to know? The *informational* state of the analytic model is just the pair
 
 $$
 \bigl(z_t,\,\bm{k}_t\bigr) \;\in\; \{1,\ldots,4\}\times\R^A
@@ -154,9 +142,7 @@ $$ (eq-olg_state)
 
 with $\mathbf{1}\{z_t\}$ the 4-state one-hot of the current shock, $K_t=\sum_h k_t^h$, $L_t=\sum_h \ell^h$, $(r_t,w_t)$ from {eq}`eq-olg_prices`, $Y_t$ the gross resource $\eta_t K_t^\alpha L_t^{1-\alpha} + (1-\delta_t)K_t$, and the per-agent blocks $\mathrm{fw}_t^h = r_t k_t^h$ (capital income), $\mathrm{linc}_t^h = w_t\,\ell^h$ (labor income), $\mathrm{inc}_t^h = \mathrm{fw}_t^h + \mathrm{linc}_t^h$ (total income). Since the map $(z_t,\bm{k}_t)\mapsto\x_t$ is deterministic, {eq}`eq-olg_state_min` and {eq}`eq-olg_state` carry exactly the same information. For $A=6$ this is $16+4\cdot 6 = 40$ inputs (the notebook constant `FEATURE_DIM`).
 
-##### Policies approximated by the network.
-
-A single multilayer perceptron with a *sigmoid savings-fraction* output head approximates the equilibrium policy as a function of the state. (Throughout this OLG chapter we use $\theta$ for the network parameters rather than the $\rho$ of Chapters {ref}`ch-deqn`--{ref}`ch-irbc`; both refer to the same object, and the switch follows the convention of the public OLG reference implementation.)
+**Policies approximated by the network.** A single multilayer perceptron with a *sigmoid savings-fraction* output head approximates the equilibrium policy as a function of the state. (Throughout this OLG chapter we use $\theta$ for the network parameters rather than the $\rho$ of Chapters {ref}`ch-deqn`–{ref}`ch-irbc`; both refer to the same object, and the switch follows the convention of the public OLG reference implementation.)
 
 $$
 \boxed{\;\mathcal{N}_\theta:\;\R^{16+4A} \;\longrightarrow\; \R^{A-1},\qquad
@@ -172,9 +158,7 @@ where the network output $\hat\beta^h(\x_t)\in(0,1)$ is cohort $h$'s *savings ra
 
 - Capital-market clearing $K_{t+1} = \sum_{h=2}^{A} k_{t+1}^h$ also holds by construction, since aggregate next-period capital is read off as the sum of the network's savings outputs together with the newborn boundary $k_{t+1}^1 = 0$.
 
-##### Equilibrium residual.
-
-Each cohort $h\in\{1,\ldots,A-1\}$ contributes one *relative* Euler-equation residual, built from three quantities. First, the implied current consumption, read off from the budget {eq}`eq-olg_budget` as $\hat c^h(\x_t) := \mathrm{inc}_t^h - \hat a^h(\x_t)$. Second, the next-state map $\Phi$, which combines the current policy with a fresh shock $z_{t+1}$ to produce next period's extended state $\hat\x_{t,+}=\Phi(\x_t,z_{t+1};\theta)$ (the construction of $\Phi$ is spelled out in the next paragraph). Third, the implied next-period consumption $\hat c^{h+1}(\hat\x_{t,+})$ of the cohort that has just aged from $h$ to $h+1$. The relative Euler-equation residual is then
+**Equilibrium residual.** Each cohort $h\in\{1,\ldots,A-1\}$ contributes one *relative* Euler-equation residual, built from three quantities. First, the implied current consumption, read off from the budget {eq}`eq-olg_budget` as $\hat c^h(\x_t) := \mathrm{inc}_t^h - \hat a^h(\x_t)$. Second, the next-state map $\Phi$, which combines the current policy with a fresh shock $z_{t+1}$ to produce next period's extended state $\hat\x_{t,+}=\Phi(\x_t,z_{t+1};\theta)$ (the construction of $\Phi$ is spelled out in the next paragraph). Third, the implied next-period consumption $\hat c^{h+1}(\hat\x_{t,+})$ of the cohort that has just aged from $h$ to $h+1$. The relative Euler-equation residual is then
 
 $$
 e_{\mathrm{REE}}^h(\x_t)
@@ -185,13 +169,9 @@ $$ (eq-olg_ree)
 
 with $u(c)=\ln c$ in the analytic model so $(u')^{-1}(y) = 1/y$. Equation {eq}`eq-olg_ree` is the unit-free residual of the standard Euler equation {eq}`eq-olg_euler`: a value of $10^{-3}$ means cohort $h$'s implied consumption is mispriced by $0.1\%$ relative to the conditional certainty equivalent. This is the residual displayed in slide II.7.
 
-##### Sampling the conditional expectation.
+**Sampling the conditional expectation.** The expectation in {eq}`eq-olg_ree` is over the next-period shock $z_{t+1}$. Because the analytic-model shock has only four states with i.i.d. transition $\pi_{ss'} = 1/4$, the expectation is computed *exactly* (no Monte Carlo) by summing over the four next-period shocks: $\E{\,r(\hat\x_{t,+})\,u'(\hat c^{h+1})\,} = \tfrac14\,\sum_{s'=1}^{4} r(\Phi(\x_t,s';\theta))\,u'\!\bigl(\hat c^{h+1}(\Phi(\x_t,s';\theta))\bigr).$ For each candidate $s'$ the next-state map $\Phi$ ages the cross-section by one period, sets the newborn to $k^1=0$, evaluates the firm prices {eq}`eq-olg_prices` at $K_{t+1}$, and produces the next-period extended state $\hat\x_{t,+}$ on which the network is evaluated again to obtain $\hat a^h(\hat\x_{t,+})$ and hence $\hat c^{h+1}(\hat\x_{t,+})$. When the shock has more states or is continuous, the same construction is replaced by a sample of $z_{t+1}\sim\pi(\cdot|z_t)$ inside the mini-batch (see {ref}`sec-olg_56`).
 
-The expectation in {eq}`eq-olg_ree` is over the next-period shock $z_{t+1}$. Because the analytic-model shock has only four states with i.i.d. transition $\pi_{ss'} = 1/4$, the expectation is computed *exactly* (no Monte Carlo) by summing over the four next-period shocks: $\E{\,r(\hat\x_{t,+})\,u'(\hat c^{h+1})\,} = \tfrac14\,\sum_{s'=1}^{4} r(\Phi(\x_t,s';\theta))\,u'\!\bigl(\hat c^{h+1}(\Phi(\x_t,s';\theta))\bigr).$ For each candidate $s'$ the next-state map $\Phi$ ages the cross-section by one period, sets the newborn to $k^1=0$, evaluates the firm prices {eq}`eq-olg_prices` at $K_{t+1}$, and produces the next-period extended state $\hat\x_{t,+}$ on which the network is evaluated again to obtain $\hat a^h(\hat\x_{t,+})$ and hence $\hat c^{h+1}(\hat\x_{t,+})$. When the shock has more states or is continuous, the same construction is replaced by a sample of $z_{t+1}\sim\pi(\cdot|z_t)$ inside the mini-batch (see {ref}`sec-olg_56`).
-
-##### The DEQN loss for the analytic OLG.
-
-Given a mini-batch $D_{\mathrm{train}}\subset\{\x_j\}_{j=1}^{N}$ sampled from the ergodic set of the current policy, the loss is the mean-squared relative Euler residual averaged across cohorts and states:
+**The DEQN loss for the analytic OLG.** Given a mini-batch $D_{\mathrm{train}}\subset\{\x_j\}_{j=1}^{N}$ sampled from the ergodic set of the current policy, the loss is the mean-squared relative Euler residual averaged across cohorts and states:
 
 $$
 \boxed{\;\mathcal{L}_{D_{\mathrm{train}}}(\theta)
@@ -203,9 +183,7 @@ $$ (eq-olg_loss)
 
 *(matching slide II.7).* Two small barrier-style additive penalties on rescaled negative-consumption and negative-aggregate-capital hinges are summed in alongside {eq}`eq-olg_loss` to keep training numerically robust away from convergence; in the notebook they carry the weight `PENALTY_WEIGHT` $=10$ and act on terms such as $\max(-\hat c^h,0)/(1+|\hat c^h|)$ rather than the raw squared hinge. With the sigmoid savings-fraction head described above these hinges are in fact identically zero (savings stay in $[0,\mathrm{inc}^h]$, so $\hat c^h\ge 0$ and $K_{t+1}\ge 0$ always), so the penalties are pure backstops and do not bias the solution.[^1]
 
-##### DEQN architecture and training.
-
-The network takes a 40-dimensional input (the extended state {eq}`eq-olg_state`, $16 + 4 \times 6$) and outputs 5 savings *rates* $\hat\beta^h$ via a $40 \to 100 \to 50 \to 5$ architecture with ReLU hidden layers and a sigmoid savings-fraction output ($\approx 9{,}400$ parameters). Training uses the episode-based procedure from Chapter {ref}`ch-deqn`: the current network generates a capital path (episode), equilibrium residuals are computed and used for SGD updates, and a new episode is simulated periodically. The companion notebook exposes a `RUN_MODE` switch with three calibrated budgets: `"smoke"` ($\sim$25 training segments, $\sim$30 s on CPU; a code-path sanity check, well short of convergence), `"teaching"` ($\sim$500 segments, $\sim$5 min on CPU; savings rates match the closed form to a few parts in $10^{4}$ and mean relative Euler errors are already $\sim 10^{-3}$ on the simulated cloud, though larger off-trajectory), and `"production"` ($\sim$10,000 segments with longer trajectories, several hours on CPU; mean Euler errors $\sim 10^{-3}$ or below, matching Table 3 of {cite:t}`azinovicDEEPEQUILIBRIUMNETS2022`). Adam is used throughout (learning rate $\sim 3\times 10^{-4}$ in the short presets, $10^{-5}$ in the production preset); the analogous decay to $10^{-6}$ used by the 56-agent benchmark ({ref}`sec-olg_56`) is not needed at the analytic model's scale.
+**DEQN architecture and training.** The network takes a 40-dimensional input (the extended state {eq}`eq-olg_state`, $16 + 4 \times 6$) and outputs 5 savings *rates* $\hat\beta^h$ via a $40 \to 100 \to 50 \to 5$ architecture with ReLU hidden layers and a sigmoid savings-fraction output ($\approx 9{,}400$ parameters). Training uses the episode-based procedure from Chapter {ref}`ch-deqn`: the current network generates a capital path (episode), equilibrium residuals are computed and used for SGD updates, and a new episode is simulated periodically. The companion notebook exposes a `RUN_MODE` switch with three calibrated budgets: `"smoke"` ($\sim$25 training segments, $\sim$30 s on CPU; a code-path sanity check, well short of convergence), `"teaching"` ($\sim$500 segments, $\sim$5 min on CPU; savings rates match the closed form to a few parts in $10^{4}$ and mean relative Euler errors are already $\sim 10^{-3}$ on the simulated cloud, though larger off-trajectory), and `"production"` ($\sim$10,000 segments with longer trajectories, several hours on CPU; mean Euler errors $\sim 10^{-3}$ or below, matching Table 3 of {cite:t}`azinovicDEEPEQUILIBRIUMNETS2022`). Adam is used throughout (learning rate $\sim 3\times 10^{-4}$ in the short presets, $10^{-5}$ in the production preset); the analogous decay to $10^{-6}$ used by the 56-agent benchmark ({ref}`sec-olg_56`) is not needed at the analytic model's scale.
 
 ```{prf:remark} Validation principle
 
@@ -215,9 +193,9 @@ The network takes a 40-dimensional input (the extended state {eq}`eq-olg_state`
 
 (sec-olg_fb)=
 ## Inequality Constraints and KKT Complementarity
-The 6-agent calibration above is deliberately frictionless: the no-short-sale-of-capital constraint never binds on its ergodic set, so we could solve it with a plain sigmoid-savings head and no multipliers. Realistic OLG economies are not so kind. The 56-agent benchmark of the next section carries a no-short-sale-of-capital constraint that binds on a non-trivial slice of states and a collateral constraint that the current notebook parameterization keeps slack on the learned ergodic set; binding inequality constraints in general bring in Karush--Kuhn--Tucker (KKT) complementarity, with its characteristic non-smooth orthogonality condition. This section sets out how the DEQN framework encodes that complementarity; the next section puts it to work.
+The 6-agent calibration above is deliberately frictionless: the no-short-sale-of-capital constraint never binds on its ergodic set, so we could solve it with a plain sigmoid-savings head and no multipliers. Realistic OLG economies are not so kind. The 56-agent benchmark of the next section carries a no-short-sale-of-capital constraint that binds on a non-trivial slice of states and a collateral constraint that the current notebook parameterization keeps slack on the learned ergodic set; binding inequality constraints in general bring in Karush–Kuhn–Tucker (KKT) complementarity, with its characteristic non-smooth orthogonality condition. This section sets out how the DEQN framework encodes that complementarity; the next section puts it to work.
 
-The no-short-sale-of-capital constraint $k'^h \geq 0$ introduces a complementarity condition via the Karush--Kuhn--Tucker (KKT) system:
+The no-short-sale-of-capital constraint $k'^h \geq 0$ introduces a complementarity condition via the Karush–Kuhn–Tucker (KKT) system:
 
 $$
 k'^h \geq 0, \qquad \lambda^h \geq 0, \qquad k'^h \cdot \lambda^h = 0,
@@ -231,15 +209,11 @@ The DEQN setup of {cite:t}`azinovicDEEPEQUILIBRIUMNETS2022` sidesteps the kink b
 
 - **Soft side (loss).** With non-negativity already guaranteed, the orthogonality $k'^h \cdot \lambda^h = 0$ is enforced by adding the squared product residual $(k'^h \lambda^h)^2$ to the loss.
 
-This product form is what the public reference implementation accompanying {cite:t}`azinovicDEEPEQUILIBRIUMNETS2022` uses, and what we adopt in the *56-agent benchmark* of {ref}`sec-olg_56` (Notebook `lecture_08_10_OLG_Benchmark_DEQN_persistent.ipynb`). As noted above, in the 6-agent analytic calibration of {ref}`sec-olg_analytic` the no-short-sale-of-capital constraint is non-binding everywhere on the ergodic set, so $\lambda^h \equiv 0$ and the multipliers (and the KKT residual) drop out of both the network output and the loss; that is why the mapping there was the simpler $\mathcal{N}_\theta: \mathbb{R}^{16+4A} \to \mathbb{R}^{A-1}$ of {ref}`sec-olg_deqn` above, with no multiplier outputs. The smoother *Fischer--Burmeister* (FB) reformulation, $\Phi(a,b) = a + b - \sqrt{a^2 + b^2}$, is an alternative used in the IRBC notebook of Chapter {ref}`ch-irbc` for the investment-irreversibility constraint.
+This product form is what the public reference implementation accompanying {cite:t}`azinovicDEEPEQUILIBRIUMNETS2022` uses, and what we adopt in the *56-agent benchmark* of {ref}`sec-olg_56` (Notebook `lecture_08_10_OLG_Benchmark_DEQN_persistent.ipynb`). As noted above, in the 6-agent analytic calibration of {ref}`sec-olg_analytic` the no-short-sale-of-capital constraint is non-binding everywhere on the ergodic set, so $\lambda^h \equiv 0$ and the multipliers (and the KKT residual) drop out of both the network output and the loss; that is why the mapping there was the simpler $\mathcal{N}_\theta: \mathbb{R}^{16+4A} \to \mathbb{R}^{A-1}$ of {ref}`sec-olg_deqn` above, with no multiplier outputs. The smoother *Fischer–Burmeister* (FB) reformulation, $\Phi(a,b) = a + b - \sqrt{a^2 + b^2}$, is an alternative used in the IRBC notebook of Chapter {ref}`ch-irbc` for the investment-irreversibility constraint.
 
-##### When to choose product form vs. Fischer--Burmeister.
+**When to choose product form vs. Fischer–Burmeister.** The product form $(k'^h \lambda^h)^2$ is simpler, gradient-cheaper, and sufficient whenever the constraint is rarely active on the ergodic set, since the optimizer just needs to verify slackness in expectation. The Fischer–Burmeister residual $\Phi(a,b)^2$ keeps gradient information *on both sides* of the active set: when the constraint is frequently binding (e.g. the IRBC irreversibility constraint on a non-trivial fraction of states), product-form gradients vanish whenever the constraint is locally inactive, which can stall training; FB does not have this pathology. As a rule of thumb: product form for occasionally-binding KKT, FB for frequently-binding KKT. In the OLG benchmark of {ref}`sec-olg_56` the no-short-sale-of-capital constraint binds on a thin slice of the ergodic set, so the product form was sufficient; the IRBC application of the previous chapter binds more often and benefits from FB.
 
-The product form $(k'^h \lambda^h)^2$ is simpler, gradient-cheaper, and sufficient whenever the constraint is rarely active on the ergodic set, since the optimizer just needs to verify slackness in expectation. The Fischer--Burmeister residual $\Phi(a,b)^2$ keeps gradient information *on both sides* of the active set: when the constraint is frequently binding (e.g. the IRBC irreversibility constraint on a non-trivial fraction of states), product-form gradients vanish whenever the constraint is locally inactive, which can stall training; FB does not have this pathology. As a rule of thumb: product form for occasionally-binding KKT, FB for frequently-binding KKT. In the OLG benchmark of {ref}`sec-olg_56` the no-short-sale-of-capital constraint binds on a thin slice of the ergodic set, so the product form was sufficient; the IRBC application of the previous chapter binds more often and benefits from FB.
-
-##### The two OLG models we solve, side by side.
-
-We have now built and solved the first of the two OLG instances that anchor the rest of the manuscript: the 6-agent analytic model used to validate the DEQN against a closed form (Sections {ref}`sec-olg_analytic`--{ref}`sec-olg_deqn`). The second is the 56-agent benchmark of {cite:t}`azinovicDEEPEQUILIBRIUMNETS2022`, developed in the next section. {numref}`tab-olg_6_vs_56` summarizes the structural and computational gap between them before we turn to it.
+**The two OLG models we solve, side by side.** We have now built and solved the first of the two OLG instances that anchor the rest of the manuscript: the 6-agent analytic model used to validate the DEQN against a closed form ({ref}`sec-olg_analytic`–{ref}`sec-olg_deqn`). The second is the 56-agent benchmark of {cite:t}`azinovicDEEPEQUILIBRIUMNETS2022`, developed in the next section. {numref}`tab-olg_6_vs_56` summarizes the structural and computational gap between them before we turn to it.
 
 ````{table}
 :name: tab-olg_6_vs_56
@@ -248,7 +222,7 @@ The two OLG models solved in this chapter, side by side. The economic richness o
 
 |  | **6-agent analytic ({ref}`sec-olg_analytic`)** | **56-agent benchmark ({ref}`sec-olg_56`)** |
 |---|---|---|
-| Cohorts $A$ | 6 (childhood-style) | 56 (ages 25--80, one period = one year) |
+| Cohorts $A$ | 6 (childhood-style) | 56 (ages 25–80, one period = one year) |
 | Utility | Log ($\gamma=1$) | CRRA ($\gamma=2$) |
 | Shocks | i.i.d. TFP & depreciation, 4 states | Persistent Markov on $(\eta,\delta)$ |
 | Labor profile | Only youngest cohort works | Hump-shaped lifecycle endowment $\ell^h$ |
@@ -256,7 +230,7 @@ The two OLG models solved in this chapter, side by side. The economic richness o
 | Constraints | None binding in calibration | No-short-sale of capital $k'^h\!\ge\!0$ binds; collateral $k'^h\!+\!\kappa b'^h\!\ge\!0$ kept slack by the $\hat q^h$ parameterization |
 | Adjustment cost | None | Quadratic $\tfrac{\zeta}{2}(k'^h\!-\!rk^h)^2$ |
 | Network input dim | 40 (extended; minimal 7) | 240 (extended; minimal 113) |
-| Output dim | 5 (savings rates of cohorts 1--5) | 221 ($4(A-1)+1$: policies, multipliers, price) |
+| Output dim | 5 (savings rates of cohorts 1–5) | 221 ($4(A-1)+1$: policies, multipliers, price) |
 | Loss terms | 5 Euler $+$ market clearing by construction | 221: $4(A-1)$ Euler/KKT $+$ 1 bond clearing |
 | Network | Input(40) $\to$ 100 $\to$ 50 $\to$ 5 | Input(240) $\to$ 128 $\to$ 128 $\to$ 221 (teaching) / Input(240) $\to$ 1000 $\to$ 1000 $\to$ 221 (production) |
 | Validation target | Closed-form $\beta_h$ of {cite:t}`Krueger20041411` | Mean Euler residual on simulated trajectory |
@@ -266,7 +240,7 @@ The two OLG models solved in this chapter, side by side. The economic richness o
 (sec-olg_56)=
 ## The 56-Agent Benchmark
 
-{numref}`tab-olg_6_vs_56` above previewed the gap; we now develop the second model in full. The benchmark of {cite:t}`azinovicDEEPEQUILIBRIUMNETS2022` scales the OLG framework to $A = 56$ agents (ages 25--80) with several realistic features:
+{numref}`tab-olg_6_vs_56` above previewed the gap; we now develop the second model in full. The benchmark of {cite:t}`azinovicDEEPEQUILIBRIUMNETS2022` scales the OLG framework to $A = 56$ agents (ages 25–80) with several realistic features:
 
 - **CRRA utility** with $\gamma = 2$ (replacing log utility).
 
@@ -282,9 +256,7 @@ The two OLG models solved in this chapter, side by side. The economic richness o
 
 - **Persistent shocks:** a 4-state Markov chain for TFP $\times$ depreciation (contrast with i.i.d. in the analytic model).
 
-##### Lifecycle labor endowments.
-
-The labor endowment profile $e^h$ follows {cite:t}`BKS1`. In the implementation used here, $e^h$ is a quadratic in age that rises from $0.60$ at age $25$, peaks at $\approx 1.36$ around age $53$, then decays linearly between ages $\sim 62$ and $\sim 70$ to a flat post-retirement floor of $\approx 0.64$. {numref}`tab-olg56_labor_profile` lists the values produced by the notebook formula at a few representative ages.
+**Lifecycle labor endowments.** The labor endowment profile $e^h$ follows {cite:t}`BKS1`. In the implementation used here, $e^h$ is a quadratic in age that rises from $0.60$ at age $25$, peaks at $\approx 1.36$ around age $53$, then decays linearly between ages $\sim 62$ and $\sim 70$ to a flat post-retirement floor of $\approx 0.64$. {numref}`tab-olg56_labor_profile` lists the values produced by the notebook formula at a few representative ages.
 
 ````{table}
 :name: tab-olg56_labor_profile
@@ -298,13 +270,9 @@ Representative points on the lifecycle labor-endowment profile in the 56-agent b
 
 This hump-shaped profile ensures realistic savings heterogeneity: young agents with low labor income and no initial wealth are borrowing-constrained, mid-career agents with high earnings accumulate both capital and bonds, and older agents gradually decumulate toward the end of life.
 
-##### Persistent aggregate shocks.
+**Persistent aggregate shocks.** The 4-state Markov chain combines TFP $\eta$ and depreciation $\delta$ into the pairs $(\eta,\delta) \in \{(0.978, 0.08),\, (1.022, 0.08),\, (0.978, 0.11),\, (1.022, 0.11)\}$. The transition matrix is persistent (diagonal entries $\sim$0.63–0.88), in contrast to the i.i.d. shocks in the analytic model. This persistence creates richer dynamics in capital accumulation: a sequence of bad TFP draws can push young agents deep into their borrowing constraint, producing endogenous amplification that a single-period shock would not generate.
 
-The 4-state Markov chain combines TFP $\eta$ and depreciation $\delta$ into the pairs $(\eta,\delta) \in \{(0.978, 0.08),\, (1.022, 0.08),\, (0.978, 0.11),\, (1.022, 0.11)\}$. The transition matrix is persistent (diagonal entries $\sim$0.63--0.88), in contrast to the i.i.d. shocks in the analytic model. This persistence creates richer dynamics in capital accumulation: a sequence of bad TFP draws can push young agents deep into their borrowing constraint, producing endogenous amplification that a single-period shock would not generate.
-
-##### Budget constraint.
-
-Each agent of age $h$ faces:
+**Budget constraint.** Each agent of age $h$ faces:
 
 $$
 c^h + k'^h + p\cdot b'^h + \Psi^h = r\cdot k^h + b^h + w\cdot e^h.
@@ -312,13 +280,9 @@ $$
 
 The collateral constraint $k'^h + \kappa\,b'^h \geq 0$ acts as a margin requirement: it limits bond borrowing ($b'^h < 0$) relative to capital holdings. Since $\kappa = 1/(1-\delta_{\max})$, the constraint tightens when depreciation is high, precisely when agents are most likely to seek insurance through borrowing.
 
-##### State $\x_t$ entering the network.
+**State $\x_t$ entering the network.** The informational state of the benchmark is the triple $(z_t,\,\bm{k}_t,\,\bm{b}_t) \in \{1,\ldots,4\}\times\R^A\times\R^A$, where $\bm{k}_t = (k_t^1,\ldots,k_t^A)$ and $\bm{b}_t = (b_t^1,\ldots,b_t^A)$ are the cross-sectional capital and bond distributions, so the minimal state has dimension $1+2A = 113$. As in the analytic case, the notebook feeds the network an extended state of the same $16+4A$ form – twelve aggregate scalars (shock index and its one-hot, $\eta_t$, $\delta_t$, $K_t$, $L_t$, $r_t$, $w_t$, and the gross resource $Y_t = \eta_t K_t^\alpha L_t^{1-\alpha} + (1-\delta_t)K_t$), four per-agent blocks ($k_t^h$, financial income $r_t k_t^h + b_t^h$, labor income $w_t e^h$, and cash $r_t k_t^h + b_t^h + w_t e^h$ – the bond holdings $b_t^h$ are recoverable from financial income and are *not* passed as a separate block, and the bond price $\hat p_t$ is an output, not an input), and the row of next-period transition probabilities $\pi(z_t,\cdot)$ (used by the conditional-expectation block of the loss); concretely $240 = 12 + 4\times 56 + 4$ (the notebook constant `FEATURE_DIM`). This is the analogue of slide III.8.
 
-The informational state of the benchmark is the triple $(z_t,\,\bm{k}_t,\,\bm{b}_t) \in \{1,\ldots,4\}\times\R^A\times\R^A$, where $\bm{k}_t = (k_t^1,\ldots,k_t^A)$ and $\bm{b}_t = (b_t^1,\ldots,b_t^A)$ are the cross-sectional capital and bond distributions, so the minimal state has dimension $1+2A = 113$. As in the analytic case, the notebook feeds the network an extended state of the same $16+4A$ form -- twelve aggregate scalars (shock index and its one-hot, $\eta_t$, $\delta_t$, $K_t$, $L_t$, $r_t$, $w_t$, and the gross resource $Y_t = \eta_t K_t^\alpha L_t^{1-\alpha} + (1-\delta_t)K_t$), four per-agent blocks ($k_t^h$, financial income $r_t k_t^h + b_t^h$, labor income $w_t e^h$, and cash $r_t k_t^h + b_t^h + w_t e^h$ -- the bond holdings $b_t^h$ are recoverable from financial income and are *not* passed as a separate block, and the bond price $\hat p_t$ is an output, not an input), and the row of next-period transition probabilities $\pi(z_t,\cdot)$ (used by the conditional-expectation block of the loss); concretely $240 = 12 + 4\times 56 + 4$ (the notebook constant `FEATURE_DIM`). This is the analogue of slide III.8.
-
-##### Policies approximated by the network.
-
-A single network $\mathcal{N}_\theta$ with softplus output produces a $4(A-1)+1$-dimensional vector that is sliced into five economic blocks (slide III.9):
+**Policies approximated by the network.** A single network $\mathcal{N}_\theta$ with softplus output produces a $4(A-1)+1$-dimensional vector that is sliced into five economic blocks (slide III.9):
 
 $$
 \boxed{\;\mathcal{N}_\theta:\;\R^{240} \;\longrightarrow\; \R^{4(A-1)+1},\qquad
@@ -335,9 +299,7 @@ $$ (eq-olg56_heads)
 
 so the four non-negativity inequalities $\hat k'^h\ge 0$, $\hat\lambda_b^h\ge 0$, $\hat q^h\ge 0$, $\hat\mu^h\ge 0$ hold *by construction*, leaving the orthogonality conditions of the KKT systems to be enforced softly in the loss (next paragraph).[^2] The production network uses $1000\times 1000$ hidden units ($\sim\!1.5$M parameters); the teaching version uses $128\times 128$.
 
-##### Equilibrium residuals.
-
-Each cohort $h\in\{1,\ldots,A-1\}$ contributes *four* residuals, one per equilibrium condition (slide III.6). To keep the displayed form compact, introduce *numerator/denominator shorthands* for the two Euler conditions:
+**Equilibrium residuals.** Each cohort $h\in\{1,\ldots,A-1\}$ contributes *four* residuals, one per equilibrium condition (slide III.6). To keep the displayed form compact, introduce *numerator/denominator shorthands* for the two Euler conditions:
 
 ```{math}
 :enumerated: false
@@ -369,9 +331,7 @@ $$ (eq-olg56_mc)
 
 Capital-market clearing $K_{t+1} = \sum_{h=2}^{A} k_{t+1}^h$ is once again satisfied by construction and does *not* appear as a residual. The conditional expectation in the two Euler equations is computed exactly as in {eq}`eq-olg_ree`: by summing over the four next-period shocks weighted by the persistent-Markov transition probabilities $\pi(z_t,\cdot)$.
 
-##### The DEQN loss for the 56-agent benchmark.
-
-Stack the four per-cohort residuals into one squared-cohort term $R^h(\x)^2 := (e_{\mathrm{REE},k}^h)^2 + (e_{\mathrm{REE},b}^h)^2 + (e_{\mathrm{KKT},b}^h)^2 + (e_{\mathrm{KKT},c}^h)^2,$ then add the bond-market-clearing residual. The mini-batch loss is
+**The DEQN loss for the 56-agent benchmark.** Stack the four per-cohort residuals into one squared-cohort term $R^h(\x)^2 := (e_{\mathrm{REE},k}^h)^2 + (e_{\mathrm{REE},b}^h)^2 + (e_{\mathrm{KKT},b}^h)^2 + (e_{\mathrm{KKT},c}^h)^2,$ then add the bond-market-clearing residual. The mini-batch loss is
 
 $$
 \boxed{\;\mathcal{L}_{D_{\mathrm{train}}}(\theta)
@@ -397,13 +357,9 @@ Residual blocks entering the 56-agent benchmark loss for one training state.
 | **Total residuals** |  | **221** |
 ````
 
-##### Training and results.
+**Training and results.** Production training uses 60,000 episodes at lr $= 10^{-5}$ followed by 140,000 episodes at lr $= 10^{-6}$, with runtime of several hours on GPU. The teaching version ($\sim$200 segments, 128-128 hidden units) runs in a few minutes on CPU and is meant to show the mechanics and qualitative lifecycle patterns, not final accuracy. The loss trajectory typically exhibits oscillations, caused by re-simulation of the capital path at each episode, but the overall trend is steadily downward.
 
-Production training uses 60,000 episodes at lr $= 10^{-5}$ followed by 140,000 episodes at lr $= 10^{-6}$, with runtime of several hours on GPU. The teaching version ($\sim$200 segments, 128-128 hidden units) runs in a few minutes on CPU and is meant to show the mechanics and qualitative lifecycle patterns, not final accuracy. The loss trajectory typically exhibits oscillations, caused by re-simulation of the capital path at each episode, but the overall trend is steadily downward.
-
-##### Lifecycle diagnostics.
-
-The trained model produces economically plausible lifecycle patterns. Capital savings $k'^h$ follow a hump shape that mirrors the labor income profile: young agents save little (borrowing constraint binds), mid-career agents accumulate rapidly, and older agents decumulate. Bond holdings $b'^h$ are initially negative (young agents borrow against future income) and increase with age as agents shift from illiquid capital to liquid bonds. Bond prices vary across shock states, with higher prices in high-TFP states reflecting stronger demand for savings. In the teaching run the Euler residuals are still large enough to treat the output as diagnostic; in production runs the mean Euler equation errors are of order $10^{-4}$--$10^{-3}$ for both capital and bond equations (matching Table 3 of {cite:t}`azinovicDEEPEQUILIBRIUMNETS2022`), corresponding to a $\sim$0.01%--0.1% deviation in consumption. Market clearing residuals are comparably small. Convergence is also confirmed by the policy-drift check on the fixed anchor cloud: the run is treated as time-invariant once `policy_drift_rms` and `policy_drift_max` fall below their prescribed tolerances.
+**Lifecycle diagnostics.** The trained model produces economically plausible lifecycle patterns. Capital savings $k'^h$ follow a hump shape that mirrors the labor income profile: young agents save little (borrowing constraint binds), mid-career agents accumulate rapidly, and older agents decumulate. Bond holdings $b'^h$ are initially negative (young agents borrow against future income) and increase with age as agents shift from illiquid capital to liquid bonds. Bond prices vary across shock states, with higher prices in high-TFP states reflecting stronger demand for savings. In the teaching run the Euler residuals are still large enough to treat the output as diagnostic; in production runs the mean Euler equation errors are of order $10^{-4}$–$10^{-3}$ for both capital and bond equations (matching Table 3 of {cite:t}`azinovicDEEPEQUILIBRIUMNETS2022`), corresponding to a $\sim$0.01%–0.1% deviation in consumption. Market clearing residuals are comparably small. Convergence is also confirmed by the policy-drift check on the fixed anchor cloud: the run is treated as time-invariant once `policy_drift_rms` and `policy_drift_max` fall below their prescribed tolerances.
 
 ```{prf:remark} Scalability of the DEQN framework
 
@@ -413,7 +369,7 @@ The trained model produces economically plausible lifecycle patterns. Capital sa
 
 ```{prf:remark} Chapter Summary
 
- OLG models discretise the cross-section into a finite number of cohorts $A$, so the minimal state vector contains the aggregate shock together with the cohort asset holdings and has dimension $\mathcal{O}(A)$. Market clearing $\sum_h k_{t+1}^h = K_{t+1}$ closes the model and is the natural place to encode aggregation exactly via a market-clearing output layer (Chapter {ref}`ch-deqn`, footnote on Azinovic--Yang & Žemlička 2024). No-short-sale-of-capital and collateral constraints introduce KKT complementarity, which we enforce by combining softplus output activations (for non-negativity) with squared product residuals $(a\cdot b)^2$ in the loss. Across both instances, the 6-agent analytic OLG and the 56-agent IER benchmark, the *same* training loop covers the spectrum from textbook closed-form validation to research-scale scalability.
+ OLG models discretise the cross-section into a finite number of cohorts $A$, so the minimal state vector contains the aggregate shock together with the cohort asset holdings and has dimension $\mathcal{O}(A)$. Market clearing $\sum_h k_{t+1}^h = K_{t+1}$ closes the model and is the natural place to encode aggregation exactly via a market-clearing output layer (Chapter {ref}`ch-deqn`, footnote on Azinovic–Yang & Žemlička 2024). No-short-sale-of-capital and collateral constraints introduce KKT complementarity, which we enforce by combining softplus output activations (for non-negativity) with squared product residuals $(a\cdot b)^2$ in the loss. Across both instances, the 6-agent analytic OLG and the 56-agent IER benchmark, the *same* training loop covers the spectrum from textbook closed-form validation to research-scale scalability.
 ```
 
 
@@ -438,7 +394,7 @@ Worked solutions and guidance for these exercises appear in Appendix {ref}`app-
 ```{exercise}
 :label: ex-ch5-2
 
-**[Core\] KKT residuals: product form vs. Fischer--Burmeister.** For a borrowing-constrained OLG agent, write the KKT conditions and rewrite them as *both* (i) a product-form residual $(k'^h\cdot\lambda^h)^2$ and (ii) a Fischer--Burmeister residual $\Phi(\lambda^h, k'^h)^2$ with $\Phi(a,b)=a+b-\sqrt{a^2+b^2}$. In each case, show that the loss vanishes *exactly* at any KKT point, not just approximately. Using the rule of thumb in {ref}`sec-olg_fb`, argue which formulation you would choose for the *6-agent analytic OLG* ({ref}`sec-olg_analytic`, where the borrowing constraint is non-binding on the ergodic set) versus the *investment-irreversibility constraint* of Chapter {ref}`ch-irbc` (which binds on a non-trivial fraction of states).
+**[Core\] KKT residuals: product form vs. Fischer–Burmeister.** For a borrowing-constrained OLG agent, write the KKT conditions and rewrite them as *both* (i) a product-form residual $(k'^h\cdot\lambda^h)^2$ and (ii) a Fischer–Burmeister residual $\Phi(\lambda^h, k'^h)^2$ with $\Phi(a,b)=a+b-\sqrt{a^2+b^2}$. In each case, show that the loss vanishes *exactly* at any KKT point, not just approximately. Using the rule of thumb in {ref}`sec-olg_fb`, argue which formulation you would choose for the *6-agent analytic OLG* ({ref}`sec-olg_analytic`, where the borrowing constraint is non-binding on the ergodic set) versus the *investment-irreversibility constraint* of Chapter {ref}`ch-irbc` (which binds on a non-trivial fraction of states).
 ```
 
 ```{exercise}

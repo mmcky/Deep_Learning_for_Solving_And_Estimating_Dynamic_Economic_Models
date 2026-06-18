@@ -3,13 +3,11 @@ title: "Neural Architecture Search and Loss Normalization"
 label: ch-nas
 ---
 
-The DEQN models of Chapters {ref}`ch-deqn`--{ref}`ch-irbc` involve several hyperparameters (network depth, width, activation functions, learning rate) and multi-component loss functions whose relative scales can differ by orders of magnitude. To fix ideas, even a modest sweep over depth $\in\{1,\ldots,10\}$ and width $\in\{16, 32, 64, 128, 256, 512\}$ on the companion NAS regression task already spans $10\times 6 = 60$ configurations, and the production sweep below (six axes) reaches $\sim 3{,}000$; on that task (illustrative numbers), the best mean absolute error ($\approx 3\times 10^{-3}$) is attained at a $5\times 256$ network, while $10\times 512$ overfits by almost an order of magnitude ($\approx 2\times 10^{-2}$). Hand-tuning at this scale is infeasible. This chapter addresses both challenges. We first survey hyperparameter-search methods (random search, Bayesian optimization, Hyperband, and BOHB, which combines TPE with Hyperband, {cite:p}`bergstra2012random,snoek2012practical,jamieson2016nonstochastic,li2018hyperband,falkner2018bohb,garnett2023bayesian`, and then develop a classroom-friendly version of the ReLoBRaLo algorithm {cite:p}`bischof2025relobralo` for adaptive multi-objective loss balancing. In the notebooks, this is implemented as a deterministic convex blend of step-wise and baseline loss comparisons, which keeps the code compact while preserving the balancing intuition.
+The DEQN models of Chapters {ref}`ch-deqn`–{ref}`ch-irbc` involve several hyperparameters (network depth, width, activation functions, learning rate) and multi-component loss functions whose relative scales can differ by orders of magnitude. To fix ideas, even a modest sweep over depth $\in\{1,\ldots,10\}$ and width $\in\{16, 32, 64, 128, 256, 512\}$ on the companion NAS regression task already spans $10\times 6 = 60$ configurations, and the production sweep below (six axes) reaches $\sim 3{,}000$; on that task (illustrative numbers), the best mean absolute error ($\approx 3\times 10^{-3}$) is attained at a $5\times 256$ network, while $10\times 512$ overfits by almost an order of magnitude ($\approx 2\times 10^{-2}$). Hand-tuning at this scale is infeasible. This chapter addresses both challenges. We first survey hyperparameter-search methods (random search, Bayesian optimization, Hyperband, and BOHB, which combines TPE with Hyperband, {cite:p}`bergstra2012random,snoek2012practical,jamieson2016nonstochastic,li2018hyperband,falkner2018bohb,garnett2023bayesian`, and then develop a classroom-friendly version of the ReLoBRaLo algorithm {cite:p}`bischof2025relobralo` for adaptive multi-objective loss balancing. In the notebooks, this is implemented as a deterministic convex blend of step-wise and baseline loss comparisons, which keeps the code compact while preserving the balancing intuition.
 
 A terminology note before we begin: in this chapter we use "NAS" loosely to cover both *hyperparameter optimization* (HPO; choosing widths, depths, activations, learning rates from a fixed parameterization) and "true" NAS in the sense of {cite:t}`elsken2019neural`, where the network's wiring graph itself is searched (e.g. regularized evolution {cite:p}`real2019regularized`). The two literatures share methodology (Random / Bayesian / Hyperband-style search) but differ in scope. All four methods discussed here are HPO; for graph-level NAS, the textbook reference is {cite:t}`hutter2019automl`. {cite:t}`elsken2019neural` provide the canonical survey; the local copy in `readings/` is recommended as the first deep-dive reference.
 
-##### Hands-on notebooks for this chapter.
-
-Two NAS walkthroughs are provided alongside the ReLoBRaLo notebook, plus the IRBC exercise notebook that doubles as the entry point to this chapter. All four live in the NAS chapter's code folder:
+**Hands-on notebooks for this chapter.** Two NAS walkthroughs are provided alongside the ReLoBRaLo notebook, plus the IRBC exercise notebook that doubles as the entry point to this chapter. All four live in the NAS chapter's code folder:
 
 - `02_NAS_Random_Search_10D.ipynb`: a library-free Random Search loop (model in TF/Keras) on a 10-dimensional analytical regression task, used to illustrate the projection argument of {cite:t}`bergstra2012random` in its cleanest form.
 
@@ -17,7 +15,7 @@ Two NAS walkthroughs are provided alongside the ReLoBRaLo notebook, plus the IRB
 
 - `04_Loss_Normalization.ipynb`: the classroom ReLoBRaLo implementation, matched to the notation below.
 
-- `05_IRBC_Exercise.ipynb`: the IRBC exercise notebook (closed-form steady-state comparative statics and inverse-loss weighting on a multi-component IRBC residual); it is the notebook referenced by Chapter {ref}`ch-irbc` {prf:ref}`ex-ch3-6`--{prf:ref}`ex-ch3-7`, and it reuses the loss-balancing ideas of this chapter on a deliberately small, library-free example.
+- `05_IRBC_Exercise.ipynb`: the IRBC exercise notebook (closed-form steady-state comparative statics and inverse-loss weighting on a multi-component IRBC residual); it is the notebook referenced by Chapter {ref}`ch-irbc` {prf:ref}`ex-ch3-6`–{prf:ref}`ex-ch3-7`, and it reuses the loss-balancing ideas of this chapter on a deliberately small, library-free example.
 
 ## The Hyperparameter Space
 
@@ -61,9 +59,7 @@ $$ (eq-nas_kse)
 
 where $\ell$ is the kernel length scale (the distance in input space over which two function values remain correlated) and $\sigma_f^2$ is the signal variance (the typical squared amplitude of the function). Both are kernel hyperparameters that one would normally fit by marginal-likelihood maximization; here we treat them as fixed at sensible values, since BO calls the GP once per outer iteration and modest mis-tuning only changes the candidate ranking marginally.
 
-##### Posterior conditioning, in two formulas.
-
-Given $n$ training configurations $\mathcal{D} = \{(\x_i, y_i)\}_{i=1}^n$ with possibly noisy outputs $y_i = f(\x_i) + \varepsilon_i$ and $\varepsilon_i \sim \mathcal{N}(0, \sigma_y^2)$, write $\bm{y} = (y_1, \ldots, y_n)^\top$. Three matrices and one vector enter the posterior: the kernel matrix $K \in \mathbb{R}^{n \times n}$ with $K_{ij} = k(\x_i, \x_j)$; its noise-augmented version $K_y = K + \sigma_y^2 I$; the prior-mean vector $\bm{\mu}_X$ whose $i$-th entry is $\mu(\x_i)$; and the cross-covariance $\bm{k}_* \in \mathbb{R}^n$ whose $i$-th entry is $k(\x_*, \x_i)$, where $\x_*$ is any query point. Conditioning the joint Gaussian $(\bm{y}, f(\x_*))$ on the observations yields a Gaussian posterior over the latent value $f(\x_*)$, with closed-form mean and variance:
+**Posterior conditioning, in two formulas.** Given $n$ training configurations $\mathcal{D} = \{(\x_i, y_i)\}_{i=1}^n$ with possibly noisy outputs $y_i = f(\x_i) + \varepsilon_i$ and $\varepsilon_i \sim \mathcal{N}(0, \sigma_y^2)$, write $\bm{y} = (y_1, \ldots, y_n)^\top$. Three matrices and one vector enter the posterior: the kernel matrix $K \in \mathbb{R}^{n \times n}$ with $K_{ij} = k(\x_i, \x_j)$; its noise-augmented version $K_y = K + \sigma_y^2 I$; the prior-mean vector $\bm{\mu}_X$ whose $i$-th entry is $\mu(\x_i)$; and the cross-covariance $\bm{k}_* \in \mathbb{R}^n$ whose $i$-th entry is $k(\x_*, \x_i)$, where $\x_*$ is any query point. Conditioning the joint Gaussian $(\bm{y}, f(\x_*))$ on the observations yields a Gaussian posterior over the latent value $f(\x_*)$, with closed-form mean and variance:
 
 $$
 \bar{f}_* = \mu(\x_*) + \bm{k}_*^\top K_y^{-1}\bigl(\bm{y} - \bm{\mu}_X\bigr)
@@ -73,7 +69,7 @@ $$
 \sigma_{f,*}^2 = k(\x_*, \x_*) - \bm{k}_*^\top K_y^{-1} \bm{k}_*.
 $$ (eq-nas_gp_var)
 
-These two equations carry all of the GP intuition we will use below. In the noiseless limit $\sigma_y^2 \to 0$, the posterior mean $\bar{f}_*$ passes exactly through every observation, so the GP is an interpolator, and the posterior variance $\sigma_{f,*}^2$ collapses to zero at observation points and grows in the gaps between them. The pair $\bar{f}_* \pm 2\sigma_{f,*}$ therefore traces an honest error bar: tight where the data are dense and loose where they are sparse. Chapter {ref}`ch-gp` derives {eq}`eq-nas_gp_mean`--{eq}`eq-nas_gp_var` step by step, works a hand-traceable 1D example, and explains the marginal-likelihood Occam's razor that selects $(\ell, \sigma_f, \sigma_y)$ from data; for the BO logic that follows, {eq}`eq-nas_gp_mean`--{eq}`eq-nas_gp_var` are sufficient.
+These two equations carry all of the GP intuition we will use below. In the noiseless limit $\sigma_y^2 \to 0$, the posterior mean $\bar{f}_*$ passes exactly through every observation, so the GP is an interpolator, and the posterior variance $\sigma_{f,*}^2$ collapses to zero at observation points and grows in the gaps between them. The pair $\bar{f}_* \pm 2\sigma_{f,*}$ therefore traces an honest error bar: tight where the data are dense and loose where they are sparse. Chapter {ref}`ch-gp` derives {eq}`eq-nas_gp_mean`–{eq}`eq-nas_gp_var` step by step, works a hand-traceable 1D example, and explains the marginal-likelihood Occam's razor that selects $(\ell, \sigma_f, \sigma_y)$ from data; for the BO logic that follows, {eq}`eq-nas_gp_mean`–{eq}`eq-nas_gp_var` are sufficient.
 
 (sec-nas_ei)=
 ### Expected Improvement
@@ -95,18 +91,18 @@ where $\Phi$ and $\phi$ are the standard normal CDF and PDF, respectively {cite:
 ```{figure} figures/fig-bayesopt.svg
 :name: fig-bayesopt
 
-Bayesian optimization in one dimension; the same setup is reproduced in the companion notebook. *Top:* after five evaluations (black dots), the GP posterior mean $\bar f(h)$ (solid blue) interpolates the observations and the $\bar f(h) \pm 2\sigma_f(h)$ credible band (shaded) pinches to zero at each observation and widens in the gaps; this is the picture predicted by {eq}`eq-nas_gp_mean`--{eq}`eq-nas_gp_var`. The dashed red curve is the (in practice unknown) true loss; the horizontal grey line marks $\ell^\star$, the best observation so far (near $h\approx 2.3$). *Bottom:* Expected Improvement $\mathrm{EI}(h)$ is essentially zero at the existing data, where there is nothing to learn, rises in the unexplored gaps, and peaks at $h \approx 3.75$, which combines a predicted mean already below $\ell^\star$ with substantial residual uncertainty. The maximizer (red arrow) is selected as the next configuration to evaluate; EI thus balances exploitation against exploration automatically, and here it steers the search at the neighborhood of the hidden true minimum.
+Bayesian optimization in one dimension; the same setup is reproduced in the companion notebook. *Top:* after five evaluations (black dots), the GP posterior mean $\bar f(h)$ (solid blue) interpolates the observations and the $\bar f(h) \pm 2\sigma_f(h)$ credible band (shaded) pinches to zero at each observation and widens in the gaps; this is the picture predicted by {eq}`eq-nas_gp_mean`–{eq}`eq-nas_gp_var`. The dashed red curve is the (in practice unknown) true loss; the horizontal grey line marks $\ell^\star$, the best observation so far (near $h\approx 2.3$). *Bottom:* Expected Improvement $\mathrm{EI}(h)$ is essentially zero at the existing data, where there is nothing to learn, rises in the unexplored gaps, and peaks at $h \approx 3.75$, which combines a predicted mean already below $\ell^\star$ with substantial residual uncertainty. The maximizer (red arrow) is selected as the next configuration to evaluate; EI thus balances exploitation against exploration automatically, and here it steers the search at the neighborhood of the hidden true minimum.
 ```
 
 ```{prf:definition} Bayesian Optimization with Expected Improvement
 
 - **Input:** initial design $\mathcal{D}_{n_0} = \{(\bm{h}_i, \ell_i)\}_{i=1}^{n_0}$, total budget $N$
-- for $n = n_0, n_0+1, \ldots, N-1$ do
-  - Fit the GP posterior $(\bar{f}, \sigma_f)$ to $\mathcal{D}_n$ using {eq}`eq-nas_gp_mean`--{eq}`eq-nas_gp_var`
+- **for** $n = n_0, n_0+1, \ldots, N-1$ **do**
+  - Fit the GP posterior $(\bar{f}, \sigma_f)$ to $\mathcal{D}_n$ using {eq}`eq-nas_gp_mean`–{eq}`eq-nas_gp_var`
   - Evaluate $\mathrm{EI}(\bm{h})$ on a fine candidate grid (or via a local optimizer) over the search space
   - Select $\bm{h}_{n+1} = \arg\max_{\bm{h}} \mathrm{EI}(\bm{h})$
   - Evaluate the validation loss $\ell_{n+1} = \ell(\bm{h}_{n+1})$ and append to $\mathcal{D}_{n+1} = \mathcal{D}_n \cup \{(\bm{h}_{n+1}, \ell_{n+1})\}$
-- end
+- **end**
 - **Output:** best observed configuration $\arg\min_i \ell_i$
 ```
 
@@ -121,11 +117,11 @@ The Successive Halving Algorithm (SHA) turns this observation into a concrete sc
 
 - **Input:** initial candidates $n_0$, initial per-candidate budget $r_0$ (epochs), reduction factor $\eta = 3$
 - Draw a set $S_0$ of $n_0$ configurations from the search space
-- for round $s = 0, 1, \ldots, \lceil\log_\eta n_0\rceil - 1$ do
+- **for** round $s = 0, 1, \ldots, \lceil\log_\eta n_0\rceil - 1$ **do**
   - Train each of the $n_s$ survivors in $S_s$ for $r_s$ epochs and record their validation losses
   - Keep the top $1/\eta$ fraction of $S_s$ to form $S_{s+1}$
   - Set $n_{s+1} = \lceil n_s / \eta \rceil$ and $r_{s+1} = \eta\, r_s$
-- end
+- **end**
 - **Output:** best surviving configuration
 ```
 
@@ -179,9 +175,7 @@ For the DEQN and PINN applications in this course, random search or Bayesian opt
 ## Implementing the Search in Practice
 To keep the algorithms transparent, the companion notebook `03_NAS_RandomSearch_Hyperband.ipynb` implements both Random Search (§ {ref}`sec-nas_random_search`) and the Successive Halving Algorithm (§ {ref}`sec-hyperband`) directly in plain Python, with no hyperparameter-search library involved. The search space is encoded as an ordinary dict (number of hidden layers $\in \{1,\ldots,5\}$, units per layer $\in \{32, 64, \ldots, 256\}$, activation function $\in \{\texttt{relu}, \texttt{tanh}, \texttt{swish}\}$, and learning rate log-uniform in $[10^{-4}, 10^{-2}]$), and a single `sample_config(rng)` function draws candidates from it. Random Search is then a $30$-iteration loop that builds, trains, and scores each candidate; Successive Halving is the same loop wrapped in a halving schedule ($n_0 = 27$ candidates at $r_0 = 8$ epochs $\to$ $9$ at $24$ $\to$ $3$ at $72$ $\to$ winner, with $\eta = 3$). Both implementations fit on a single slide and reproduce the qualitative finding of {cite:t}`li2018hyperband` that Successive Halving reaches comparable accuracy to Random Search at substantially lower compute: in the notebook run, the same MAE is recovered with $\sim 2.3\times$ less compute (648 SHA config-epochs vs. 1500 for 30 Random Search trials at 50 epochs each) at a comparable number of architectures (27 vs. 30). The precise multipliers are notebook-specific; the magnitudes reported in Li et al. vary by benchmark.
 
-##### Production tooling (footnote).
-
-Real projects rarely hand-roll the search loop. Several established libraries wrap (and parallelise) the same algorithms behind uniform APIs: `KerasTuner`[^1] (Random, Bayesian, Hyperband; tight Keras integration), `Optuna`[^2] (TPE, CMA-ES, Hyperband, NSGA-II; framework-agnostic), `Ray Tune`[^3] (all of the above plus ASHA and population-based training, distributed by design), `Hyperopt`[^4] (the original TPE reference), `Ax` / `BoTorch`[^5] (PyTorch-native multi-objective Bayesian optimization), `NNI`[^6] (Microsoft; full graph-NAS support), and `AutoKeras`[^7] (full AutoML pipeline). We deliberately teach the algorithms rather than the wrappers because library APIs change every few years; the underlying search procedures (Random, SHA / Hyperband, GP+EI, TPE) do not. The notebook additionally compares the best NAS-found architecture to a hand-tuned baseline, which makes the pedagogical value of automated search concrete.
+**Production tooling (footnote).** Real projects rarely hand-roll the search loop. Several established libraries wrap (and parallelise) the same algorithms behind uniform APIs: `KerasTuner`[^1] (Random, Bayesian, Hyperband; tight Keras integration), `Optuna`[^2] (TPE, CMA-ES, Hyperband, NSGA-II; framework-agnostic), `Ray Tune`[^3] (all of the above plus ASHA and population-based training, distributed by design), `Hyperopt`[^4] (the original TPE reference), `Ax` / `BoTorch`[^5] (PyTorch-native multi-objective Bayesian optimization), `NNI`[^6] (Microsoft; full graph-NAS support), and `AutoKeras`[^7] (full AutoML pipeline). We deliberately teach the algorithms rather than the wrappers because library APIs change every few years; the underlying search procedures (Random, SHA / Hyperband, GP+EI, TPE) do not. The notebook additionally compares the best NAS-found architecture to a hand-tuned baseline, which makes the pedagogical value of automated search concrete.
 
 ## Multi-Component Losses: The Scale Problem
 
@@ -193,7 +187,7 @@ $$
 
 where $\ell_k \ge 0$ is the $k$-th *loss component* (one individual residual, e.g. a per-country Euler equation, a market-clearing identity, a complementarity-condition residual in an OLG model, or a boundary or initial-condition penalty in a PINN), $w_k \ge 0$ is its scalar weight, and $K$ is the total number of components. In the DEQN setting of this script, each $\ell_k$ is typically the mean-squared residual of a particular equilibrium equation evaluated on the training mini-batch, so $\ell_k = 0$ at a solution and $\ell$ is jointly minimized over the network parameters.
 
-From a multi-objective-optimization standpoint, the vector $(\ell_1, \dots, \ell_K)$ is the object of interest: the equilibrium is defined by all $K$ residuals being zero, and any nonzero weight vector $\bm{w}$ picks a particular scalarization of the same underlying Pareto problem. When the components are on comparable scales, uniform weights work; when they are not, the scalarized problem is dominated by a single component and the optimizer effectively ignores the others. Adaptive weighting methods (discussed below) can be seen as online strategies for traversing the Pareto frontier rather than committing to a single scalarization up front. If the individual components $\ell_k$ differ in magnitude by several orders of magnitude, training can become unstable or converge slowly. Consider a concrete example from the IRBC model with $N=10$ countries: at initialization, the Euler equation residual for country 1 might be $\ell_1 \approx 50$, while for country 10 it might be $\ell_{10} \approx 0.05$, a ratio of $10^3$. With uniform weights, the gradient is dominated by $\nabla \ell_1$, and the optimizer essentially ignores $\ell_{10}$ until $\ell_1$ is nearly converged. This sequential convergence pattern can be $5$--$10\times$ slower than balanced convergence.
+From a multi-objective-optimization standpoint, the vector $(\ell_1, \dots, \ell_K)$ is the object of interest: the equilibrium is defined by all $K$ residuals being zero, and any nonzero weight vector $\bm{w}$ picks a particular scalarization of the same underlying Pareto problem. When the components are on comparable scales, uniform weights work; when they are not, the scalarized problem is dominated by a single component and the optimizer effectively ignores the others. Adaptive weighting methods (discussed below) can be seen as online strategies for traversing the Pareto frontier rather than committing to a single scalarization up front. If the individual components $\ell_k$ differ in magnitude by several orders of magnitude, training can become unstable or converge slowly. Consider a concrete example from the IRBC model with $N=10$ countries: at initialization, the Euler equation residual for country 1 might be $\ell_1 \approx 50$, while for country 10 it might be $\ell_{10} \approx 0.05$, a ratio of $10^3$. With uniform weights, the gradient is dominated by $\nabla \ell_1$, and the optimizer essentially ignores $\ell_{10}$ until $\ell_1$ is nearly converged. This sequential convergence pattern can be $5$–$10\times$ slower than balanced convergence.
 
 The fundamental difficulty is that the gradient of the total loss $\nabla \ell = \sum_k w_k \nabla \ell_k$ is dominated by the components with the largest $|w_k \nabla \ell_k|$. Even if all components are equally important for the economic solution, the optimizer cannot "see" the small components through the noise of the large ones.
 
@@ -215,13 +209,9 @@ where $\tau > 0$ is a temperature parameter. Components that are decreasing slow
 ### ReLoBRaLo: Adaptive Loss Balancing
 The *Relative Loss Balancing with Random Lookback* (ReLoBRaLo) algorithm of {cite:t}`bischof2025relobralo` motivates the deterministic classroom implementation used here. In the notebooks, we use a convex blend of the same ingredients, which is easier to follow while preserving the balancing logic.
 
-##### High-level intuition.
+**High-level intuition.** ReLoBRaLo combines two complementary signals into a single weight per loss component. The *step-wise* signal asks "which component lagged the most since the last iteration?" and rewards it with more weight; this is fast and reactive but noisy. The *baseline* signal asks "which component lagged the most since the start of training?" and is slow but globally aware. The two are then averaged with a one-step smoother to dampen oscillations. Concretely the algorithm stacks three pieces (Components 1–3 below); only the temperature $T$ usually needs tuning, while the smoothing parameters $\alpha,\rho$ work at their textbook defaults.
 
-ReLoBRaLo combines two complementary signals into a single weight per loss component. The *step-wise* signal asks "which component lagged the most since the last iteration?" and rewards it with more weight; this is fast and reactive but noisy. The *baseline* signal asks "which component lagged the most since the start of training?" and is slow but globally aware. The two are then averaged with a one-step smoother to dampen oscillations. Concretely the algorithm stacks three pieces (Components 1--3 below); only the temperature $T$ usually needs tuning, while the smoothing parameters $\alpha,\rho$ work at their textbook defaults.
-
-##### Component 1: Relative balancing.
-
-At iteration $t$, compute relative losses with respect to the previous iteration:
+**Component 1: Relative balancing.** At iteration $t$, compute relative losses with respect to the previous iteration:
 
 $$
 \begin{aligned}
@@ -236,9 +226,7 @@ $$
 
 This upweights components whose relative loss increased (lagging behind) and downweights those that improved. The small $\varepsilon_{\mathrm{num}}$ prevents division by zero; in code the softmax is evaluated after subtracting the largest ratio for numerical stability.
 
-##### Component 2: Baseline comparison.
-
-To maintain a global perspective, compare the current losses to their initial values at $t=0$:
+**Component 2: Baseline comparison.** To maintain a global perspective, compare the current losses to their initial values at $t=0$:
 
 $$
 \begin{aligned}
@@ -253,9 +241,7 @@ $$
 
 This baseline comparison provides robustness to non-monotone loss trajectories and prevents the algorithm from losing sight of overall training progress.
 
-##### Component 3: Smoothed combination.
-
-The final weight blends historical weights, baseline weights, and step-wise weights:
+**Component 3: Smoothed combination.** The final weight blends historical weights, baseline weights, and step-wise weights:
 
 $$
 w_k^{(t)} =
@@ -272,9 +258,9 @@ ReLoBRaLo hyperparameters used in the companion notebook. Default ranges follow 
 
 | **Hyperparameter** | **Role** | **Typical value** |
 |---|---|---|
-| $T$ (temperature) | Controls weight concentration (softmax sharpness) | $0.5$--$2.0$ |
-| $\alpha$ (smoothing) | History vs. new information | $0.99$--$0.999$ |
-| $\rho$ (mixing coefficient) | Initial-loss baseline vs. historical weight | $0.99$--$0.999$ |
+| $T$ (temperature) | Controls weight concentration (softmax sharpness) | $0.5$–$2.0$ |
+| $\alpha$ (smoothing) | History vs. new information | $0.99$–$0.999$ |
+| $\rho$ (mixing coefficient) | Initial-loss baseline vs. historical weight | $0.99$–$0.999$ |
 ````
 
 ### GradNorm
@@ -316,7 +302,7 @@ Summary of adaptive loss-balancing methods. Overhead is a per-step wall-clock co
 | SoftAdapt {cite:p}`heydari2019softadapt` | negligible | 2 ($\tau$, window) |
 | ReLoBRaLo {cite:p}`bischof2025relobralo` | negligible | 3 ($T$, $\alpha$, $\rho$) |
 | GradNorm {cite:p}`chen2018gradnorm` | moderate | 1 ($\alpha$) |
-| NTK-based {cite:p}`wang2022when` | moderate--high | 0 (data-driven) |
+| NTK-based {cite:p}`wang2022when` | moderate–high | 0 (data-driven) |
 ````
 
 Quantitative speedup claims depend on the specific problem (PDE vs. Euler residual, number of components, imbalance ratio), the baseline (uniform vs. manually tuned), and the success criterion. The companion notebook `04_Loss_Normalization.ipynb` runs the four methods on a shared multi-scale regression task so that the reader can generate problem-specific numbers rather than rely on headline speedup factors from unrelated benchmarks.
@@ -396,7 +382,7 @@ Worked solutions and guidance for these exercises appear in Appendix {ref}`app-
 ```{exercise}
 :label: ex-ch4-6
 
-**[Computational\] ReLoBRaLo vs. GradNorm.** In notebook `04_Loss_Normalization`, swap the ReLoBRaLo balancer for a GradNorm balancer ({cite:t}`chen2018gradnorm`; see the chapter for the per-component gradient-norm equalization rule). Run both on the same multi-scale regression target with components of magnitude $10^0, 10^{-2}, 10^{-4}$. Report (i) wall-clock training time per epoch, (ii) final residual on each component, (iii) the gradient-balance ratio $\|\nabla\ell_k\|/\sum_j \|\nabla\ell_j\|$ at convergence. Comment on the cost--benefit trade-off: under what circumstances is the extra per-step cost of GradNorm worth it?
+**[Computational\] ReLoBRaLo vs. GradNorm.** In notebook `04_Loss_Normalization`, swap the ReLoBRaLo balancer for a GradNorm balancer ({cite:t}`chen2018gradnorm`; see the chapter for the per-component gradient-norm equalization rule). Run both on the same multi-scale regression target with components of magnitude $10^0, 10^{-2}, 10^{-4}$. Report (i) wall-clock training time per epoch, (ii) final residual on each component, (iii) the gradient-balance ratio $\|\nabla\ell_k\|/\sum_j \|\nabla\ell_j\|$ at convergence. Comment on the cost–benefit trade-off: under what circumstances is the extra per-step cost of GradNorm worth it?
 ```
 
 ```{exercise}

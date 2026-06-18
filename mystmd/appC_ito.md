@@ -3,7 +3,7 @@ title: "Itô Calculus, Brownian Motion, and Ergodicity"
 label: app-stoch
 ---
 
-This appendix collects the stochastic-calculus background needed for Chapters {ref}`ch-pinn`--{ref}`ch-ct_theory`. For the longer, example-driven exposition see {ref}`sec-stoch_calc`; for a full textbook treatment, see {cite:t}`shreve2004stochasticii`.
+This appendix collects the stochastic-calculus background needed for Chapters {ref}`ch-pinn`–{ref}`ch-ct_theory`. For the longer, example-driven exposition see {ref}`sec-stoch_calc`; for a full textbook treatment, see {cite:t}`shreve2004stochasticii`.
 
 ## Brownian motion
 

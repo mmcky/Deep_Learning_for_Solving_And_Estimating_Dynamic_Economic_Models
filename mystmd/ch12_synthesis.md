@@ -34,28 +34,28 @@ Decision guide: when to use which method.
 | Typical use | DSGE, OLG, IRBC | HJB, option pricing | Estimation, UQ, policy | Small-$N$ surrogates, BAL design |
 ````
 
-A few practical takeaways from the table. **DEQNs** are the workhorse for *discrete-time* general-equilibrium models with high-dimensional state spaces, where Euler equations and market-clearing residuals admit a clean residual-loss formulation. **PINNs** are the natural analogue in *continuous time*, replacing finite-difference HJB or BSDE solvers when one needs exact derivatives of the trained network by automatic differentiation rather than finite-difference derivatives of an interpolant. **Deep surrogates** differ in kind: they do not solve the model; they learn a fast emulator of the already-solved mapping from parameters to economic quantities, which is what makes structural estimation, sensitivity analysis, and policy design tractable at scale. **Gaussian processes with Bayesian active learning** occupy the small-data, high-uncertainty corner: the right tool when each evaluation is expensive, the input dimension is moderate ($d \lesssim 10$ for naïve GPs, extending to higher dimensions via active subspaces and deep AS; cf. Chapter {ref}`ch-gp`), and posterior uncertainty is itself part of the answer. Within the PINN family, EMINNs (Chapter {ref}`ch-ct_theory`) are a specialization to continuous-time heterogeneous-agent master equations: they keep the PDE-residual training logic but encode the cross-sectional distribution itself as part of the network input, which is one of several routes to global solutions of Krusell--Smith-style models with aggregate shocks, complementary to the set-encoder and price-as-state approaches discussed in {ref}`sec-open_challenges`.
+A few practical takeaways from the table. **DEQNs** are the workhorse for *discrete-time* general-equilibrium models with high-dimensional state spaces, where Euler equations and market-clearing residuals admit a clean residual-loss formulation. **PINNs** are the natural analogue in *continuous time*, replacing finite-difference HJB or BSDE solvers when one needs exact derivatives of the trained network by automatic differentiation rather than finite-difference derivatives of an interpolant. **Deep surrogates** differ in kind: they do not solve the model; they learn a fast emulator of the already-solved mapping from parameters to economic quantities, which is what makes structural estimation, sensitivity analysis, and policy design tractable at scale. **Gaussian processes with Bayesian active learning** occupy the small-data, high-uncertainty corner: the right tool when each evaluation is expensive, the input dimension is moderate ($d \lesssim 10$ for naïve GPs, extending to higher dimensions via active subspaces and deep AS; cf. Chapter {ref}`ch-gp`), and posterior uncertainty is itself part of the answer. Within the PINN family, EMINNs (Chapter {ref}`ch-ct_theory`) are a specialization to continuous-time heterogeneous-agent master equations: they keep the PDE-residual training logic but encode the cross-sectional distribution itself as part of the network input, which is one of several routes to global solutions of Krusell–Smith-style models with aggregate shocks, complementary to the set-encoder and price-as-state approaches discussed in {ref}`sec-open_challenges`.
 
 The categories are not mutually exclusive. Many production pipelines combine them, e.g., a DEQN to solve the equilibrium and a deep surrogate or GP that treats parameters as pseudo-states for estimation (Chapter {ref}`ch-estimation`), or a PINN with a surrogate wrapper for policy counterfactuals. The right question is rarely "which of the four?" but "which combination?".
 
 (sec-running_case_bm)=
 ## Running Benchmarks Through Every Lens
-The course repeatedly returns to a small set of canonical benchmarks: Brock--Mirman for discrete-time stochastic growth, cake-eating for continuous-time HJBs, and parameterized Brock--Mirman variants for surrogates and SMM. {numref}`tab-bm_running_case` reads each benchmark through the lens of one course method, exposing what changes when the methodology changes and what stays invariant.
+The course repeatedly returns to a small set of canonical benchmarks: Brock–Mirman for discrete-time stochastic growth, cake-eating for continuous-time HJBs, and parameterized Brock–Mirman variants for surrogates and SMM. {numref}`tab-bm_running_case` reads each benchmark through the lens of one course method, exposing what changes when the methodology changes and what stays invariant.
 
 ````{table}
 :name: tab-bm_running_case
 
-Canonical benchmarks treated through each course method. The economic content differs by row, three rows are Brock--Mirman and the PINN row is cake-eating, but the table exposes the invariant computational pattern: choose an object to approximate, encode the model restrictions in the objective or training design, and validate with an economically interpretable diagnostic. Notebook filenames in the last column omit the standard `lecture_NN_` prefix; the four notebooks live, in row order, in the `code/` subdirectories of lectures 03, 11, 14, and 15.
+Canonical benchmarks treated through each course method. The economic content differs by row, three rows are Brock–Mirman and the PINN row is cake-eating, but the table exposes the invariant computational pattern: choose an object to approximate, encode the model restrictions in the objective or training design, and validate with an economically interpretable diagnostic. Notebook filenames in the last column omit the standard `lecture_NN_` prefix; the four notebooks live, in row order, in the `code/` subdirectories of lectures 03, 11, 14, and 15.
 
 | **Method** | **What is approximated** | **Loss / objective** | **Diagnostic** | **Notebook** |
 |---|---|---|---|---|
 | DEQN | Savings share $s(K,z)\in(0,1)$ via sigmoid head | Squared rel. Euler residual on simulated trajectory | $s \to \alpha\beta$ at $\delta\!=\!1$, log utility | `01_Brock_Mirman_1972_DEQN.ipynb` |
 | PINN, cake-eating | Value function $\hat V(a)$ on a 1D interval | HJB residual $\rho V-\max_c[u(c)+V'(a)(ra-c)]$ | $\hat V$ matches closed form $V^\star$ (CRRA) | `04_Cake_Eating_HJB_PINN.ipynb` |
-| GP $+$ BAL | $\hat V(K)$ on Brock--Mirman ergodic set | GP marginal likelihood; BAL picks next $K_*$ | 95% pred. band covers true $V$ | `04_GP_Value_Function_Iteration.ipynb` |
+| GP $+$ BAL | $\hat V(K)$ on Brock–Mirman ergodic set | GP marginal likelihood; BAL picks next $K_*$ | 95% pred. band covers true $V$ | `04_GP_Value_Function_Iteration.ipynb` |
 | SMM $+$ surrogate | Policy $s(K,z,\varrho)$ pseudo-state on $\varrho$ | SMM moment objective in $\varrho$ | $\hat\varrho$ within MCSE of truth | `lecture_15_03_Structural_Estimation_BM.ipynb` |
 ````
 
-The takeaway is that no single methodology is the "right" one for these benchmarks. Rather, the four lenses answer different research questions: a DEQN gives the policy function on Brock--Mirman, a PINN gives a value function on cake-eating with AD derivatives of the network approximation, a GP gives uncertainty-quantified value-function estimates on Brock--Mirman with guidance for the next sample point, and the surrogate-SMM pipeline estimates the deep parameter $\varrho$ (productivity persistence) on a Brock--Mirman variant from data; the joint $(\beta,\varrho)$ extension lives in the companion `lecture_15_03b_Structural_Estimation_BM_Joint.ipynb`, where the imperfect identification of $\beta$ from macro moments shows up as a visible ridge in the criterion surface. Real research applications typically combine at least two of these, and the implementation guidance throughout the chapters is designed to make those combinations cheap.
+The takeaway is that no single methodology is the "right" one for these benchmarks. Rather, the four lenses answer different research questions: a DEQN gives the policy function on Brock–Mirman, a PINN gives a value function on cake-eating with AD derivatives of the network approximation, a GP gives uncertainty-quantified value-function estimates on Brock–Mirman with guidance for the next sample point, and the surrogate-SMM pipeline estimates the deep parameter $\varrho$ (productivity persistence) on a Brock–Mirman variant from data; the joint $(\beta,\varrho)$ extension lives in the companion `lecture_15_03b_Structural_Estimation_BM_Joint.ipynb`, where the imperfect identification of $\beta$ from macro moments shows up as a visible ridge in the criterion surface. Real research applications typically combine at least two of these, and the implementation guidance throughout the chapters is designed to make those combinations cheap.
 
 ## Bridges Between Methods
 
@@ -67,7 +67,7 @@ The four method families do not sit in isolated boxes. {numref}`fig-unified_view
 Bridges between the four method families. The core box restates the shared workflow: a flexible approximator (network or kernel), with economic structure encoded in the objective or training design, trained or updated through a differentiable or Bayesian pipeline. The dashed grey arrows mark the two main bridges, between discrete- and continuous-time residual solvers (DEQN $\leftrightarrow$ PINN) and between deep surrogates and the GP + BAL uncertainty layer that sits on top of them.
 ```
 
-Reading the figure column by column gives a one-line gloss of each family: DEQNs (blue) handle discrete-time Euler equations in high-dimensional state spaces; PINNs (red) handle continuous-time HJB, Kolmogorov-forward, and Black--Scholes PDEs through PDE residuals; deep surrogates (orange) make model parameters part of the input space and replace the expensive solve with an instant forward pass for estimation and uncertainty quantification; GP + BAL (green) layers calibrated uncertainty and sample-efficient active learning on top of the surrogate. The bridges in the figure are not exhaustive; production pipelines often chain three families at once, for example a DEQN solver followed by a deep surrogate, followed by a GP for sensitivity analysis around the estimated optimum.
+Reading the figure column by column gives a one-line gloss of each family: DEQNs (blue) handle discrete-time Euler equations in high-dimensional state spaces; PINNs (red) handle continuous-time HJB, Kolmogorov-forward, and Black–Scholes PDEs through PDE residuals; deep surrogates (orange) make model parameters part of the input space and replace the expensive solve with an instant forward pass for estimation and uncertainty quantification; GP + BAL (green) layers calibrated uncertainty and sample-efficient active learning on top of the surrogate. The bridges in the figure are not exhaustive; production pipelines often chain three families at once, for example a DEQN solver followed by a deep surrogate, followed by a GP for sensitivity analysis around the estimated optimum.
 
 (sec-open_challenges)=
 ## Open Challenges and Future Directions
@@ -81,7 +81,7 @@ Despite the considerable progress surveyed in this course, several open challeng
 
 4.  **Estimation of rich structural models.** Combining DEQNs or PINNs with surrogate-based estimation pipelines allows researchers to estimate models with many parameters from micro and macro data simultaneously {cite:p}`friedlDeep2023,chen2026Deep`. {cite:t}`kase2022estimating` use neural networks to estimate nonlinear heterogeneous-agent models, opening the door to estimation of models that were previously intractable. As micro-level administrative datasets become increasingly available to central banks, the ability to estimate high-dimensional structural models from rich data sources represents a major frontier.
 
-5.  **Climate--economy integrated assessment.** Integrated assessment models with tipping points, regional heterogeneity, and multiple sources of risk represent a natural application of the methods surveyed here. {cite:t}`fernandezvillaverde2025climate` provide a comprehensive overview of the state of the art. The DEQN methodology is particularly well suited to these models because climate--economy interactions introduce additional state variables (carbon concentrations, temperature, damages) that exacerbate the curse of dimensionality.
+5.  **Climate–economy integrated assessment.** Integrated assessment models with tipping points, regional heterogeneity, and multiple sources of risk represent a natural application of the methods surveyed here. {cite:t}`fernandezvillaverde2025climate` provide a comprehensive overview of the state of the art. The DEQN methodology is particularly well suited to these models because climate–economy interactions introduce additional state variables (carbon concentrations, temperature, damages) that exacerbate the curse of dimensionality.
 
 6.  **Heterogeneous-agent models and beyond.** Extending the DEQN and PINN frameworks to heterogeneous-agent models with aggregate shocks, where the cross-sectional distribution of agents is itself part of the aggregate state, is a major frontier (Chapter {ref}`ch-young`). {cite:t}`han2023deepham` propose DeepHAM, which represents the distribution via learned generalized moments and trains networks by maximizing cumulative utility along simulated paths ({ref}`sec-deepham_ks`); {cite:t}`payne2025deepsam` extend the same set-encoder idea to non-Walrasian search-and-matching models, where the distribution affects decisions through the matching technology and bargaining rather than through prices ({ref}`sec-deepsam_ks`); and {cite:t}`yang2025structural` show that for many Walrasian HA models, equilibrium prices alone, rather than the full distribution, can serve as the aggregate state in agents' policy functions, sidestepping the master equation altogether. Together these approaches demonstrate that deep learning can tackle the infinite-dimensional state spaces inherent in heterogeneous-agent economies, and can also help *define* new equilibrium concepts for them.
 
@@ -113,7 +113,7 @@ The chapters of this script argue that, in the right regime, deep learning unloc
 
 The following guidelines distill recurring lessons from the applications covered in this course:
 
-1.  **Start simple.** Begin with a small network (2--3 hidden layers, 32--64 neurons) and a low-dimensional test case with a known solution (e.g., Brock--Mirman for DEQNs, the 1D ODE for PINNs). Only increase complexity once the simple case works.
+1.  **Start simple.** Begin with a small network (2–3 hidden layers, 32–64 neurons) and a low-dimensional test case with a known solution (e.g., Brock–Mirman for DEQNs, the 1D ODE for PINNs). Only increase complexity once the simple case works.
 
 2.  **Normalize states, controls, and residuals.** Many failed training runs are scaling failures rather than approximation failures. Work with logs, ratios, standardized states, or economically natural units, and scale residuals so that one equation does not dominate the loss only because it is measured in larger units. In climate and OLG models, nondimensionalization is often as important as the architecture.
 
@@ -131,9 +131,7 @@ The following guidelines distill recurring lessons from the applications covered
 
 9.  **Use common random numbers (CRN).** When comparing model outputs across parameter values (e.g., in surrogate-based estimation), always fix the shock sequence. CRN can reduce variance substantially in surrogate-SMM pipelines (often by an order of magnitude or more), making gradient-based optimization feasible.
 
-##### Common failure modes.
-
-{numref}`tab-dl_failure_modes` summarizes recurring failure modes and their mitigations:
+**Common failure modes.** {numref}`tab-dl_failure_modes` summarizes recurring failure modes and their mitigations:
 
 ````{table}
 :name: tab-dl_failure_modes
@@ -153,11 +151,9 @@ Recurring failure modes encountered when training the deep-learning solvers of t
 | Training succeeds only for one seed | Report multi-seed dispersion; reduce learning rate; tighten scaling; check residual signs |
 ````
 
-##### Implementation checklist.
+**Implementation checklist.** For each new model, we recommend the following workflow:
 
-For each new model, we recommend the following workflow:
-
-1.  Solve a simplified version with a known analytical solution (e.g., Brock--Mirman).
+1.  Solve a simplified version with a known analytical solution (e.g., Brock–Mirman).
 
 2.  Verify that all equilibrium conditions are correctly encoded in the loss.
 
@@ -183,7 +179,7 @@ For further reading, we refer to the comprehensive survey by {cite:t}`fernandezv
 
 - Knowing when *not* to use deep learning is part of using it well: classical projection or perturbation often dominates in low dimension; exact likelihood beats simulation when both are available; a well-specified GP is often the better choice at small $n$ and moderate dimension, when uncertainty is the deliverable.
 
-- Open frontiers: convergence theory, hybrid global/local methods, real-time policy analysis, large structural estimation, climate--economy IAMs, full HA models with aggregate shocks, operator learning.
+- Open frontiers: convergence theory, hybrid global/local methods, real-time policy analysis, large structural estimation, climate–economy IAMs, full HA models with aggregate shocks, operator learning.
 
 - The right question for a research project is rarely "which of these four methods?" but "which combination?", e.g. DEQN $+$ surrogate for estimation, PINN $+$ GP for sensitivity, or all of the above for climate policy.
 ```
@@ -202,7 +198,7 @@ Worked solutions and guidance for these exercises appear in Appendix {ref}`app-
 ```{exercise}
 :label: ex-ch12-2
 
-**\{ref}`sec-when_not_to_use_dl` and write a one-page note for a colleague explaining why a classical method dominates.
+**[Core\] When NOT to use deep learning.** Pick one of the six regimes from {ref}`sec-when_not_to_use_dl` and write a one-page note for a colleague explaining why a classical method dominates.
 ```
 
 ```{exercise}
@@ -214,13 +210,13 @@ Worked solutions and guidance for these exercises appear in Appendix {ref}`app-
 ```{exercise}
 :label: ex-ch12-4
 
-**\{ref}`sec-open_challenges` (operator learning, hybrid global/local, real-time policy, large structural estimation, climate-economy IAMs, HA with aggregate shocks) and sketch a 6-month research project that combines two methods from this script.
+**[Advanced/project\] Open-ended.** Identify one frontier from {ref}`sec-open_challenges` (operator learning, hybrid global/local, real-time policy, large structural estimation, climate-economy IAMs, HA with aggregate shocks) and sketch a 6-month research project that combines two methods from this script.
 ```
 
 ```{exercise}
 :label: ex-ch12-5
 
-**[Advanced/project\] Hybrid pipeline: DEQN $+$ GP $+$ SMM end-to-end.** Build a complete estimation pipeline on the Brock--Mirman model with two parameters $(\beta, \varrho)$, matching the parameter pair worked in the companion notebook `lecture_15_03b_Structural_Estimation_BM_Joint.ipynb`. As that notebook documents, $\beta$ is only *partially* identified by macro moments (a visible ridge along the $\beta$ axis); $\varrho$ has the cleaner identification map. The exercise below is a controlled-difficulty version of that pipeline.
+**[Advanced/project\] Hybrid pipeline: DEQN $+$ GP $+$ SMM end-to-end.** Build a complete estimation pipeline on the Brock–Mirman model with two parameters $(\beta, \varrho)$, matching the parameter pair worked in the companion notebook `lecture_15_03b_Structural_Estimation_BM_Joint.ipynb`. As that notebook documents, $\beta$ is only *partially* identified by macro moments (a visible ridge along the $\beta$ axis); $\varrho$ has the cleaner identification map. The exercise below is a controlled-difficulty version of that pipeline.
 
 1.  Train a DEQN with *pseudo-state augmentation*: extend the network input from $(K_t, z_t)$ to $(K_t, z_t, \beta, \varrho)$.
 

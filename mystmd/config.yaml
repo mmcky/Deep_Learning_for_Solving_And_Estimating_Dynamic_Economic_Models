@@ -72,18 +72,17 @@ figures_dir: "fig"
 project_overrides: tikz_overrides.py
 
 # R18 — doubled-noun de-duplication, book-side extras. Upstream's
-# strip_doubled_noun_refs (QE#110, landed in the phases-1–6 PR) ships defaults
-# for Figure/Chapter/Theorem/… but not for this book's `tab-`/`alg-` label
-# prefixes: prose "Table~\ref{tab:x}" → "Table {numref}`tab-x`" renders as
-# "Table Table 6.1" (62 sites) and "Algorithm~\ref{alg:y}" → "Algorithm
-# {prf:ref}`alg-y`" as "Algorithm Algorithm 6.1" (4 sites), because the role
-# already auto-renders the noun. These entries extend the upstream default
-# list via the designed config surface. ('Table', 'tab-') is general enough
-# that upstream may want it as a default — proposed upstream as
-# QuantEcon/claude-latex-to-myst#131.
+# strip_doubled_noun_refs ships defaults for Figure/Chapter/Theorem/… and,
+# since QE#131 (R19), Table/Tables for the `tab-`/`tbl-` prefixes too — so
+# the book's former `Table`/`Tables`+`tab-` entries are now redundant and
+# were dropped in R19 (verified: the regen is byte-identical without them).
+# Only `Algorithm`/`alg-` remains book-local: the upstream default keys
+# Algorithm off `algo-`, but this book's labels are `alg:nsdeqn` → `alg-`,
+# so "Algorithm~\ref{alg:y}" → "Algorithm {prf:ref}`alg-y`" would still
+# render "Algorithm Algorithm 6.1" (4 sites) without it. These entries
+# extend (do not replace) the upstream default list — strip_doubled_noun_refs
+# iterates `extras + _DOUBLED_NOUN_REFS`.
 doubled_noun_refs:
-  - { noun: Table,      prefix: tab- }
-  - { noun: Tables,     prefix: tab- }
   - { noun: Algorithm,  prefix: alg- }
   - { noun: Algorithms, prefix: alg- }
 

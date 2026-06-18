@@ -9,13 +9,13 @@ A short glossary of recurring concepts. Each entry is one or two sentences; for 
 : The leading eigenspace of the gradient outer-product matrix $\E[\nabla f \nabla f^\top]$. Captures the linear directions in input space along which a function varies most; allows GPs to scale to high $d$ {cite:p}`constantine2015active`.
 
 **Active subspace, deep.**
-: Replaces the linear projection $U_m^\top \x$ by a learned nonlinear encoder $h\colon \R^D \to \R^d$, trained jointly with an MLP link $g\colon \R^d \to \R$ so that $\hat f(\xi) = g(h(\xi))$; gradient-free, with $d$ chosen by a validation-MSE elbow instead of a spectral gap (Section {ref}`sec-deep_as`; {cite:t}`tripathy2018deep`).
+: Replaces the linear projection $U_m^\top \x$ by a learned nonlinear encoder $h\colon \R^D \to \R^d$, trained jointly with an MLP link $g\colon \R^d \to \R$ so that $\hat f(\xi) = g(h(\xi))$; gradient-free, with $d$ chosen by a validation-MSE elbow instead of a spectral gap ({ref}`sec-deep_as`; {cite:t}`tripathy2018deep`).
 
 **Adam, AdamW.**
 : Adaptive stochastic-gradient optimizers using momentum on the gradient and on its square; AdamW separates the weight-decay step from the adaptive step {cite:p}`kingma2015adam,loshchilov2019decoupled`.
 
 **Approximate aggregation.**
-: Empirical observation that in Krusell--Smith-class economies the cross-sectional distribution of wealth is nearly summarized by its mean for price forecasting purposes (Chapter {ref}`ch-young`).
+: Empirical observation that in Krusell–Smith-class economies the cross-sectional distribution of wealth is nearly summarized by its mean for price forecasting purposes (Chapter {ref}`ch-young`).
 
 **Automatic differentiation (AD).**
 : Algorithmic computation of exact derivatives of composite functions via the chain rule; reverse-mode AD is the engine of every deep-learning framework {cite:p}`baydin2018automatic,margossian2019review`.
@@ -26,7 +26,7 @@ A short glossary of recurring concepts. Each entry is one or two sentences; for 
 **Bellman equation.**
 : Recursive characterization of the value function in a discrete-time dynamic program. Continuous-time analogue is the HJB equation.
 
-**Brock--Mirman model.**
+**Brock–Mirman model.**
 : Stochastic neoclassical growth model with log utility and full depreciation that admits a closed-form policy $s^\star = \alpha\beta$; the canonical DEQN benchmark in this script.
 
 **Common random numbers (CRN).**
@@ -54,9 +54,9 @@ A short glossary of recurring concepts. Each entry is one or two sentences; for 
 : Economic-Model Informed Neural Network: a PINN-style approach to the master equation in continuous-time HA models {cite:p}`gu2024masterequations`.
 
 **Ergodic distribution.**
-: The stationary distribution of a Markov process; in a Krusell--Smith economy it is the long-run distribution of wealth across agents.
+: The stationary distribution of a Markov process; in a Krusell–Smith economy it is the long-run distribution of wealth across agents.
 
-**Fischer--Burmeister (FB).**
+**Fischer–Burmeister (FB).**
 : A smooth complementarity function $\Phi(a,b) = a + b - \sqrt{a^2+b^2}$ used to encode KKT conditions in differentiable losses; the opposite sign has the same zero set but the chapter and notebooks use this convention {cite:p}`fischer1992special`.
 
 **Fourier Neural Operator (FNO).**
@@ -65,11 +65,11 @@ A short glossary of recurring concepts. Each entry is one or two sentences; for 
 **Functional derivative.**
 : $\delta V/\delta g$, the density / Riesz representer of the Fréchet derivative of $V$ with respect to a function-valued argument $g$ (equivalently, the directional derivative of $V$ at $g$ in the direction of a Dirac perturbation $\delta_{y_0}$); appears in the master equation (Chapter {ref}`ch-ct_theory`).
 
-**Gauss--Hermite quadrature.**
+**Gauss–Hermite quadrature.**
 : Polynomial quadrature rule for integrals against the standard normal density; backbone of the expectations step in DEQNs.
 
 **HJB equation.**
-: Hamilton--Jacobi--Bellman equation; continuous-time analogue of the Bellman equation, a PDE in the value function.
+: Hamilton–Jacobi–Bellman equation; continuous-time analogue of the Bellman equation, a PDE in the value function.
 
 **Histogram (Young 2010).**
 : Mass-redistribution scheme on a fixed grid that propagates a wealth distribution deterministically without Monte Carlo noise (Chapter {ref}`ch-young`).
@@ -83,10 +83,10 @@ A short glossary of recurring concepts. Each entry is one or two sentences; for 
 **Itô's lemma.**
 : The chain rule of stochastic calculus; for the scalar diffusion $dX_t=\mu\,dt+\sigma\,dB_t$, the only difference from ordinary calculus is the second-order correction $\tfrac{1}{2}f''(X_t)\sigma^2\,dt$.
 
-**Karush--Kuhn--Tucker (KKT) conditions.**
-: First-order necessary conditions for constrained optimization; encoded smoothly via Fischer--Burmeister in DEQN losses.
+**Karush–Kuhn–Tucker (KKT) conditions.**
+: First-order necessary conditions for constrained optimization; encoded smoothly via Fischer–Burmeister in DEQN losses.
 
-**Kolmogorov forward equation (KFE / Fokker--Planck).**
+**Kolmogorov forward equation (KFE / Fokker–Planck).**
 : The PDE governing the time evolution of the probability density of an Itô process.
 
 **Marginal likelihood.**
