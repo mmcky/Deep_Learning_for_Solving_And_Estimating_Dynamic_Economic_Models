@@ -19,13 +19,37 @@ Squared-exponential kernel as a function of distance for three length scales. Sm
 
 {numref}`fig-rbf_length_scale` shows how the RBF length scale controls the distance over which observations remain informative. For any training dataset $\mathcal{D} = \{(\x_i, y_i)\}_{i=1}^n$, the GP posterior at a test point $\x_*$ has the closed-form mean $\bar{f}_*$ and variance $\sigma_{f,*}^2$ stated in {eq}`eq-nas_gp_mean`–{eq}`eq-nas_gp_var`, with $K_{ij} = k(\x_i,\x_j)$ the kernel matrix on training inputs, $K_y = K + \sigma_y^2 I$ its noise-augmented version, $\bm{\mu}_X$ the prior-mean vector at training inputs, and $\bm{k}_*$ the cross-covariance whose $i$-th entry is $k(\x_*, \x_i)$. For a noisy future observation $y_*$ the predictive variance is $\sigma_{y,*}^2 = \sigma_{f,*}^2 + \sigma_y^2$, and the common zero-mean formulas are recovered by centering outputs or setting $\mu \equiv 0$.
 
-**A hand-traceable 1D example.** To make {eq}`eq-nas_gp_mean`–{eq}`eq-nas_gp_var` concrete, take $f(x) = \sin x$, observe $f$ noiselessly at $x_1 = 0$ and $x_2 = \pi$ (so $y_1 = y_2 = 0$), and query at $x_\star = \pi/2$. Use the kernel $k(x, x') = \exp\!\bigl(-(x - x')^2/2\bigr)$ and a tiny noise floor $\sigma_y^2 = 10^{-6}$ for numerical stability. The training kernel matrix is $$K + \sigma_y^2 I \;=\;
+**A hand-traceable 1D example.** To make {eq}`eq-nas_gp_mean`–{eq}`eq-nas_gp_var` concrete, take $f(x) = \sin x$, observe $f$ noiselessly at $x_1 = 0$ and $x_2 = \pi$ (so $y_1 = y_2 = 0$), and query at $x_\star = \pi/2$. Use the kernel $k(x, x') = \exp\!\bigl(-(x - x')^2/2\bigr)$ and a tiny noise floor $\sigma_y^2 = 10^{-6}$ for numerical stability. The training kernel matrix is
+
+```{math}
+:enumerated: false
+
+K + \sigma_y^2 I \;=\;
 \begin{pmatrix} 1 & e^{-\pi^2/2} \\ e^{-\pi^2/2} & 1 \end{pmatrix}
 \;\approx\;
-\begin{pmatrix} 1.000 & 0.00719 \\ 0.00719 & 1.000 \end{pmatrix},$$ where the off-diagonal $e^{-\pi^2/2} \approx 0.00719$ is small because $0$ and $\pi$ are far apart relative to $\ell = 1$. The cross-covariance vector is $$\bm k_\star \;=\;
+\begin{pmatrix} 1.000 & 0.00719 \\ 0.00719 & 1.000 \end{pmatrix},
+```
+
+where the off-diagonal $e^{-\pi^2/2} \approx 0.00719$ is small because $0$ and $\pi$ are far apart relative to $\ell = 1$. The cross-covariance vector is
+
+```{math}
+:enumerated: false
+
+\bm k_\star \;=\;
 \begin{pmatrix} \exp(-(\pi/2)^2/2) \\ \exp(-(\pi/2)^2/2) \end{pmatrix}
 \;\approx\;
-\begin{pmatrix} 0.2910 \\ 0.2910 \end{pmatrix},$$ since $x_\star = \pi/2$ is equidistant from $0$ and $\pi$. Because $\bm y = (0,0)^\top$, the posterior mean {eq}`eq-nas_gp_mean` is exactly $\bar f_\star = 0$. For the variance, $$(K + \sigma_y^2 I)^{-1} \bm k_\star \;\approx\; \tfrac{0.2910}{1 + 0.00719}\,(1, 1)^\top \;\approx\; (0.2890, 0.2890)^\top,$$ so $\bm k_\star^\top (K + \sigma_y^2 I)^{-1} \bm k_\star \approx 2 \cdot 0.2910 \cdot 0.2890 \approx 0.1682$, giving $\sigma_\star^2 \approx 1 - 0.1682 \approx 0.832$ and a posterior standard deviation $\sigma_\star \approx 0.91$. The GP predicts zero at the midpoint, with substantial residual uncertainty, consistent with the fact that $\sin(\pi/2) = 1$ is not pinned down by the two boundary observations under this length scale.
+\begin{pmatrix} 0.2910 \\ 0.2910 \end{pmatrix},
+```
+
+since $x_\star = \pi/2$ is equidistant from $0$ and $\pi$. Because $\bm y = (0,0)^\top$, the posterior mean {eq}`eq-nas_gp_mean` is exactly $\bar f_\star = 0$. For the variance,
+
+```{math}
+:enumerated: false
+
+(K + \sigma_y^2 I)^{-1} \bm k_\star \;\approx\; \tfrac{0.2910}{1 + 0.00719}\,(1, 1)^\top \;\approx\; (0.2890, 0.2890)^\top,
+```
+
+so $\bm k_\star^\top (K + \sigma_y^2 I)^{-1} \bm k_\star \approx 2 \cdot 0.2910 \cdot 0.2890 \approx 0.1682$, giving $\sigma_\star^2 \approx 1 - 0.1682 \approx 0.832$ and a posterior standard deviation $\sigma_\star \approx 0.91$. The GP predicts zero at the midpoint, with substantial residual uncertainty, consistent with the fact that $\sin(\pi/2) = 1$ is not pinned down by the two boundary observations under this length scale.
 
 {numref}`fig-gp_prior_posterior` illustrates the GP prior and posterior for a simple one-dimensional regression problem. Before observing data, the GP prior has constant mean and uniform uncertainty. After conditioning on five observations, the posterior mean interpolates the data and the uncertainty bands collapse near the observations while remaining wide in unexplored regions.
 
@@ -340,7 +364,15 @@ The idea of representing the value function as a GP inside a DP recursion was in
 
 (sec-gp_dp_supervised_view)=
 ### Why GPs for DP: a Supervised-Learning View of the Bellman Operator
-Before stating the algorithm, it helps to see VFI through a supervised-learning lens. At iteration $s$, given an incumbent value function $V^{s-1}$, we generate a training set $$\mathcal{D}^s = \bigl\{(\x^{(i)},\, t_i^s)\bigr\}_{i=1}^{n^s}, \qquad t_i^s = (TV^{s-1})(\x^{(i)}),$$ and fit a regressor $V^s \approx (TV^{s-1})$ to it. The label $t_i^s$ is not free. Each evaluation of the Bellman operator at a state $\x^{(i)}$ requires solving a constrained nonlinear program over controls $\xi$ subject to the law of motion and any feasibility / market-clearing constraints; quadrature over $\x'$ is taken inside. In textbook problems each oracle call costs $10^{-2}$--$10^{0}$ seconds, and in higher-dimensional models with adjustment costs, occasionally binding constraints, or aggregator nonlinearities, it can run into minutes. Because the calls are independent across $\x^{(i)}$, the design is embarrassingly parallel {cite:p}`SCHEIDEGGER201968`, but each individual label remains expensive.
+Before stating the algorithm, it helps to see VFI through a supervised-learning lens. At iteration $s$, given an incumbent value function $V^{s-1}$, we generate a training set
+
+```{math}
+:enumerated: false
+
+\mathcal{D}^s = \bigl\{(\x^{(i)},\, t_i^s)\bigr\}_{i=1}^{n^s}, \qquad t_i^s = (TV^{s-1})(\x^{(i)}),
+```
+
+and fit a regressor $V^s \approx (TV^{s-1})$ to it. The label $t_i^s$ is not free. Each evaluation of the Bellman operator at a state $\x^{(i)}$ requires solving a constrained nonlinear program over controls $\xi$ subject to the law of motion and any feasibility / market-clearing constraints; quadrature over $\x'$ is taken inside. In textbook problems each oracle call costs $10^{-2}$–$10^{0}$ seconds, and in higher-dimensional models with adjustment costs, occasionally binding constraints, or aggregator nonlinearities, it can run into minutes. Because the calls are independent across $\x^{(i)}$, the design is embarrassingly parallel {cite:p}`SCHEIDEGGER201968`, but each individual label remains expensive.
 
 This is exactly the regime where Gaussian processes shine. Three properties make them the natural surrogate class:
 
@@ -368,7 +400,15 @@ $$
 V(\x) = \max_{\xi \in \Lambda(\x)} \bigl\{ r(\x, \xi) + \beta\, \mathbb{E}\bigl[V(\x')\bigr] \bigr\},
 $$ (eq-bellman)
 
-where the expectation is over the stochastic transition. The *Bellman operator* $T$ maps value functions to value functions: $$(TV)(\x) = \max_{\xi \in \Lambda(\x)} \bigl\{ r(\x, \xi) + \beta\, \mathbb{E}\bigl[V(\x')\bigr] \bigr\}.$$ Under standard regularity conditions (bounded returns, $\beta < 1$, monotonicity, discounting), $T$ is a *contraction mapping* on the Banach space of bounded continuous functions with sup-norm, with modulus $\beta$. By the Banach fixed-point theorem (Appendix {ref}`app-fixed_points`), $T$ admits a unique fixed point $V^*$, and iterating $V^{s+1} = TV^s$ from any initial guess $V^0$ converges geometrically: $\|V^s - V^*\|_\infty \le \beta^s \|V^0 - V^*\|_\infty$. The classical references in economics are {cite:t}`stokeylucas1989` [Chs. 3--4] for the formal contraction-and-fixed-point theory of the Bellman operator and {cite:t}`judd1998numerical` [Ch. 12] for the numerical implementation in continuous-state settings; {cite:t}`ljungqvist2018recursive` [Chs. 3--4] and {cite:t}`sargentstachurski2026dp` provide modern macroeconomic treatments. In the operations-research and optimal-control literature, {cite:t}`Bertsekas:2000:DPO:517430` is the canonical reference, with extensive coverage of approximate dynamic programming. The contraction modulus $\beta$ applies to the *exact* Bellman operator; convergence of the GP-fitted iterates additionally requires controlling the per-step interpolation error of the surrogate, otherwise the approximate operator can fail to contract globally even though the exact one does. This is the standard textbook VFI loop: guess a value function, apply the Bellman operator, interpolate the updated values, and repeat until convergence. In the present chapter, the only change is the interpolant: a GP replaces the grid or polynomial basis when the state space is irregular or moderately high-dimensional. For a comprehensive treatment of dynamic programming in economics, see also the open-source QuantEcon lectures.[^1]
+where the expectation is over the stochastic transition. The *Bellman operator* $T$ maps value functions to value functions:
+
+```{math}
+:enumerated: false
+
+(TV)(\x) = \max_{\xi \in \Lambda(\x)} \bigl\{ r(\x, \xi) + \beta\, \mathbb{E}\bigl[V(\x')\bigr] \bigr\}.
+```
+
+Under standard regularity conditions (bounded returns, $\beta < 1$, monotonicity, discounting), $T$ is a *contraction mapping* on the Banach space of bounded continuous functions with sup-norm, with modulus $\beta$. By the Banach fixed-point theorem (Appendix {ref}`app-fixed_points`), $T$ admits a unique fixed point $V^*$, and iterating $V^{s+1} = TV^s$ from any initial guess $V^0$ converges geometrically: $\|V^s - V^*\|_\infty \le \beta^s \|V^0 - V^*\|_\infty$. The classical references in economics are {cite:t}`stokeylucas1989` [Chs. 3–4] for the formal contraction-and-fixed-point theory of the Bellman operator and {cite:t}`judd1998numerical` [Ch. 12] for the numerical implementation in continuous-state settings; {cite:t}`ljungqvist2018recursive` [Chs. 3–4] and {cite:t}`sargentstachurski2026dp` provide modern macroeconomic treatments. In the operations-research and optimal-control literature, {cite:t}`Bertsekas:2000:DPO:517430` is the canonical reference, with extensive coverage of approximate dynamic programming. The contraction modulus $\beta$ applies to the *exact* Bellman operator; convergence of the GP-fitted iterates additionally requires controlling the per-step interpolation error of the surrogate, otherwise the approximate operator can fail to contract globally even though the exact one does. This is the standard textbook VFI loop: guess a value function, apply the Bellman operator, interpolate the updated values, and repeat until convergence. In the present chapter, the only change is the interpolant: a GP replaces the grid or polynomial basis when the state space is irregular or moderately high-dimensional. For a comprehensive treatment of dynamic programming in economics, see also the open-source QuantEcon lectures.[^1]
 
 **The computational challenge.** At every VFI iteration, we must *approximate* $V^{s+1}$ as a function of the full state vector $\x \in \R^D$. Traditional approaches (finite grids, Smolyak sparse grids, tensor-product polynomial bases) suffer from the curse of dimensionality: the number of grid points grows exponentially in $D$, and they require hypercubic state-space geometries. For $D > 20$, these methods become infeasible.
 
@@ -424,7 +464,15 @@ $$ (eq-gp_loo)
 
 where $\mu_{-i}$ and $\sigma_{-i}^2$ denote the posterior mean and variance after removing the $i$-th observation, and $\alpha = K_y^{-1}(\bm y-\bm\mu_X)$ (for centered outputs, $\bm\mu_X=0$). Since $K_y^{-1}$ is recovered from the Cholesky factor of $K_y$ in $\mathcal{O}(n^2)$ once the factorisation has been done, computing the full $n$-vector of LOO residuals is essentially free relative to the $\mathcal{O}(n^3)$ already paid for posterior inference.
 
-**What the LOO RMSE tells us.** Tracking $$\mathrm{LOO\text{-}RMSE}(\mathcal{D}^s) \;=\; \sqrt{\frac{1}{n^s}\sum_{i=1}^{n^s}\bigl(\mu_{-i}(\x^{(i)}) - t_i^s\bigr)^2}$$ across VFI iterations is a cheap surrogate-health metric that is independent of the Bellman residual:
+**What the LOO RMSE tells us.** Tracking
+
+```{math}
+:enumerated: false
+
+\mathrm{LOO\text{-}RMSE}(\mathcal{D}^s) \;=\; \sqrt{\frac{1}{n^s}\sum_{i=1}^{n^s}\bigl(\mu_{-i}(\x^{(i)}) - t_i^s\bigr)^2}
+```
+
+across VFI iterations is a cheap surrogate-health metric that is independent of the Bellman residual:
 
 - A flat-then-rising LOO curve at the same design size signals *kernel mis-specification* (length scale collapsing, noise variance hitting a bound) and tells us to revisit the kernel choice or hyperparameter bounds before adding more design points.
 

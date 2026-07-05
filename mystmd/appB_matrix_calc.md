@@ -7,11 +7,27 @@ This appendix collects the few matrix-calculus identities used in the main text 
 
 ## Matrix calculus identities
 
-For $\bm A \in \R^{m\times n}$, $\bm x \in \R^n$, $\bm y = \bm A\bm x$: $$\frac{\partial \bm y}{\partial \bm x} = \bm A,\qquad
-   \frac{\partial (\bm y^\top \bm y)}{\partial \bm x} = 2\bm A^\top \bm A\bm x.$$ For a quadratic form $f(\bm x) = \bm x^\top \bm Q \bm x$ with symmetric $\bm Q$, $\nabla f(\bm x) = 2\bm Q\bm x$ and $\nabla^2 f = 2\bm Q$. For a deep network $\bm{\hat y} = g_L(\bm W_L\, g_{L-1}(\cdots g_1(\bm W_1 \bm x + \bm b_1)\cdots))$, the chain rule gives $$\frac{\partial \bm{\hat y}}{\partial \bm W_l}
+For $\bm A \in \R^{m\times n}$, $\bm x \in \R^n$, $\bm y = \bm A\bm x$:
+
+```{math}
+:enumerated: false
+
+\frac{\partial \bm y}{\partial \bm x} = \bm A,\qquad
+   \frac{\partial (\bm y^\top \bm y)}{\partial \bm x} = 2\bm A^\top \bm A\bm x.
+```
+
+For a quadratic form $f(\bm x) = \bm x^\top \bm Q \bm x$ with symmetric $\bm Q$, $\nabla f(\bm x) = 2\bm Q\bm x$ and $\nabla^2 f = 2\bm Q$. For a deep network $\bm{\hat y} = g_L(\bm W_L\, g_{L-1}(\cdots g_1(\bm W_1 \bm x + \bm b_1)\cdots))$, the chain rule gives
+
+```{math}
+:enumerated: false
+
+\frac{\partial \bm{\hat y}}{\partial \bm W_l}
    \;=\;
    \underbrace{(\bm \delta^{(l)})}_{\substack{\text{backprop} \\ \text{delta}}}
-   \,\bigl(\bm a^{(l-1)}\bigr)^{\!\top}$$ with $\bm \delta^{(l)} = \bigl(\bm W^{(l+1)\top}\bm \delta^{(l+1)}\bigr) \odot g'(\bm z^{(l)})$ ({ref}`sec-training`).
+   \,\bigl(\bm a^{(l-1)}\bigr)^{\!\top}
+```
+
+with $\bm \delta^{(l)} = \bigl(\bm W^{(l+1)\top}\bm \delta^{(l+1)}\bigr) \odot g'(\bm z^{(l)})$ ({ref}`sec-training`).
 
 ## Reverse-mode AD in one paragraph
 

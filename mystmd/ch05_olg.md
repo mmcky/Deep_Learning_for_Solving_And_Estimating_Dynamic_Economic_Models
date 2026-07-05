@@ -409,11 +409,19 @@ Worked solutions and guidance for these exercises appear in Appendix {ref}`app-
 **[Computational\] Hard aggregation layer.** The analytic notebook currently predicts cohort savings and then defines aggregate next-period capital as their sum, so capital-market clearing is already exact. Implement an alternative architecture in notebook `lecture_08_08_OLG_Analytic_DEQN_persistent.ipynb` in which the network outputs a scalar $\widehat K_{t+1}>0$ and unnormalised cohort scores $(z^2,\ldots,z^A)$, then sets $s^h=\mathrm{softmax}(z^h)$ and $k_{t+1}^h=\widehat K_{t+1}s^h$. Verify that $\sum_{h=2}^{A} k_{t+1}^h=\widehat K_{t+1}$ is at machine precision (below $10^{-12}$) at every training step. Compare the Euler residual and runtime against the current "sum-of-savings" implementation, and explain why the hard layer is useful mainly when aggregate $K_{t+1}$ is a separate policy head.
 ```
 
-```{exercise}
+````{exercise}
 :label: ex-ch5-5
 
-**[Core\] Bond pricing in equilibrium.** Assume the borrowing/collateral constraint is slack for cohort $h$ throughout this exercise. In the 56-agent OLG ({ref}`sec-olg_56`) cohort $h$ holds capital $k^h$ and one-period riskless bonds $b^h$; capital pays the stochastic gross return $R_{t+1}$, bonds pay one unit of consumption next period and trade at price $p_t$. Write the agent's Euler equations for capital and for bonds separately. Eliminate the marginal utilities to derive the equilibrium bond-pricing equation $$p_t \;=\; \frac{\beta\,\mathbb{E}_t\!\bigl[u'(c^{h+1}_{t+1})\bigr]}{u'(c^h_t)},$$ and show that the same expression equals $\mathbb{E}_t[M_{t,t+1}]$ for the stochastic discount factor $M_{t,t+1}:=\beta u'(c^{h+1}_{t+1})/u'(c^h_t)$. Show that absence of arbitrage between bonds and capital implies $1/p_t = \mathbb{E}_t[R_{t+1}] + \mathrm{Cov}_t(M_{t,t+1}, R_{t+1})/p_t$, equivalently $\mathbb{E}_t[R_{t+1}] - 1/p_t = -\mathrm{Cov}_t(M_{t,t+1}, R_{t+1})/p_t$, the standard risk-premium decomposition. Then explain qualitatively how the bond-pricing equation changes when the collateral multiplier $\mu^h_t > 0$ is positive (i.e., the constraint binds), and identify which cohorts are most likely to be affected. Briefly explain why the 6-agent analytic OLG of {ref}`sec-olg_analytic` does not need an explicit bond-market residual in its DEQN loss.
+**[Core\] Bond pricing in equilibrium.** Assume the borrowing/collateral constraint is slack for cohort $h$ throughout this exercise. In the 56-agent OLG ({ref}`sec-olg_56`) cohort $h$ holds capital $k^h$ and one-period riskless bonds $b^h$; capital pays the stochastic gross return $R_{t+1}$, bonds pay one unit of consumption next period and trade at price $p_t$. Write the agent's Euler equations for capital and for bonds separately. Eliminate the marginal utilities to derive the equilibrium bond-pricing equation
+
+```{math}
+:enumerated: false
+
+p_t \;=\; \frac{\beta\,\mathbb{E}_t\!\bigl[u'(c^{h+1}_{t+1})\bigr]}{u'(c^h_t)},
 ```
+
+and show that the same expression equals $\mathbb{E}_t[M_{t,t+1}]$ for the stochastic discount factor $M_{t,t+1}:=\beta u'(c^{h+1}_{t+1})/u'(c^h_t)$. Show that absence of arbitrage between bonds and capital implies $1/p_t = \mathbb{E}_t[R_{t+1}] + \mathrm{Cov}_t(M_{t,t+1}, R_{t+1})/p_t$, equivalently $\mathbb{E}_t[R_{t+1}] - 1/p_t = -\mathrm{Cov}_t(M_{t,t+1}, R_{t+1})/p_t$, the standard risk-premium decomposition. Then explain qualitatively how the bond-pricing equation changes when the collateral multiplier $\mu^h_t > 0$ is positive (i.e., the constraint binds), and identify which cohorts are most likely to be affected. Briefly explain why the 6-agent analytic OLG of {ref}`sec-olg_analytic` does not need an explicit bond-market residual in its DEQN loss.
+````
 
 ```{exercise}
 :label: ex-ch5-6

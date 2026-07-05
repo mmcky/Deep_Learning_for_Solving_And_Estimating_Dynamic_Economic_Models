@@ -115,7 +115,15 @@ $$
 
 We write $\varrho$ for TFP persistence to avoid overloading $\rho$, which elsewhere denotes neural-network parameters. The Python notebooks still use the variable name `rho`; mathematically, that code variable corresponds to $\varrho$.
 
-The network outputs a savings rate, the fraction of current output that is invested. In the single-parameter exercise, $$s_t = \mathcal{N}_{\rho}(z_t,K_t,\varrho) \in (0,1),$$ with $\beta$ calibrated to $0.96$. In the joint exercise the input becomes $(z_t,K_t,\beta,\varrho)$. In either case, recover
+The network outputs a savings rate, the fraction of current output that is invested. In the single-parameter exercise,
+
+```{math}
+:enumerated: false
+
+s_t = \mathcal{N}_{\rho}(z_t,K_t,\varrho) \in (0,1),
+```
+
+with $\beta$ calibrated to $0.96$. In the joint exercise the input becomes $(z_t,K_t,\beta,\varrho)$. In either case, recover
 
 $$
 \begin{aligned}
@@ -126,9 +134,17 @@ $$
 
 Because $s_t \in (0,1)$ and $Y_t > 0$, this parameterization enforces $C_t > 0$, $K_{t+1} > (1-\delta)K_t > 0$, and gross investment $I_t = s_t Y_t \ge 0$ by construction, so the resource constraint and the non-negativity of investment hold automatically and the partial-depreciation Euler equation {eq}`eq-smm_euler_residual` applies as written, with no extra multiplier.[^1]
 
-Training uses the same Euler equation as Chapter {ref}`ch-deqn`, but the residual is evaluated jointly over states and parameter draws. With partial depreciation, $$\frac{1}{C_t}
+Training uses the same Euler equation as Chapter {ref}`ch-deqn`, but the residual is evaluated jointly over states and parameter draws. With partial depreciation,
+
+```{math}
+:enumerated: false
+
+\frac{1}{C_t}
 =
-\beta\,\E{\frac{1-\delta+\alpha z_{t+1}K_{t+1}^{\alpha-1}}{C_{t+1}}}.$$ For a sampled state--parameter pair $(z_i,K_i,\theta_b)$, where $\theta_b=\varrho_b$ in the scalar exercise and $\theta_b=(\beta_b,\varrho_b)$ in the joint exercise, the companion notebooks form the *relative* residual
+\beta\,\E{\frac{1-\delta+\alpha z_{t+1}K_{t+1}^{\alpha-1}}{C_{t+1}}}.
+```
+
+For a sampled state–parameter pair $(z_i,K_i,\theta_b)$, where $\theta_b=\varrho_b$ in the scalar exercise and $\theta_b=(\beta_b,\varrho_b)$ in the joint exercise, the companion notebooks form the *relative* residual
 
 $$
 G_i(\theta_b)
@@ -214,9 +230,17 @@ m_3(\varrho) &= \mathrm{corr}\!\bigl(\log Y_t(\varrho),\log Y_{t-1}(\varrho)\big
 \end{aligned}
 $$
 
-All three moments are computed on the raw simulated time series with no detrending or demeaning step, and $\mathrm{std}(\cdot)$ and $\mathrm{corr}(\cdot)$ denote sample standard deviation and sample autocorrelation evaluated directly on the simulated panel. The output autocorrelation is the most direct persistence moment. The volatility moment should be interpreted as an empirical simulated moment, not as the level-variance formula. For the AR(1) shock, $$\mathrm{Var}(\log z_t)=\frac{\sigma_z^2}{1-\varrho^2},
+All three moments are computed on the raw simulated time series with no detrending or demeaning step, and $\mathrm{std}(\cdot)$ and $\mathrm{corr}(\cdot)$ denote sample standard deviation and sample autocorrelation evaluated directly on the simulated panel. The output autocorrelation is the most direct persistence moment. The volatility moment should be interpreted as an empirical simulated moment, not as the level-variance formula. For the AR(1) shock,
+
+```{math}
+:enumerated: false
+
+\mathrm{Var}(\log z_t)=\frac{\sigma_z^2}{1-\varrho^2},
 \qquad
-\mathrm{Var}(\Delta\log z_t)=2\,\mathrm{Var}(\log z_t)\,(1-\varrho)=\frac{2\sigma_z^2}{1+\varrho},$$ so the familiar $1/(1-\varrho^2)$ amplification applies to the *level* of log productivity, not to first differences. The notebook also reports the mean savings rate as a diagnostic and correctly treats it as nearly uninformative for $\varrho$; it is masked out of the SMM criterion in the scalar exercise and used only for visual identification checks.
+\mathrm{Var}(\Delta\log z_t)=2\,\mathrm{Var}(\log z_t)\,(1-\varrho)=\frac{2\sigma_z^2}{1+\varrho},
+```
+
+so the familiar $1/(1-\varrho^2)$ amplification applies to the *level* of log productivity, not to first differences. The notebook also reports the mean savings rate as a diagnostic and correctly treats it as nearly uninformative for $\varrho$; it is masked out of the SMM criterion in the scalar exercise and used only for visual identification checks.
 
 **Joint exercise.** Notebook `lecture_15_03b_Structural_Estimation_BM_Joint.ipynb` estimates $\theta=(\beta,\varrho)$, with $\beta\in[0.92,0.99]$ and $\varrho\in[0.50,0.99]$. It uses four candidate moments: mean savings, growth volatility, consumption-growth autocorrelation, and output autocorrelation. The *shallow-ridge two-moment specification* retains $\{\mathrm{std}(\Delta\log C_t),\,\mathrm{corr}(\Delta\log C_t,\Delta\log C_{t-1})\}$ to expose the partial-identification ridge in the criterion surface; the over-identified specification uses all four moments and collapses the ridge around the synthetic truth. Formally the two-moment case is just-identified ($q=p=2$), so we avoid the econometric term *weak identification* (which refers to a near-singular Jacobian asymptotic regime) and use *shallow-ridge* or *partially-identified* for what the criterion-surface picture actually shows.
 
@@ -293,13 +317,29 @@ The two-layer surrogate architecture for surrogate-based SMM, read top-to-bottom
 
 ### Leave-One-Out Validation of the Moment Surrogate
 
-The Cholesky-trick LOO formula {eq}`eq-gp_loo` of {ref}`sec-gp_loo` delivers a held-out predictive error for each moment GP at zero marginal cost beyond the existing posterior factorisation. A research-scale companion to the core SMM notebooks would track $$\mathrm{LOO\text{-}RMSE}_j \;=\; \sqrt{\frac{1}{n}\sum_{i=1}^{n}\bigl(\widehat m_j^{-i}(\theta^{(i)}) - m_j(\theta^{(i)})\bigr)^2}$$ for every moment $j$ and every design size $n$, and pair it with an independent sanity check that evaluates the GP at a *fresh* interior holdout point $\theta_\mathrm{holdout}$ never seen during training; agreement between the two RMSEs is the criterion for declaring the moment surrogate trustworthy before any bootstrap or SBI workflow is run on top of it.
+The Cholesky-trick LOO formula {eq}`eq-gp_loo` of {ref}`sec-gp_loo` delivers a held-out predictive error for each moment GP at zero marginal cost beyond the existing posterior factorisation. A research-scale companion to the core SMM notebooks would track
+
+```{math}
+:enumerated: false
+
+\mathrm{LOO\text{-}RMSE}_j \;=\; \sqrt{\frac{1}{n}\sum_{i=1}^{n}\bigl(\widehat m_j^{-i}(\theta^{(i)}) - m_j(\theta^{(i)})\bigr)^2}
+```
+
+for every moment $j$ and every design size $n$, and pair it with an independent sanity check that evaluates the GP at a *fresh* interior holdout point $\theta_\mathrm{holdout}$ never seen during training; agreement between the two RMSEs is the criterion for declaring the moment surrogate trustworthy before any bootstrap or SBI workflow is run on top of it.
 
 ### Active Learning of the Moment Surrogate
 
 Two acquisition strategies are natural, matched to the dimensionality of the parameter.
 
-**Single-parameter case.** With a scalar $\theta=\varrho\in[0.50,0.99]$, a coarse uniform pilot grid of $n_0$ points can be enriched by $n_\mathrm{add}$ active points placed sequentially at locations of largest standardised moment-GP posterior uncertainty, $$\theta^{\mathrm{next}} \in \argmax_{\theta \in \mathcal{X}^\mathrm{cand}}\;\Bigl\|\boldsymbol\sigma_m(\theta) \,/\, \bar{\boldsymbol\sigma}_m\Bigr\|_2,$$ subject to a minimum-spacing constraint against existing design points. This is the same pure-exploration acquisition used for VFI {eq}`eq-bal_vfi`, modulo the per-moment normalisation that prevents one large-magnitude moment from dominating the objective.
+**Single-parameter case.** With a scalar $\theta=\varrho\in[0.50,0.99]$, a coarse uniform pilot grid of $n_0$ points can be enriched by $n_\mathrm{add}$ active points placed sequentially at locations of largest standardised moment-GP posterior uncertainty,
+
+```{math}
+:enumerated: false
+
+\theta^{\mathrm{next}} \in \argmax_{\theta \in \mathcal{X}^\mathrm{cand}}\;\Bigl\|\boldsymbol\sigma_m(\theta) \,/\, \bar{\boldsymbol\sigma}_m\Bigr\|_2,
+```
+
+subject to a minimum-spacing constraint against existing design points. This is the same pure-exploration acquisition used for VFI {eq}`eq-bal_vfi`, modulo the per-moment normalisation that prevents one large-magnitude moment from dominating the objective.
 
 **Joint-parameter case.** With $\theta=(\beta,\varrho)$ on a 2D rectangle, pure exploration is wasteful because most of the rectangle sits far from the SMM minimiser. A natural alternative is a BoTorch-style Upper-Confidence-Bound (UCB) acquisition on the transformed score $\widetilde Q(\theta) := -\log_{10}(Q(\theta)+\varepsilon)$, multiplicatively weighted by the moment-GP posterior uncertainty:
 

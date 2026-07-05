@@ -452,8 +452,16 @@ This explanation also makes the *limits* of AD concrete. Operations absent from 
 
 (sec-ad_modes)=
 ### Computational graph; forward and reverse modes
-Every numerical function, once evaluated, corresponds to a directed acyclic *computational graph* whose nodes are elementary operations and whose edges carry intermediate values. Take the toy example $y = f(x) = x^2 + \sin(x)$ evaluated at $x_0=2$: $$x \;\to\; v_1 = x^2 \;\to\; y = v_1 + v_2,\qquad
-x \;\to\; v_2 = \sin(x) \;\to\; y = v_1 + v_2.$$ The values along the graph are $v_1=4$, $v_2=\sin(2) \approx 0.909$, $y \approx 4.909$. The *edges* carry local derivatives: $\partial v_1/\partial x = 2x = 4$, $\partial v_2/\partial x = \cos(x) \approx -0.416$, $\partial y/\partial v_1 = \partial y/\partial v_2 = 1$. AD combines the edge derivatives by the chain rule in one of two traversal orders. {numref}`fig-ad_graph` shows the graph together with both traversals.
+Every numerical function, once evaluated, corresponds to a directed acyclic *computational graph* whose nodes are elementary operations and whose edges carry intermediate values. Take the toy example $y = f(x) = x^2 + \sin(x)$ evaluated at $x_0=2$:
+
+```{math}
+:enumerated: false
+
+x \;\to\; v_1 = x^2 \;\to\; y = v_1 + v_2,\qquad
+x \;\to\; v_2 = \sin(x) \;\to\; y = v_1 + v_2.
+```
+
+The values along the graph are $v_1=4$, $v_2=\sin(2) \approx 0.909$, $y \approx 4.909$. The *edges* carry local derivatives: $\partial v_1/\partial x = 2x = 4$, $\partial v_2/\partial x = \cos(x) \approx -0.416$, $\partial y/\partial v_1 = \partial y/\partial v_2 = 1$. AD combines the edge derivatives by the chain rule in one of two traversal orders. {numref}`fig-ad_graph` shows the graph together with both traversals.
 
 ```{figure} figures/fig-ad_graph.svg
 :name: fig-ad_graph
@@ -463,7 +471,15 @@ The two modes of autodiff on $y = x^2 + \sin(x)$ at $x = 2$. *Top:* forward mode
 
 **Forward mode** carries a derivative tag $\dot v$ next to every value $v$ and updates both in a single forward pass through the graph. One seeds $\dot x = 1$ at the input; by the chain rule, $\dot v_1 = 4$, $\dot v_2 = -0.416$, and $\dot y = \dot v_1 + \dot v_2 = 3.584$, which is exactly $f'(2) = 2x + \cos x$ evaluated at $x=2$. The cost is one extra float per variable and one extra pass through the graph. For a function with $n$ inputs and $m$ outputs, the cost of the full Jacobian is $\mathcal{O}(n)$ forward passes; forward mode is therefore attractive when *the number of inputs is small*.
 
-**Reverse mode** first evaluates $f$ forward, storing the computational graph and all intermediate values. It then walks the graph backwards, carrying a sensitivity $\bar v = \partial y / \partial v$ along each edge. Seeded with $\bar y = 1$ at the output, the backward pass accumulates $$\bar v_i \;=\; \sum_{j:\, v_i \to v_j} \bar v_j \cdot \frac{\partial v_j}{\partial v_i},$$ yielding at the input node $\bar x = \bar v_1 \cdot 4 + \bar v_2 \cdot (-0.416) = 1\cdot 4 + 1\cdot(-0.416) = 3.584$. The computational cost is $2$--$4\times$ a single forward pass, and, crucially, *one reverse pass produces the full gradient with respect to all inputs simultaneously*. Reverse mode is what `tf.GradientTape`, `torch.autograd`, and `jax.grad` use by default. The price paid is memory: the entire forward graph must be stored for the backward pass. For extremely long simulations this can be a binding constraint; we return to the point in the pitfalls below.
+**Reverse mode** first evaluates $f$ forward, storing the computational graph and all intermediate values. It then walks the graph backwards, carrying a sensitivity $\bar v = \partial y / \partial v$ along each edge. Seeded with $\bar y = 1$ at the output, the backward pass accumulates
+
+```{math}
+:enumerated: false
+
+\bar v_i \;=\; \sum_{j:\, v_i \to v_j} \bar v_j \cdot \frac{\partial v_j}{\partial v_i},
+```
+
+yielding at the input node $\bar x = \bar v_1 \cdot 4 + \bar v_2 \cdot (-0.416) = 1\cdot 4 + 1\cdot(-0.416) = 3.584$. The computational cost is $2$–$4\times$ a single forward pass, and, crucially, *one reverse pass produces the full gradient with respect to all inputs simultaneously*. Reverse mode is what `tf.GradientTape`, `torch.autograd`, and `jax.grad` use by default. The price paid is memory: the entire forward graph must be stored for the backward pass. For extremely long simulations this can be a binding constraint; we return to the point in the pitfalls below.
 
 **Which mode for DEQNs.** The DEQN loss is a *scalar* mean-squared Euler residual, computed from a network with $n \sim 10^3$ to $10^5$ parameters. Reverse mode produces the full gradient with respect to all network parameters in $2$–$4\times$ one forward pass, a speedup of $n/4$ over forward mode. This is the same reason reverse mode is the workhorse of deep-learning training: it exactly fits the "few outputs, many inputs" regime.
 
@@ -481,20 +497,38 @@ $$
 V(K_t, z_t) \;=\; \max_{K_{t+1}}\;\Pi(K_t, K_{t+1}, z_t) + \beta\,\mathbb{E}\!\left[V(K_{t+1}, z_{t+1})\,\big|\,z_t\right].
 $$
 
-**Notation: what do $\partial_1\Pi$ and $\partial_2\Pi$ mean?** Throughout this section the subscript names the *slot* of $\Pi$ being differentiated, not a time index. With the three-slot definition $\Pi(K_{\text{in}},K_{\text{out}},z_{\text{in}})$ of {eq}`eq-ad_pi`, we write $$\partial_1\Pi \;\equiv\; \frac{\partial\Pi}{\partial K_{\text{in}}}, \qquad \partial_2\Pi \;\equiv\; \frac{\partial\Pi}{\partial K_{\text{out}}}.$$ The first slot $K_{\text{in}}$ is the *state*, the second slot $K_{\text{out}}$ is the *choice*, the third slot $z_{\text{in}}$ is an exogenous parameter and is not differentiated. An expression like $\partial_2\Pi(K_t,K_{t+1},z_t)$ therefore denotes the derivative of $\Pi$ in its second slot, evaluated with $K_t$ plugged into slot 1, $K_{t+1}$ into slot 2, and $z_t$ into slot 3, so it equals $\partial\Pi/\partial K_{t+1}$. The expression $\partial_1\Pi(K_{t+1},K_{t+2},z_{t+1})$ denotes the derivative in the *first* slot, evaluated at the time-$(t+1)$ state pair, so it also equals $\partial\Pi/\partial K_{t+1}$ but for a different physical reason (because $K_{t+1}$ now sits in the state slot of the period-$t+1$ problem). This overloading is the whole point: the same partial expression handles the FOC in one period and the envelope term in the next.
+**Notation: what do $\partial_1\Pi$ and $\partial_2\Pi$ mean?** Throughout this section the subscript names the *slot* of $\Pi$ being differentiated, not a time index. With the three-slot definition $\Pi(K_{\text{in}},K_{\text{out}},z_{\text{in}})$ of {eq}`eq-ad_pi`, we write
+
+```{math}
+:enumerated: false
+
+\partial_1\Pi \;\equiv\; \frac{\partial\Pi}{\partial K_{\text{in}}}, \qquad \partial_2\Pi \;\equiv\; \frac{\partial\Pi}{\partial K_{\text{out}}}.
+```
+
+The first slot $K_{\text{in}}$ is the *state*, the second slot $K_{\text{out}}$ is the *choice*, the third slot $z_{\text{in}}$ is an exogenous parameter and is not differentiated. An expression like $\partial_2\Pi(K_t,K_{t+1},z_t)$ therefore denotes the derivative of $\Pi$ in its second slot, evaluated with $K_t$ plugged into slot 1, $K_{t+1}$ into slot 2, and $z_t$ into slot 3, so it equals $\partial\Pi/\partial K_{t+1}$. The expression $\partial_1\Pi(K_{t+1},K_{t+2},z_{t+1})$ denotes the derivative in the *first* slot, evaluated at the time-$(t+1)$ state pair, so it also equals $\partial\Pi/\partial K_{t+1}$ but for a different physical reason (because $K_{t+1}$ now sits in the state slot of the period-$t+1$ problem). This overloading is the whole point: the same partial expression handles the FOC in one period and the envelope term in the next.
 
 Two facts, both derived in {ref}`sec-bm`, are now worth restating in terms of $\Pi$:
 
 FOC w.r.t.\ the choice $K_{t+1}$:
-: $$\partial_2 \Pi(K_t,K_{t+1},z_t)
+: ```{math}
+  :enumerated: false
+
+  \partial_2 \Pi(K_t,K_{t+1},z_t)
   \;+\;
   \beta\,\mathbb{E}_{z_{t+1}\mid z_t}[\,V'(K_{t+1},z_{t+1})\,]
-  \;=\;0.$$
+  \;=\;0.
+  ```
 
 Envelope at the optimum, evaluated at the state $K_t$:
-: $$V'(K_t, z_t)
+: ```{math}
+  :enumerated: false
+
+  V'(K_t, z_t)
   \;=\;
-  \partial_1 \Pi(K_t, g(K_t, z_t), z_t),$$ where $g$ is the optimal policy.
+  \partial_1 \Pi(K_t, g(K_t, z_t), z_t),
+  ```
+
+  where $g$ is the optimal policy.
 
 
 Substituting the envelope (evaluated one period ahead, so that $K_{t+1}$ sits in the *state* slot) into the FOC, the familiar Euler equation becomes

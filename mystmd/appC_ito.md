@@ -11,7 +11,15 @@ A standard Brownian motion $B_t$ has independent Gaussian increments $B_t - B_s 
 
 ## Itô's lemma
 
-For $X_t$ following $dX_t = \mu\,dt + \sigma\,dB_t$ and $f \in C^2$: $$df(X_t) = \bigl[f'(X_t)\mu + \tfrac{1}{2}f''(X_t)\sigma^2\bigr]dt + f'(X_t)\sigma\,dB_t.$$ The differential algebra is $dt\cdot dt = dt\cdot dB_t = 0$, $dB_t \cdot dB_t = dt$. (Throughout the script, the stochastic integral is interpreted in the Itô sense; the Stratonovich convention would replace the drift correction $\tfrac{1}{2}f''(X_t)\sigma^2$ by $0$.)
+For $X_t$ following $dX_t = \mu\,dt + \sigma\,dB_t$ and $f \in C^2$:
+
+```{math}
+:enumerated: false
+
+df(X_t) = \bigl[f'(X_t)\mu + \tfrac{1}{2}f''(X_t)\sigma^2\bigr]dt + f'(X_t)\sigma\,dB_t.
+```
+
+The differential algebra is $dt\cdot dt = dt\cdot dB_t = 0$, $dB_t \cdot dB_t = dt$. (Throughout the script, the stochastic integral is interpreted in the Itô sense; the Stratonovich convention would replace the drift correction $\tfrac{1}{2}f''(X_t)\sigma^2$ by $0$.)
 
 ## Ergodicity in one paragraph
 

@@ -163,11 +163,35 @@ subject to $da_t^i = (wn_t^i + ra_t^i - c_t^i)\,dt$ and $a_t^i \geq \underline{a
 
 **Deriving the HJB.** The derivation follows five steps; each unpacks one ingredient of equation {eq}`eq-hjb_full` below.
 
-*Step (i): Dynamic programming principle.* For small $h > 0$, $$V(a,n) \;=\; \max_c\Big\{\int_0^h e^{-\rho t}\,u(c_t)\,dt \;+\; e^{-\rho h}\,\E{V(a_h, n_h)}\Big\}.$$ This is Bellman's principle of optimality applied to a continuous-time problem.
+*Step (i): Dynamic programming principle.* For small $h > 0$,
 
-*Step (ii): Itô's lemma between income jumps.* Conditional on the income state $n_t$ not changing on $[0, h]$, wealth follows the *deterministic* ODE $da_t = s(c_t, a_t, n_t)\,dt$ (there is no Brownian forcing on wealth in this model), so $$dV = V'(a,n)\,s(c,a,n)\,dt.$$ The second-order Itô correction $\tfrac{1}{2}V''\sigma^2\,dt$ vanishes because the wealth diffusion is zero between jumps; this is the most subtle step and is what distinguishes the income-switching HJB from a standard diffusion HJB.
+```{math}
+:enumerated: false
 
-*Step (iii): Account for Poisson jumps in expectation.* Adding the Poisson-jump contribution and taking expectations, $$\E{dV} = \Big[V'(a,n)\,s + \lambda(n)\bigl(V(a,\hat{n}) - V(a,n)\bigr)\Big]\,dt,$$ where $\lambda(n)$ is the intensity of switching out of state $n$ and $\hat{n}$ is the complementary state.
+V(a,n) \;=\; \max_c\Big\{\int_0^h e^{-\rho t}\,u(c_t)\,dt \;+\; e^{-\rho h}\,\E{V(a_h, n_h)}\Big\}.
+```
+
+This is Bellman's principle of optimality applied to a continuous-time problem.
+
+*Step (ii): Itô's lemma between income jumps.* Conditional on the income state $n_t$ not changing on $[0, h]$, wealth follows the *deterministic* ODE $da_t = s(c_t, a_t, n_t)\,dt$ (there is no Brownian forcing on wealth in this model), so
+
+```{math}
+:enumerated: false
+
+dV = V'(a,n)\,s(c,a,n)\,dt.
+```
+
+The second-order Itô correction $\tfrac{1}{2}V''\sigma^2\,dt$ vanishes because the wealth diffusion is zero between jumps; this is the most subtle step and is what distinguishes the income-switching HJB from a standard diffusion HJB.
+
+*Step (iii): Account for Poisson jumps in expectation.* Adding the Poisson-jump contribution and taking expectations,
+
+```{math}
+:enumerated: false
+
+\E{dV} = \Big[V'(a,n)\,s + \lambda(n)\bigl(V(a,\hat{n}) - V(a,n)\bigr)\Big]\,dt,
+```
+
+where $\lambda(n)$ is the intensity of switching out of state $n$ and $\hat{n}$ is the complementary state.
 
 *Step (iv): Substitute into the DPP and let $h \to 0$.* Plugging the expectation back into the Bellman expression, dividing by $h$, and taking $h \to 0$ yields a flow equation in which the discount $\rho V$ on the left balances the flow utility plus expected change on the right.
 
@@ -187,13 +211,21 @@ $$ (eq-hjb_foc)
 
 Substituting back eliminates the maximization, yielding a nonlinear PDE in $V$. The savings function is $s(a,n) = wn + ra - c^*(a,n)$.
 
-**Boundary conditions.** At the borrowing constraint $a = \underline{a}$, consumption must keep the drift feasible: $s(\underline{a},n)=wn+r\underline{a}-c \geq 0$, or equivalently $c \leq wn+r\underline{a}$. The boundary HJB is therefore the constrained maximization $$\begin{aligned}
+**Boundary conditions.** At the borrowing constraint $a = \underline{a}$, consumption must keep the drift feasible: $s(\underline{a},n)=wn+r\underline{a}-c \geq 0$, or equivalently $c \leq wn+r\underline{a}$. The boundary HJB is therefore the constrained maximization
+
+```{math}
+:enumerated: false
+
+\begin{aligned}
 \rho V(\underline{a},n)
 &=\max_{0<c\leq wn+r\underline{a}}
 \Big\{u(c)+V_a(\underline{a},n)(wn+r\underline{a}-c)\\
 &\qquad\qquad\qquad\qquad
 +\lambda(n)\bigl(V(\underline{a},\hat n)-V(\underline{a},n)\bigr)\Big\}.
-\end{aligned}$$ For CRRA utility this gives the boundary policy $c^*(\underline{a},n)=\min\{[V_a(\underline{a},n)]^{-1/\gamma},\,wn+r\underline{a}\}$ and $s(\underline{a},n)\geq 0$. This is the state-constraint form of the borrowing limit; numerical solvers usually impose it with one-sided derivatives, a constrained policy rule, or a penalty on negative boundary drift.
+\end{aligned}
+```
+
+For CRRA utility this gives the boundary policy $c^*(\underline{a},n)=\min\{[V_a(\underline{a},n)]^{-1/\gamma},\,wn+r\underline{a}\}$ and $s(\underline{a},n)\geq 0$. This is the state-constraint form of the borrowing limit; numerical solvers usually impose it with one-sided derivatives, a constrained policy rule, or a penalty on negative boundary drift.
 
 **Boundary atoms in the stationary distribution.** When the borrowing constraint binds on a positive mass of agents, the stationary measure is not absolutely continuous with respect to Lebesgue measure: it carries a Dirac atom at $a=\underline a$. The decomposition is $g(a,n) = g_{\mathrm{ac}}(a,n) + \alpha(n)\,\delta(a-\underline a)$, where $g_{\mathrm{ac}}$ is the absolutely-continuous interior density and $\alpha(n)\geq 0$ is the constrained mass for income state $n$. In the sense of distributions (acting on smooth test functions against which the atom is integrated), equation {eq}`eq-kfe_econ` remains valid for the full measure $g$. The explicit split into a PDE for the interior part $g_{\mathrm{ac}}$ and a separate flux-balance equation for $\alpha(n)$ (equating inflows from the no-flux boundary condition with the income-driven outflow back into the interior) is the *numerical* device used by finite-difference and PINN implementations, which cannot resolve a delta on a regular grid. Finite-difference implementations typically represent $\alpha(n)$ as the mass in the first grid cell, and PINN implementations either absorb the atom implicitly into a smooth density approximation (with corresponding accuracy loss near $\underline a$) or explicitly parameterize $\alpha(n)$ alongside the interior network.
 
@@ -333,11 +365,19 @@ where $\mathcal{L}_x W$ captures individual state dynamics (savings, income swit
 ```
 
 
-```{prf:remark} A user's note on the functional derivative $\delta W/\delta g$
+````{prf:remark} A user's note on the functional derivative $\delta W/\delta g$
 
- The objects $\delta V/\delta g$ and $\delta W/\delta g$ deserve a moment of attention because they are the only piece of mathematics in this chapter that is not standard PDE calculus. $V$ takes *a function* (the density $g$) as one of its arguments; differentiating $V$ with respect to $g$ therefore returns not a number but again a function. (Strictly speaking, the Fréchet derivative is the linear functional $\zeta \mapsto \int (\delta V/\delta g)\,\zeta\,dy$ itself, and the kernel $\delta V/\delta g$ is what is properly called the *functional* or *variational* derivative. We follow common usage and call the kernel the Fréchet derivative below.) Concretely, if $g_\varepsilon = g + \varepsilon\,\zeta$ for some test perturbation $\zeta(y)$ with $\int \zeta\, dy = 0$, then $$\frac{d}{d\varepsilon}\, V(\cdot, g_\varepsilon)\Big|_{\varepsilon=0}
-  \;=\; \int \frac{\delta V}{\delta g}(y)\,\zeta(y)\,dy.$$ The kernel $\delta V/\delta g$ is the *Fréchet* (or *linear functional*) derivative of $V$ in the $g$-argument; it measures how the value of an agent at a given $(a,n,z)$ responds to an infinitesimal redistribution of mass at point $y$ in the cross-section. In the master-equation literature this object is more precisely the *Lions derivative* $\partial_\mu V$ with respect to the mean-field measure $\mu$; when $\mu$ admits a density $g$ it reduces to the functional derivative used here. The infinite-dimensionality of the master equation is the price of this extra argument; the EMINN approach in the next section makes it tractable by replacing $g$ with a finite-dimensional surrogate $\hat\varphi$ and then differentiating through $\hat\varphi$ via the chain rule and standard automatic differentiation. For the underlying mean-field-games calculus see {cite:t}`cardaliaguet2019master`.
+ The objects $\delta V/\delta g$ and $\delta W/\delta g$ deserve a moment of attention because they are the only piece of mathematics in this chapter that is not standard PDE calculus. $V$ takes *a function* (the density $g$) as one of its arguments; differentiating $V$ with respect to $g$ therefore returns not a number but again a function. (Strictly speaking, the Fréchet derivative is the linear functional $\zeta \mapsto \int (\delta V/\delta g)\,\zeta\,dy$ itself, and the kernel $\delta V/\delta g$ is what is properly called the *functional* or *variational* derivative. We follow common usage and call the kernel the Fréchet derivative below.) Concretely, if $g_\varepsilon = g + \varepsilon\,\zeta$ for some test perturbation $\zeta(y)$ with $\int \zeta\, dy = 0$, then
+
+```{math}
+:enumerated: false
+
+\frac{d}{d\varepsilon}\, V(\cdot, g_\varepsilon)\Big|_{\varepsilon=0}
+  \;=\; \int \frac{\delta V}{\delta g}(y)\,\zeta(y)\,dy.
 ```
+
+The kernel $\delta V/\delta g$ is the *Fréchet* (or *linear functional*) derivative of $V$ in the $g$-argument; it measures how the value of an agent at a given $(a,n,z)$ responds to an infinitesimal redistribution of mass at point $y$ in the cross-section. In the master-equation literature this object is more precisely the *Lions derivative* $\partial_\mu V$ with respect to the mean-field measure $\mu$; when $\mu$ admits a density $g$ it reduces to the functional derivative used here. The infinite-dimensionality of the master equation is the price of this extra argument; the EMINN approach in the next section makes it tractable by replacing $g$ with a finite-dimensional surrogate $\hat\varphi$ and then differentiating through $\hat\varphi$ via the chain rule and standard automatic differentiation. For the underlying mean-field-games calculus see {cite:t}`cardaliaguet2019master`.
+````
 
 
 (sec-eminn)=

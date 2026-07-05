@@ -229,11 +229,19 @@ Worked solutions and guidance for these exercises appear in Appendix {ref}`app-
 Report the wall-clock time of each step, total pipeline time, estimation errors, a comparison to a naive SMM that re-solves the DEQN at each candidate $(\beta,\varrho)$, the hold-out surrogate error on $(\beta,\varrho)$ pairs outside the $20\times 20$ grid, a contour plot of the GP-based SMM criterion that exposes the $\beta$ ridge, and a direct DEQN re-evaluation at the GP optimum to test surrogate bias. Evaluate whether the surrogate-based optimization is faster after accounting for the one-time GP fitting overhead and whether its accuracy is comparable. Bonus: bootstrap confidence intervals for $(\hat\beta,\hat\varrho)$ using the parametric bootstrap of {prf:ref}`ex-ch10-6`.
 ```
 
-```{exercise}
+````{exercise}
 :label: ex-ch12-6
 
-**[Advanced/project\] DeepONet for a parameterized HJB.** Consider the cake-eating HJB $$\rho V(a; \gamma) = \max_c \left[\frac{c^{1-\gamma}}{1-\gamma} + V'(a; \gamma)(ra - c)\right],
-\qquad \gamma \in [1.5,5],$$ This is deliberately a low-dimensional operator-learning toy: since the branch input is the scalar $\gamma$, a parameter-conditioned PINN would be an equally natural baseline. The purpose of the exercise is to expose the DeepONet branch--trunk decomposition before moving to function-valued branch inputs (e.g., a state-dependent drift $r(a)$ or discount rate $\rho(a)$ observed at sensor points).
+**[Advanced/project\] DeepONet for a parameterized HJB.** Consider the cake-eating HJB
+
+```{math}
+:enumerated: false
+
+\rho V(a; \gamma) = \max_c \left[\frac{c^{1-\gamma}}{1-\gamma} + V'(a; \gamma)(ra - c)\right],
+\qquad \gamma \in [1.5,5],
+```
+
+This is deliberately a low-dimensional operator-learning toy: since the branch input is the scalar $\gamma$, a parameter-conditioned PINN would be an equally natural baseline. The purpose of the exercise is to expose the DeepONet branch–trunk decomposition before moving to function-valued branch inputs (e.g., a state-dependent drift $r(a)$ or discount rate $\rho(a)$ observed at sensor points).
 
 1.  Sketch the DeepONet architecture for learning the operator $\mathcal{G}: \gamma \mapsto V(\cdot;\gamma)$: identify the branch-net input and the trunk-net input, and write the predicted output as the inner product of branch and trunk outputs.
 
@@ -242,4 +250,4 @@ Report the wall-clock time of each step, total pipeline time, estimation errors,
 3.  Suppose you want $V(\cdot;\gamma)$ for $N=50$ values of $\gamma$. Compare $N$ independent PINN runs at cost $C_\mathrm{PINN}$ each with one DeepONet run at cost $C_\mathrm{DON}$. At what ratio $C_\mathrm{DON}/C_\mathrm{PINN}$ does operator learning win, and how does the break-even ratio scale with $N$?
 
 4.  Discuss two limitations: extrapolation outside $[1.5,5]$ and preservation of structural properties such as concavity of $V$ in $a$.
-```
+````

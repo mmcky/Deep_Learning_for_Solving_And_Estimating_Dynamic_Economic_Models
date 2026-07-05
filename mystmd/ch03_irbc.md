@@ -249,7 +249,7 @@ The Fischer–Burmeister complementarity function, drawn in the investment–mul
 
 The complementarity conditions $\mu^j \geq 0$, $I^j \geq 0$, $\mu^j \cdot I^j = 0$ have a natural economic interpretation: when investment is strictly positive ($I^j > 0$), the irreversibility constraint is slack and the multiplier is zero ($\mu^j = 0$); conversely, when the constraint binds ($I^j = 0$), the multiplier is positive, reflecting the shadow value of the binding constraint. The FB function smoothly encodes both regimes, allowing the neural network to learn which regime applies for each state without explicit regime switching.
 
-```{prf:remark} Why Fischer--Burmeister works so well in DEQNs
+```{prf:remark} Why Fischer–Burmeister works so well in DEQNs
 
  The squared FB residual converts a discrete regime-switching problem (constraint slack vs binding) into a smooth gradient field that SGD can navigate. Three properties matter: (i) the zero set of $\mathrm{FB}_0$ *exactly* coincides with the KKT complementarity axes, so a converged network satisfies the constraint structure to whatever tolerance the loss is driven; (ii) the residual is smooth everywhere away from the origin, so backpropagation through it is well behaved; and (iii) the $\varepsilon^2$ smoothing rounds the single remaining kink at the origin, restoring differentiability there at the price of an $\mathcal{O}(\varepsilon)$ relaxation of exact complementarity. In the IRBC context, the network learns which states fall on the "investing" axis and which on the "constrained" axis without ever being told which regime applies, a major saving over methods that require manual regime indicators.
 ```

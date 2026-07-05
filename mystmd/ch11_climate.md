@@ -687,7 +687,7 @@ The layers of the climate-economy pipeline used in the remainder of the chapter.
 | Stochastic OLG-IAM ({ref}`sec-pareto_carbon_tax`) | Can carbon taxes be welfare improving and Pareto improving across cohorts? | Treat tax coefficients and transfer shares as pseudo-states; fit GP surrogates for cohort welfare; solve constrained policy design on the surrogate. |
 ````
 
-```{prf:remark} Adding aggregate shocks: AR(1) productivity and Gauss--Hermite quadrature
+```{prf:remark} Adding aggregate shocks: AR(1) productivity and Gauss–Hermite quadrature
 
  Real climate–economy interactions are shot through with stochastic shocks. The minimal stochastic extension that already lets us reproduce the qualitative SCC fan-chart structure of {cite:t}`caiSocialCostCarbon2019` on a laptop adds an AR(1) shock to log TFP:
 

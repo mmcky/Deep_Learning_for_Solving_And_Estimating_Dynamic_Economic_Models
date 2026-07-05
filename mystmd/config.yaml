@@ -134,14 +134,6 @@ preprocess:
     # Unwrap \scalebox{N}{\includegraphics{...}} (with optional [opts])
     - { from: '\\scalebox\{[0-9.]+\}\s*\{\s*(\\includegraphics(?:\[[^\]]*\])?\s*\{[^{}]*\})\s*\}',
         to: '\1' }
-    # tabularx-style column types L{<width>} confuse pandoc's tabular reader,
-    # so it bails on the whole block and we lose the table. Standard p{<width>}
-    # is semantically equivalent (left-aligned, fixed-width with line-wrap) and
-    # pandoc handles it natively. Workaround tracked at
-    # https://github.com/mmcky/Deep_Learning_for_Solving_And_Estimating_Dynamic_Economic_Models/issues/1
-    # — remove this rewrite when/if the LaTeX source migrates to p{...}.
-    - { from: '\bL\{([0-9.]+\s*(?:cm|mm|in|pt|em|ex))\}',
-        to:   'p{\1}' }
     # \tpath{...} is defined via \DeclareUrlCommand (preamble line 143) so the
     # source can render filenames/identifiers in monospace with breakable
     # `_ . /`. Pandoc does not recognize it and silently drops both the macro
@@ -246,6 +238,24 @@ postprocess:
     - { stems: [ch02_deqns],
         from:  '\*\*\[(NEW: wrap the per-step kernel)',
         to:    '**\\[\1' }
+
+    # R20 — Class I: repair the preface author-email mailto. The source now
+    # wraps the visible address in \nolinkurl{} — \href{mailto:…@unil.ch}
+    # {\nolinkurl{…@unil.ch}} (upstream 6b18c3a, the attempted fix for book#2) —
+    # to stop pandoc reading "@unil" as a natbib citation. But pandoc's citation
+    # extension still fires on the "@" inside BOTH the mailto: URL and the
+    # \nolinkurl display text, emitting `{cite:t}`unil`` in each — the sole
+    # "unresolved citation key: unil" build warning, present since the scaffold.
+    # Undo exactly that misparse (restore the literal "@unil") so the address
+    # renders as a clean monospace mailto link, matching the \nolinkurl intent
+    # in the PDF. Two occurrences, both in preface.md; the "unil" token appears
+    # nowhere else in the book. Root cause is converter-side (pandoc should not
+    # scan mailto hrefs / \nolinkurl bodies for @-citations) — filed upstream as
+    # QuantEcon/claude-latex-to-myst#179; downstream tracker book#2. Drop this
+    # rewrite once #179 lands.
+    - { stems: [preface],
+        from:  '\{cite:t\}`unil`',
+        to:    '@unil' }
 
     # (R16 Class F deleted in R18: upstream #105/#106 landed — \texttt{{@}foo}
     # now converts to a single clean code span in both prose and algorithm

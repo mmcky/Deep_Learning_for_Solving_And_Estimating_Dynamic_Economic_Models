@@ -112,7 +112,15 @@ $$
 \hat{y}(x) = \underbrace{\frac{2x}{\pi}}_{A(x)} + \underbrace{x\!\left(\frac{\pi}{2} - x\right)}_{B(x)} \cdot \mathcal{N}_\theta(x),
 $$ (eq-1d_ode_trial)
 
-which has the anchor-plus-mask form {eq}`eq-trial`: the anchor $A$ matches the boundary data ($A(0)=0$, $A(\pi/2)=1$) and the mask $B$ vanishes at both endpoints, so $\hat{y}(0)=0$ and $\hat{y}(\pi/2)=1$ hold exactly for any network output, and the loss reduces to the interior PDE residual alone, $$\ell_\theta = \frac{1}{N_r}\sum_{i=1}^{N_r}\big(\hat{y}''(x_i) + \hat{y}(x_i)\big)^2,$$ with $\hat{y}''$ obtained by two applications of `torch.autograd.grad` and collocation points $x_i$ drawn uniformly from $[0,\pi/2]$.
+which has the anchor-plus-mask form {eq}`eq-trial`: the anchor $A$ matches the boundary data ($A(0)=0$, $A(\pi/2)=1$) and the mask $B$ vanishes at both endpoints, so $\hat{y}(0)=0$ and $\hat{y}(\pi/2)=1$ hold exactly for any network output, and the loss reduces to the interior PDE residual alone,
+
+```{math}
+:enumerated: false
+
+\ell_\theta = \frac{1}{N_r}\sum_{i=1}^{N_r}\big(\hat{y}''(x_i) + \hat{y}(x_i)\big)^2,
+```
+
+with $\hat{y}''$ obtained by two applications of `torch.autograd.grad` and collocation points $x_i$ drawn uniformly from $[0,\pi/2]$.
 
 ```{figure} figures/fig-pinn_1d_ode.svg
 :name: fig-pinn_1d_ode
@@ -417,7 +425,15 @@ The loss has four terms (PDE residual, terminal condition, lower BC, upper BC) a
 ## From PINNs to Operator Learning: One Network, Many Problems
 *This section is script-only outlook material; it has no companion slide and no notebook. It can be skipped on a first read without loss of continuity, and is intended for readers preparing to scale a PINN-based pipeline across many parameter configurations.*
 
-A PINN learns *one solution* to one PDE. Each new boundary condition, parameter set, or coefficient field forces a fresh training run. In economic and financial applications this is often exactly the bottleneck: we want option prices for many strike–maturity pairs, value functions for many discount factors, or HJB solutions across an entire parameter sweep. *Operator learning* flips the question: instead of learning a function $u : \mathbb{R}^d \to \mathbb{R}$ that solves the PDE for a single instance, one learns the *solution operator* $$\mathcal{G}: \;\;\text{(input field, BCs, parameters)} \;\longmapsto\; \text{solution function } u,$$ i.e. a map between two function spaces.
+A PINN learns *one solution* to one PDE. Each new boundary condition, parameter set, or coefficient field forces a fresh training run. In economic and financial applications this is often exactly the bottleneck: we want option prices for many strike–maturity pairs, value functions for many discount factors, or HJB solutions across an entire parameter sweep. *Operator learning* flips the question: instead of learning a function $u : \mathbb{R}^d \to \mathbb{R}$ that solves the PDE for a single instance, one learns the *solution operator*
+
+```{math}
+:enumerated: false
+
+\mathcal{G}: \;\;\text{(input field, BCs, parameters)} \;\longmapsto\; \text{solution function } u,
+```
+
+i.e. a map between two function spaces.
 
 Two mature architectures dominate the literature.
 
@@ -467,15 +483,23 @@ Worked solutions and guidance for these exercises appear in Appendix {ref}`app-
 **[Core\] ReLU pathology.** Explain why a ReLU network is unsuitable for the strong-form Black–Scholes residual. Then sketch a weak-form formulation that would work with ReLU activations.
 ```
 
-```{exercise}
+````{exercise}
 :label: ex-ch7-3
 
-**[Core\] Discrete $\to$ continuous bridge.** Take the discrete-time Bellman operator $$V(a) = \max_c \bigl[u(c)\,\Delta t + \beta_{\Delta t}\,\E V(a')\bigr],
+**[Core\] Discrete $\to$ continuous bridge.** Take the discrete-time Bellman operator
+
+```{math}
+:enumerated: false
+
+V(a) = \max_c \bigl[u(c)\,\Delta t + \beta_{\Delta t}\,\E V(a')\bigr],
 \qquad
 a' = a - c\,\Delta t,
 \qquad
-\beta_{\Delta t}=e^{-\rho\Delta t}.$$ Show that as $\Delta t \to 0$ it formally yields the HJB $\rho V = \max_c [u(c) - V'(a)\,c]$. (This is the pure cake-eating problem with $r=0$; including a return $r$ on wealth, $\dot a = ra - c$, recovers {eq}`eq-cake_hjb`.)
+\beta_{\Delta t}=e^{-\rho\Delta t}.
 ```
+
+Show that as $\Delta t \to 0$ it formally yields the HJB $\rho V = \max_c [u(c) - V'(a)\,c]$. (This is the pure cake-eating problem with $r=0$; including a return $r$ on wealth, $\dot a = ra - c$, recovers {eq}`eq-cake_hjb`.)
+````
 
 ```{exercise}
 :label: ex-ch7-4
