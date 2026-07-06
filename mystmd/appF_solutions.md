@@ -8,7 +8,7 @@ This appendix provides worked solutions for analytical end-of-chapter exercises 
 Exercises are referenced by their stable label `ex:ch`$N$`:`$M$, where $N$ is the chapter number and $M$ is the position within that chapter's exercise list. Each solution opens with a back-pointer to the exercise statement so the reader can scan the question first.
 
 (sol-ch1)=
-## Chapter {ref}`ch-intro`: Introduction to Machine Learning and Deep Learning
+## {ref}`ch-intro`: Introduction to Machine Learning and Deep Learning
 **{prf:ref}`ex-ch1-1`: Backprop on a 2-layer net.** Let $z = w_1 x + b_1$, $a = \mathrm{ReLU}(z)$, $\hat y = w_2 a$, $\ell = (\hat y - y)^2$. Reverse-mode chain rule:
 
 ```{math}
@@ -122,7 +122,7 @@ Each attention vector $a_i$ is on the simplex (entries non-negative, summing to 
 **{prf:ref}`ex-ch1-7`: TensorBoard optimizer comparison.** Coding exercise. Expected qualitative behavior on a small classification task: SGD with momentum is often slower to reduce training loss but can generalize competitively when the learning-rate schedule is well tuned; Adam often reaches a low training loss fastest, but its validation curve can diverge from the training curve sooner than for SGD or AdamW; AdamW often sits between the two. The actual crossover point is a notebook output and should be reported from the run.
 
 (sol-ch2)=
-## Chapter {ref}`ch-deqn`: Deep Equilibrium Nets
+## {ref}`ch-deqn`: Deep Equilibrium Nets
 **{prf:ref}`ex-ch2-1`: Closed-form Brock–Mirman.** Conjecture $V(K, z) = A\log K + B\log z + C$. The Bellman equation
 
 ```{math}
@@ -242,7 +242,7 @@ where $z_q' = \exp(\varrho\ln z_t + \sigma_z\sqrt{2}\,\xi_q)$ and $C_{t+1}^q$ is
 **{prf:ref}`ex-ch2-7` and {prf:ref}`ex-ch2-8` (statements: p. , p. ).** These are coding exercises (notebook `lecture_03_02_Brock_Mirman_Uncertainty_DEQN.ipynb`); reference outputs and timing curves are in the companion repository. Qualitative anchors: in Ex. {prf:ref}`ex-ch2-7`, the per-epoch wall time of tensor-product Gauss–Hermite ($Q^d$ nodes) should grow exponentially in $d$ while Stroud-3 ($2d$ nodes) grows linearly, with a crossover that is visible already at $d=4$–$5$ on a single GPU; the relative Euler error should track the integration accuracy of each rule, with Stroud-3 inheriting the fourth-moment bias of {ref}`sec-monomial_cubature`. In Ex. {prf:ref}`ex-ch2-8`, swapping Swish for $\tanh$ typically slows time-to-converge by tens of percent on a smooth problem like Brock–Mirman because $\tanh$ saturates faster, but final accuracy is comparable; convergence should still hold under the same hyperparameters.
 
 (sol-ch3)=
-## Chapter {ref}`ch-irbc`: The International Real Business Cycle Model
+## {ref}`ch-irbc`: The International Real Business Cycle Model
 **{prf:ref}`ex-ch3-1`: Fischer–Burmeister.** For the forward direction, suppose $a \ge 0$, $b \ge 0$, $ab = 0$. Without loss of generality $b = 0$; then $\Phi(a, 0) = a + 0 - \sqrt{a^2 + 0} = a - |a| = 0$ since $a \ge 0$. By symmetry the same holds when $a = 0$.
 
 For the reverse direction, suppose $\Phi(a,b) = 0$, i.e. $a + b = \sqrt{a^2 + b^2}$. The right-hand side is non-negative, so $a + b \ge 0$. Squaring: $(a+b)^2 = a^2 + b^2 \Rightarrow 2ab = 0 \Rightarrow ab = 0$. Combined with $a + b \ge 0$ and $ab = 0$, the only possibility is one of $a, b$ being zero and the other non-negative, i.e. $a, b \ge 0$ and $ab = 0$. $\square$
@@ -320,7 +320,7 @@ Thus, for positive $\gamma_i,\gamma_j$, any pair of country consumption-growth r
 **{prf:ref}`ex-ch3-6` and {prf:ref}`ex-ch3-7` (statements: p. , p. ).** These are notebook exercises (`lecture_05_05_IRBC_Exercise.ipynb`); reference solutions are in the notebook itself, behind the "attempt first" dividers. Qualitative anchors: in Ex. {prf:ref}`ex-ch3-6`, the closed-form steady state $k_\mathrm{ss} = \bigl[(1/\beta - 1 + \delta)/(\zeta A_\mathrm{tfp})\bigr]^{1/(\zeta-1)}$ falls in all three scenarios — a higher $\delta$ raises the required net return $1/\beta - 1 + \delta$, a lower $\beta$ raises $1/\beta$, and a lower $\zeta$ shrinks the multiplicative term while (since $\zeta - 1 < 0$) steepening diminishing returns — so $k_\mathrm{ss}$ is decreasing in $\delta$, increasing in $\beta$, and increasing in $\zeta$ around the baseline, with $c_\mathrm{ss} = A_\mathrm{tfp} k_\mathrm{ss}^\zeta - \delta k_\mathrm{ss}$ following by substitution. In Ex. {prf:ref}`ex-ch3-7`, inverse-loss weighting $w_i \propto 1/\ell_i$ equalizes the per-component contributions $w_i \ell_i$, so the smallest-magnitude residuals (here the Fischer–Burmeister terms) receive the largest weight; the speed-up is largest when a component is small because it is *hard to fit*, and the scheme can hurt when a component is small because it is *already satisfied by construction* (e.g., a hard-coded resource constraint), in which case up-weighting it merely amplifies noise.
 
 (sol-ch4)=
-## Chapter {ref}`ch-nas`: Neural Architecture Search and Loss Normalization
+## {ref}`ch-nas`: Neural Architecture Search and Loss Normalization
 **{prf:ref}`ex-ch4-1`: Random vs. grid.** With two hyperparameters and only one "important" axis, a $3\times 3$ grid uses $9$ candidates but only $3$ distinct values along the important axis. If the near-optimal interval has length fraction $p$ and its location relative to the grid is unknown, the grid hit probability is approximately $\min\{3p,1\}$ when $p$ is small. Random search at $9$ evaluations samples $9$ independent values along the important axis, so its hit probability is
 
 ```{math}
@@ -428,7 +428,7 @@ If $\langle\nabla\ell_1,\nabla\ell_2\rangle>0$, reducing one component tends to 
 The general rule: budget grows $\to$ smarter methods become affordable; search-space size grows $\to$ the marginal benefit of smarter methods grows; per-method overhead per evaluation needs to fit inside one GPU step or it eats into the budget itself.
 
 (sol-ch5)=
-## Chapter {ref}`ch-olg`: Overlapping Generations Models with DEQNs
+## {ref}`ch-olg`: Overlapping Generations Models with DEQNs
 **{prf:ref}`ex-ch5-1`: OLG market clearing for $A=3$.** With three cohorts (young $h=1$, middle $h=2$, old $h=3$), the budget constraints are
 
 ```{math}
@@ -573,7 +573,7 @@ The unconstrained SDF expression $p_t = \mathbb{E}_t[M_{t,t+1}]$ is recovered wh
 **{prf:ref}`ex-ch5-6` and {prf:ref}`ex-ch5-7` (statements: p. , p. ).** Coding exercises. Both call for $4$–$5$ retraining runs of the 56-agent benchmark and a binding-frequency / steady-state diagnostic. The binding indicator should be based on small slack and a positive multiplier, not on a large complementarity residual: at a well-trained KKT solution the product residual is close to zero both when a constraint binds and when it is slack. Expect borrowing and collateral constraints to bind mostly for young cohorts; as $\kappa$ rises, the lower bound $b'^h \ge -k'^h/\kappa$ becomes tighter, so negative bond positions should shrink and cross-cohort bond dispersion should typically fall. The equilibrium price response is a general-equilibrium object and should be read from the retrained models rather than imposed analytically.
 
 (sol-ch6)=
-## Chapter {ref}`ch-young`: Heterogeneous Agents and Young's Method
+## {ref}`ch-young`: Heterogeneous Agents and Young's Method
 **{prf:ref}`ex-ch6-1`: Mean-preserving lottery.** Place mass $\omega$ at $k_n$ and $1-\omega$ at $k_{n+1}$. Mean preservation:
 
 ```{math}
@@ -639,7 +639,7 @@ where the second equality is just a re-indexing of the sum (since addition is co
 *{prf:ref}`ex-ch6-7`.* In the standard KS calibration, the one-moment forecasting rule should already fit $\log K_{t+1}$ extremely well; adding $\log V_t$, with $V_t=\mathrm{Var}_{\mu_t}(k)$, is expected to give only a small incremental gain. This is exactly the empirical observation behind "approximate aggregation". In calibrations with high cross-sectional dispersion (e.g., wide income range or frequent borrowing-constraint binding), the second-moment improvement can become economically visible and should be reported from the run.
 
 (sol-ch7)=
-## Chapter {ref}`ch-pinn`: Physics-Informed Neural Networks
+## {ref}`ch-pinn`: Physics-Informed Neural Networks
 **{prf:ref}`ex-ch7-1`: Trial-function BC enforcement.** Define $\hat y(x) = \tfrac{2x}{\pi} + x\bigl(\tfrac{\pi}{2} - x\bigr)\,\mathcal{N}_\rho(x)$. Evaluate at the boundaries:
 
 ```{math}
@@ -733,7 +733,7 @@ This is the HJB equation for the consumption-savings problem with no asset retur
 **{prf:ref}`ex-ch7-7`: Operator learning vs. PINN.** Eleven independent PINN runs each cost $C_\mathrm{PINN}$ wall-clock seconds, total $11\,C_\mathrm{PINN}$. A single operator-learning or parametric-PINN run trained on $11$ values of $K$ (or a continuous range, sampled in mini-batches) costs $C_\mathrm{op}$. Amortized training wins when $11\,C_\mathrm{PINN} > C_\mathrm{op}$, i.e., $C_\mathrm{op}/C_\mathrm{PINN} < 11$. The crossover scales linearly in the number of distinct $K$ values: with $N$ strikes, operator learning wins whenever $C_\mathrm{op}/C_\mathrm{PINN}<N$. This is the cost-amortization argument that motivates DeepONet-style operator learning {cite:p}`lu2021learning`.
 
 (sol-ch8)=
-## Chapter {ref}`ch-ct_theory`: Heterogeneous Agent Models in Continuous Time
+## {ref}`ch-ct_theory`: Heterogeneous Agent Models in Continuous Time
 **{prf:ref}`ex-ch8-1`: Itô on GBM.** Geometric Brownian motion satisfies $dX_t = \mu X_t\,dt + \sigma X_t\,dB_t$. Apply Itô's lemma to $f(x) = \ln x$ with $f'(x) = 1/x$, $f''(x) = -1/x^2$:
 
 ```{math}
@@ -877,7 +877,7 @@ The equilibrium objects are $(V(a,n),g(a,n),K,L,r,w)$, with $L$ often pinned dow
 *{prf:ref}`ex-ch8-7`.* On the one-asset stationary benchmark, finite differences should usually win on absolute wall-clock time and give the cleanest low-dimensional benchmark residuals. A PINN may become more attractive when the same architecture is reused across many nearby parameter values, when warm starts work well, or when the state space is extended beyond what a grid handles comfortably. Report the actual cold-start and warm-start timings from your machine, and treat memory use as hardware- and backend-dependent.
 
 (sol-ch9)=
-## Chapter {ref}`ch-gp`: Gaussian Processes
+## {ref}`ch-gp`: Gaussian Processes
 **{prf:ref}`ex-ch9-1`: Posterior on three points.** The RBF kernel with length scale $\ell = 1$ and signal variance $\sigma_f^2 = 1$ is $k(x, x') = \exp(-(x-x')^2/2)$. With training points $X = (0, 1, 2)$ and targets $y = (0, 0.8, 0.3)$, the kernel matrix is
 
 ```{math}
@@ -981,7 +981,7 @@ the prior variance. Hence far from data the GP literally returns the prior $\mat
 Mitigations: use a Matérn kernel with $\nu = 1/2$ or $\nu = 3/2$ (heavier-tailed than RBF, posterior reverts to prior more slowly), incorporate a polynomial mean function in the GP prior (so extrapolation grows with $x$ instead of decaying to zero), or use a boundary-aware acquisition function that explicitly penalizes exploitation outside the convex hull. In economic applications (e.g., extrapolating an estimated value function to wealth levels outside the training range), the safest practice is to flag any query outside the convex hull of training data and refuse to predict, rather than to trust a prior-driven band that has no data behind it.
 
 (sol-ch10)=
-## Chapter {ref}`ch-estimation`: Deep Surrogate Models and Structural Estimation
+## {ref}`ch-estimation`: Deep Surrogate Models and Structural Estimation
 **{prf:ref}`ex-ch10-1`: Identification.** Let $m(\varrho)=\mathbb{E}_\varrho[h(C,I,Y)]$ be the simulated moment vector implied by the persistence parameter. At the truth $\varrho^\star$, local identification is captured by the Jacobian
 
 ```{math}
@@ -1061,7 +1061,7 @@ then the Gaussian AR(1) likelihood gives a direct MLE for $\varrho$ (OLS of $\lo
 *Why SMM despite the efficiency loss?* In production-scale models (heterogeneous-agent macro, dynamic IO), the likelihood is often unavailable in closed form, and computing it would require integration over high-dimensional latent states. Moments are cheaper, interpretable, and robust to parts of the model that are not central to the research question. The cost is that SMM efficiency depends on the information content of the chosen moments.
 
 (sol-ch11)=
-## Chapter {ref}`ch-climate`: Climate Economics and Deep Uncertainty Quantification
+## {ref}`ch-climate`: Climate Economics and Deep Uncertainty Quantification
 **{prf:ref}`ex-ch11-1`: ECS sensitivity.** Coding exercise. Report the SCC at the central calibration and at each ECS value in the likely and very-likely ranges. The expected qualitative pattern is monotone and often convex in ECS: higher equilibrium climate sensitivity raises temperature damages and therefore the emissions shadow price. The quantitative range is calibration-dependent and should be reported from the notebook rather than fixed in the solution text. The interpretation should connect the dispersion to the climate-science finding of {cite:t}`sherwood2020assessment` that ECS uncertainty is a major driver of SCC uncertainty.
 
 **{prf:ref}`ex-ch11-2`: Sobol decomposition.** For $q(\theta_1, \theta_2, \theta_3) = \theta_1\theta_2 + \theta_3^2$ with $\theta_i \sim \mathcal{U}[0,1]$ i.i.d.:
@@ -1111,7 +1111,7 @@ A SALib estimate with $10^4$ samples typically matches these analytical values t
 
 **{prf:ref}`ex-ch11-5`: Carbon-cycle warm-up.** Coding exercise driven by notebook `lecture_16_01_Climate_Exercise.ipynb`. Part (a) avoided-warming and avoided-damages numbers at 2100 under the 50% mitigation rule are notebook outputs and depend on calibration, so they should be reported from the run rather than fixed in the solution text. Part (b) the longest-timescale reservoir is identified by the smallest non-zero eigenvalue of the carbon-cycle transition matrix; for the CDICE three-box calibration this is the lower-ocean compartment, with a multi-century characteristic timescale. Part (c) a quadratic damage function $D(T) = \pi_2 T^2$ has bounded curvature in $T$ and therefore underweights tail risk: marginal damage grows only linearly, so very high realizations of $T$ are penalized far less than under super-quadratic damages or an explicit tipping-hazard term, and tail-risk assessment requires one of those richer specifications (compare {prf:ref}`ex-ch11-8`).
 
-**{prf:ref}`ex-ch11-6`: Deterministic CDICE-DEQN reproduction.** Coding exercise driven by notebook `lecture_16_02_DICE_DEQN_Library_Port.ipynb`. The verification target is the set $\{T^{\mathrm{AT}}(2100),\ M^{\mathrm{AT}}(2100),\ \mu(2100),\ \mathrm{SCC}(2015),\ \mathrm{SCC}(2100),\ \mathrm{SCC}(2300)\}$, each compared against the reference solution at the tolerances stated in the notebook's verification gate. Reference numbers depend on seed, hardware, optimizer schedule, and trajectory sampling, so the solution should anchor on the verification gate rather than on fixed numbers. Typical convergence problems trace back to scaling differences across the eight residuals or to insufficient trajectory coverage near the carbon-stock saturation regime; the residual-balancing methods discussed in Chapter {ref}`ch-nas` are the first line of defense.
+**{prf:ref}`ex-ch11-6`: Deterministic CDICE-DEQN reproduction.** Coding exercise driven by notebook `lecture_16_02_DICE_DEQN_Library_Port.ipynb`. The verification target is the set $\{T^{\mathrm{AT}}(2100),\ M^{\mathrm{AT}}(2100),\ \mu(2100),\ \mathrm{SCC}(2015),\ \mathrm{SCC}(2100),\ \mathrm{SCC}(2300)\}$, each compared against the reference solution at the tolerances stated in the notebook's verification gate. Reference numbers depend on seed, hardware, optimizer schedule, and trajectory sampling, so the solution should anchor on the verification gate rather than on fixed numbers. Typical convergence problems trace back to scaling differences across the eight residuals or to insufficient trajectory coverage near the carbon-stock saturation regime; the residual-balancing methods discussed in {ref}`ch-nas` are the first line of defense.
 
 **{prf:ref}`ex-ch11-7`: Stochastic SCC fan chart.** Coding exercise driven by notebook `lecture_16_03_Stochastic_DICE_DEQN.ipynb`. As the AR(1) productivity volatility $\sigma_z$ rises, the right tail of the SCC distribution at 2100 widens disproportionately, because higher productivity raises emissions which feed convexly into damages. Report the quantiles $q_{10}, q_{50}, q_{90}$ of the SCC fan chart at each $\sigma_z$ rather than the mean alone, since the mean obscures the asymmetry. The qualitative finding aligns with {cite:t}`caiSocialCostCarbon2019`, that productivity and consumption-growth shocks shift the SCC distribution materially and not just its location, supporting the use of distribution-aware reporting in policy work.
 
@@ -1211,22 +1211,22 @@ where the value of information just balances the irreversibility cost.
 *Connection to climate policy.* This stylized model captures the central tension in climate policy: information arrives over time about ECS, damage functions, and tipping thresholds, but emissions are largely irreversible (atmospheric CO$_2$ persists for centuries). The chapter's Bayesian-learning treatment makes the trade-off quantitative: under fast learning and slow climate dynamics, waiting can be optimal; under slow learning and fast tipping risks, an early-action premium emerges. The empirical literature {cite:p}`pindyck2007uncertainty,caiSocialCostCarbon2019` finds that for realistic climate calibrations, the irreversibility channel typically dominates, supporting near-term carbon tax implementation rather than "wait and see" policies.
 
 (sol-ch12)=
-## Chapter {ref}`ch-outlook`: Synthesis and Outlook
+## {ref}`ch-outlook`: Synthesis and Outlook
 **{prf:ref}`ex-ch12-1`: Method-choice scenario.** Sketch:
 
 *(a) 4-state monetary-policy DSGE with smooth shocks.* Use **classical perturbation or projection as the baseline**. The state space is small and the shocks are smooth, so a classical method is transparent, fast, and easy to audit. A DEQN becomes attractive only if the model is extended with genuinely global nonlinearities (for example a binding zero lower bound, occasionally binding collateral constraints, or a highly non-quadratic loss). Hybrid: use a GP surrogate over policy-rule parameters after the classical or DEQN solution step if many counterfactuals are needed.
 
-*(b) 200-agent OLG with progressive taxation.* Use **DEQN with Young's-method aggregation** (Chapter {ref}`ch-olg`, {ref}`ch-young`). $200$ cohorts is at the edge where explicit-panel methods (all-in-one DL) and histogram methods compete; histograms are easier when constraints bind frequently across cohorts. Hybrid: post-train a GP surrogate over the Pareto-weight calibration to evaluate optimal-tax-rule sensitivity.
+*(b) 200-agent OLG with progressive taxation.* Use **DEQN with Young's-method aggregation** ({ref}`ch-olg`, {ref}`ch-young`). $200$ cohorts is at the edge where explicit-panel methods (all-in-one DL) and histogram methods compete; histograms are easier when constraints bind frequently across cohorts. Hybrid: post-train a GP surrogate over the Pareto-weight calibration to evaluate optimal-tax-rule sensitivity.
 
-*(c) Exotic option pricing on an irregularly shaped payoff.* Use **PINN or Deep Galerkin methods with careful treatment of the payoff kink** (Chapter {ref}`ch-pinn`) for a single-contract instance, or **DeepONet** if prices are needed for many strikes or contract parameters. The non-smooth object is the terminal payoff, not a generic spatial boundary; for a strong-form Black–Scholes residual this usually calls for smoothing the payoff, using smooth activations away from the kink, or switching to a weak/viscosity-aware formulation. GP surrogates can help as an outer pricing surface over a few parameters, but they are not the primitive PDE solver.
+*(c) Exotic option pricing on an irregularly shaped payoff.* Use **PINN or Deep Galerkin methods with careful treatment of the payoff kink** ({ref}`ch-pinn`) for a single-contract instance, or **DeepONet** if prices are needed for many strikes or contract parameters. The non-smooth object is the terminal payoff, not a generic spatial boundary; for a strong-form Black–Scholes residual this usually calls for smoothing the payoff, using smooth activations away from the kink, or switching to a weak/viscosity-aware formulation. GP surrogates can help as an outer pricing surface over a few parameters, but they are not the primitive PDE solver.
 
-*(d) Climate-IAM where SCC uncertainty is the deliverable.* Use the **full pipeline**: DEQN to solve the deterministic IAM, GP surrogate over deep-uncertain parameters (ECS, damage convexity, tipping thresholds), Sobol/Shapley sensitivity decomposition for attribution, and BAL for sample-efficient uncertainty quantification (Chapters {ref}`ch-climate`, {ref}`ch-gp`). This combines the IAM uncertainty-quantification workflow of {cite:t}`friedlDeep2023` with the surrogate-based policy-search logic in {cite:t}`kubler2025using`.
+*(d) Climate-IAM where SCC uncertainty is the deliverable.* Use the **full pipeline**: DEQN to solve the deterministic IAM, GP surrogate over deep-uncertain parameters (ECS, damage convexity, tipping thresholds), Sobol/Shapley sensitivity decomposition for attribution, and BAL for sample-efficient uncertainty quantification ({ref}`ch-climate`, {ref}`ch-gp`). This combines the IAM uncertainty-quantification workflow of {cite:t}`friedlDeep2023` with the surrogate-based policy-search logic in {cite:t}`kubler2025using`.
 
 **{prf:ref}`ex-ch12-2`: When NOT to use deep learning.** Open-ended. Sketch of one regime: *bit-exact reproducibility for regulatory audit*. GPU non-determinism in atomic accumulators (described in Appendix E) means that a deep-learning solver typically cannot reproduce the same numbers across hardware platforms; for regulatory work where auditors must replay every step bitwise, a deterministic finite-difference solver on a fixed grid is preferable. Even when deterministic flags are set, BLAS implementations differ across CUDA versions. Classical fixed-grid methods are easier to make bit-reproducible because the operation order can be pinned and the solver path is usually far less sensitive to random initialization and stochastic mini-batches.
 
 **{prf:ref}`ex-ch12-3`: Reproducibility audit.** Coding exercise. Expected behavior: re-running notebook `lecture_03_02_Brock_Mirman_Uncertainty_DEQN.ipynb` on the same machine with the same seeds should reproduce the reported diagnostics within the stated tolerance. Bitwise equality of trained network parameters should be expected only when deterministic framework settings, hardware, BLAS/CUDA versions, and floating-point order of operations are all pinned. Re-running on a different GPU, or with deterministic flags off, can produce small deviations in the last few printed digits of the savings-rate diagnostics while remaining well within the residual tolerance of the training.
 
-**{prf:ref}`ex-ch12-4`: Open-ended.** Open-ended; expected output is a 1–2 page research sketch. A representative answer combines DEQN (for solving the model) with GP surrogates (for parameter estimation): e.g., a 6-month project that estimates a heterogeneous-agent NK model with deep-learning policy functions, then uses a deep-kernel GP surrogate to do Bayesian posterior inference on the structural parameters. This integrates Chapters {ref}`ch-young`, {ref}`ch-gp`, and {ref}`ch-estimation`.
+**{prf:ref}`ex-ch12-4`: Open-ended.** Open-ended; expected output is a 1–2 page research sketch. A representative answer combines DEQN (for solving the model) with GP surrogates (for parameter estimation): e.g., a 6-month project that estimates a heterogeneous-agent NK model with deep-learning policy functions, then uses a deep-kernel GP surrogate to do Bayesian posterior inference on the structural parameters. This integrates {ref}`ch-young`, {ref}`ch-gp`, and {ref}`ch-estimation`.
 
 **{prf:ref}`ex-ch12-5`: Hybrid pipeline DEQN $+$ GP $+$ SMM.** Coding exercise. Illustrative outputs to benchmark against, not fixed targets:
 

@@ -25,7 +25,7 @@ These reading paths are minimum self-sufficient sets: chapters not listed are no
 
 **Notation and cross-references.** The notation tables following this orientation are meant to reduce ambiguity across chapters. Some symbols are necessarily reused because the script covers several literatures: for example, $\rho$ can denote neural-network parameters, an optimizer coefficient, or a continuous-time discount rate depending on context. When a symbol changes role, the notation table records the chapter-specific convention. Cross-references should be used actively: many later chapters refer back to the same core objects, such as residual losses, ergodic sampling, market-clearing errors, HJB residuals, or GP posterior variances. The goal is not to memorize every symbol on first reading, but to use the notation tables as a stable reference while moving between chapters and notebooks.
 
-**Visual conventions.** The script uses three colored callout boxes plus an algorithm box. Each color is consistent across the entire manuscript and signals a particular kind of content (the first instance of each box appears in Chapter {ref}`ch-intro`):
+**Visual conventions.** The script uses three colored callout boxes plus an algorithm box. Each color is consistent across the entire manuscript and signals a particular kind of content (the first instance of each box appears in {ref}`ch-intro`):
 
 - **Blue boxes (Definitions and Algorithms).** Used for formal definitions, key constructions, and step-by-step pseudocode. When a section introduces a new method, the algorithmic core is typically displayed in a blue box.
 

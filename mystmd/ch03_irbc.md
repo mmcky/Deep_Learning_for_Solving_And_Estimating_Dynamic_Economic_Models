@@ -3,7 +3,7 @@ title: "The International Real Business Cycle Model"
 label: ch-irbc
 ---
 
-Having established the DEQN framework on the one-dimensional Brock–Mirman model in Chapter {ref}`ch-deqn`, we now scale it to the multi-country international real business cycle (IRBC) model of {cite:t}`backus1992international`. This model features $N$ countries with heterogeneous productivity, complete markets, irreversible investment, and convex capital adjustment costs. It is the standard testbed for high-dimensional solution methods in macroeconomics, and applying DEQNs to it illustrates how the framework handles high-dimensional state spaces, multiple equilibrium conditions, and complementarity constraints.
+Having established the DEQN framework on the one-dimensional Brock–Mirman model in {ref}`ch-deqn`, we now scale it to the multi-country international real business cycle (IRBC) model of {cite:t}`backus1992international`. This model features $N$ countries with heterogeneous productivity, complete markets, irreversible investment, and convex capital adjustment costs. It is the standard testbed for high-dimensional solution methods in macroeconomics, and applying DEQNs to it illustrates how the framework handles high-dimensional state spaces, multiple equilibrium conditions, and complementarity constraints.
 
 (sec-irbc_motivation)=
 ## Why IRBC for Macro-Finance Research?
@@ -19,7 +19,7 @@ Beyond its computational-testbed role, the IRBC model is the workhorse framework
 
 - **Macro-financial transmission.** Adjustment costs, borrowing constraints, and Pareto weights become levers for studying how financial frictions propagate across borders. This is the class of extensions that motivates the DEQN treatment: once frictions are added, the policy functions acquire kinks and nonlinearities that are hard to handle with traditional grid-based methods.
 
-The IRBC model is therefore an interesting substantive object, not merely a scaling test. Its combination of a clean complete-markets benchmark and rich, realistic frictions makes it a natural next step after the one-country Brock–Mirman benchmark of Chapter {ref}`ch-deqn`.
+The IRBC model is therefore an interesting substantive object, not merely a scaling test. Its combination of a clean complete-markets benchmark and rich, realistic frictions makes it a natural next step after the one-country Brock–Mirman benchmark of {ref}`ch-deqn`.
 
 **A calibration caveat for the puzzles above.** The shock decomposition of {ref}`sec-irbc_setup` below, $z^{j\prime} = \rho_z z^j + \sigma_e(\varepsilon^j + \varepsilon^{\mathrm{agg}})$, hard-wires a cross-country innovation correlation of exactly $1/2$ for any number of countries $N$. The consumption-correlation and Backus–Smith puzzles cited in the bullets above should therefore be read as statements about this specific calibration: richer correlation structures, country-specific factor loadings, or fewer aggregate factors would change the quantitative bite of the puzzles in this model. This is calibration, not theory.
 
@@ -257,7 +257,7 @@ The complementarity conditions $\mu^j \geq 0$, $I^j \geq 0$, $\mu^j \cdot I^j = 
 
 ## DEQN Formulation
 
-**From Brock–Mirman to IRBC.** It is useful to see the IRBC as the natural extension of the one-country benchmark of Chapter {ref}`ch-deqn`. {numref}`tab-bm_vs_irbc` summarizes what changes.
+**From Brock–Mirman to IRBC.** It is useful to see the IRBC as the natural extension of the one-country benchmark of {ref}`ch-deqn`. {numref}`tab-bm_vs_irbc` summarizes what changes.
 
 ````{table}
 :name: tab-bm_vs_irbc
@@ -323,7 +323,7 @@ $$
 \ell^{\mathrm{irrev}}_\rho = \ell^{\mathrm{smooth}}_\rho \;+\; \frac{1}{N_s}\sum_{i=1}^{N_s} \sum_{j=1}^{N} \bigl(\mathrm{FB}^j(\bm{s}_i)\bigr)^2,
 $$ (eq-irbc_loss)
 
-where $N_s$ is the number of training states. When the individual loss components differ in magnitude across countries (which is typical when countries differ in size or calibration), an adaptive loss-balancing scheme from Chapter {ref}`ch-nas` (e.g., ReLoBRaLo, SoftAdapt, GradNorm) can be applied to reweight the components during training.
+where $N_s$ is the number of training states. When the individual loss components differ in magnitude across countries (which is typical when countries differ in size or calibration), an adaptive loss-balancing scheme from {ref}`ch-nas` (e.g., ReLoBRaLo, SoftAdapt, GradNorm) can be applied to reweight the components during training.
 
 **Representative implementation.** The architecture is a 2-hidden-layer Swish network with a softplus output head. In the smooth benchmark the head has dimension $N + 1$ (the $N$ capital choices and the resource-constraint multiplier $\lambda$); in the irreversible extension the head expands to $2N + 1$, adding the irreversibility multipliers $\mu^j \ge 0$ (softplus enforces non-negativity by construction). Only the irreversible loss carries a non-textbook line, the Fischer–Burmeister smoothing of the complementarity $0 \le \mu^j \perp I^j \ge 0$:
 
@@ -400,7 +400,7 @@ The key advantage of the DEQN approach is its scaling behavior: while traditiona
 
 **Comparison with adaptive sparse grids.** The approach of {cite:t}`ECTA:ECTA1716` handles kinks in the policy function (e.g., those induced by the irreversibility constraint) by *refining* the grid locally around the kink using hierarchical surplus indicators. This keeps the method accurate but the grid remains anchored to a hypercube, so computation still scales poorly once the number of active kinks or the dimensionality grows. DEQNs do not represent kinks by grid refinement; instead, they fit a smooth approximator (Swish/softplus network) to the Fischer–Burmeister-regularized problem, which produces a globally smooth policy that tracks the true piecewise structure without needing localized grid points. The two methods are therefore complementary: adaptive sparse grids give deterministic error bounds on a hypercube; DEQNs give simulation-based error bounds on the ergodic set with no grid at all. From a theoretical perspective, {cite:t}`montanelli2019deep` establish error bounds showing that deep ReLU networks can approximate functions on sparse grids without the exponential growth in parameters that afflicts classical polynomial methods, providing formal underpinning for why deep learning can mitigate (though not eliminate) the high-dimensional approximation cost. Exact runtimes depend on architectural choices, quadrature design, and hardware; the robust finding is that the DEQN formulation avoids explicit tensor-product state grids and remains computationally viable in dimensions where standard methods become prohibitively expensive.
 
-Beyond the IRBC setting, closely related neural-equilibrium methods have been applied to other policy-relevant problems. {cite:t}`nuno2024monetary` use DEQNs to compute optimal *monetary policy rules* under persistent supply shocks, replacing the linearization step around steady state with a globally trained policy network. {cite:t}`bretscherRicardianBusinessCycles2022` apply DEQN to multi-country international real business cycles with comparative advantage. Most recently, {cite:t}`azinovicyangzemlicka2025sequencespace` replace the endogenous cross-sectional state with a *truncated history of exogenous aggregate shocks* (the sequence-space representation), so that the network's input dimension scales with the truncation horizon rather than with the number of agents, which is the heterogeneous-agent extension developed in Chapter {ref}`ch-young`.
+Beyond the IRBC setting, closely related neural-equilibrium methods have been applied to other policy-relevant problems. {cite:t}`nuno2024monetary` use DEQNs to compute optimal *monetary policy rules* under persistent supply shocks, replacing the linearization step around steady state with a globally trained policy network. {cite:t}`bretscherRicardianBusinessCycles2022` apply DEQN to multi-country international real business cycles with comparative advantage. Most recently, {cite:t}`azinovicyangzemlicka2025sequencespace` replace the endogenous cross-sectional state with a *truncated history of exogenous aggregate shocks* (the sequence-space representation), so that the network's input dimension scales with the truncation horizon rather than with the number of agents, which is the heterogeneous-agent extension developed in {ref}`ch-young`.
 
 ```{prf:remark} Chapter Summary
 
@@ -463,7 +463,7 @@ Worked solutions and guidance for these exercises appear in Appendix {ref}`app-
 ```{exercise}
 :label: ex-ch3-6
 
-**[Core\] Notebook: steady-state comparative statics.** Open `lecture_05_05_IRBC_Exercise.ipynb` (it lives in the Lecture-05 code folder, since it doubles as the entry point to the NAS / loss-normalization material of Chapter {ref}`ch-nas`). Working from the closed-form deterministic steady state, in which the Euler condition pins $\mathrm{MPK} = 1/\beta$ and hence $k_\mathrm{ss} = \bigl[(1/\beta - 1 + \delta)/(\zeta A_\mathrm{tfp})\bigr]^{1/(\zeta-1)}$, compute $k_\mathrm{ss}$ and $c_\mathrm{ss}$ for (a) higher depreciation $\delta = 0.05$, (b) a more impatient household $\beta = 0.95$, and (c) a lower capital share $\zeta = 0.30$, each relative to the baseline. Predict the sign of each change before computing, and explain why $k_\mathrm{ss}$ falls in every case. (The notebook deliberately uses a standalone calibration $A_\mathrm{tfp} = 1$; the IRBC training notebook `lecture_04_01_IRBC_DEQN_smooth.ipynb` instead pins $A_\mathrm{tfp}$ so that $k_\mathrm{ss} = 1$, a rescaling that does not change any of the qualitative conclusions.)
+**[Core\] Notebook: steady-state comparative statics.** Open `lecture_05_05_IRBC_Exercise.ipynb` (it lives in the Lecture-05 code folder, since it doubles as the entry point to the NAS / loss-normalization material of {ref}`ch-nas`). Working from the closed-form deterministic steady state, in which the Euler condition pins $\mathrm{MPK} = 1/\beta$ and hence $k_\mathrm{ss} = \bigl[(1/\beta - 1 + \delta)/(\zeta A_\mathrm{tfp})\bigr]^{1/(\zeta-1)}$, compute $k_\mathrm{ss}$ and $c_\mathrm{ss}$ for (a) higher depreciation $\delta = 0.05$, (b) a more impatient household $\beta = 0.95$, and (c) a lower capital share $\zeta = 0.30$, each relative to the baseline. Predict the sign of each change before computing, and explain why $k_\mathrm{ss}$ falls in every case. (The notebook deliberately uses a standalone calibration $A_\mathrm{tfp} = 1$; the IRBC training notebook `lecture_04_01_IRBC_DEQN_smooth.ipynb` instead pins $A_\mathrm{tfp}$ so that $k_\mathrm{ss} = 1$, a rescaling that does not change any of the qualitative conclusions.)
 ```
 
 ```{exercise}

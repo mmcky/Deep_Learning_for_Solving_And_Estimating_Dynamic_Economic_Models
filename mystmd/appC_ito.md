@@ -3,7 +3,7 @@ title: "Itô Calculus, Brownian Motion, and Ergodicity"
 label: app-stoch
 ---
 
-This appendix collects the stochastic-calculus background needed for Chapters {ref}`ch-pinn`–{ref}`ch-ct_theory`. For the longer, example-driven exposition see {ref}`sec-stoch_calc`; for a full textbook treatment, see {cite:t}`shreve2004stochasticii`.
+This appendix collects the stochastic-calculus background needed for {ref}`ch-pinn`–{ref}`ch-ct_theory`. For the longer, example-driven exposition see {ref}`sec-stoch_calc`; for a full textbook treatment, see {cite:t}`shreve2004stochasticii`.
 
 ## Brownian motion
 
@@ -23,4 +23,4 @@ The differential algebra is $dt\cdot dt = dt\cdot dB_t = 0$, $dB_t \cdot dB_t = 
 
 ## Ergodicity in one paragraph
 
-A Markov process with stationary distribution $\pi$ is *ergodic* if the time-average along any sample path converges almost surely to the spatial average against $\pi$: $\tfrac{1}{T}\int_0^T \varphi(X_t)\,dt \xrightarrow{T\to\infty} \int \varphi\,d\pi$ for every bounded measurable $\varphi$. In economic models with bounded state spaces and aperiodic dynamics, ergodicity is what justifies replacing population integrals by simulation-time averages in DEQN training (Chapter {ref}`ch-deqn`, {ref}`sec-deqn_algo`).
+A Markov process with stationary distribution $\pi$ is *ergodic* if the time-average along any sample path converges almost surely to the spatial average against $\pi$: $\tfrac{1}{T}\int_0^T \varphi(X_t)\,dt \xrightarrow{T\to\infty} \int \varphi\,d\pi$ for every bounded measurable $\varphi$. In economic models with bounded state spaces and aperiodic dynamics, ergodicity is what justifies replacing population integrals by simulation-time averages in DEQN training ({ref}`ch-deqn`, {ref}`sec-deqn_algo`).
