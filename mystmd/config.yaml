@@ -85,6 +85,16 @@ project_overrides: tikz_overrides.py
 doubled_noun_refs:
   - { noun: Algorithm,  prefix: alg- }
   - { noun: Algorithms, prefix: alg- }
+  # R23 — Chapter refs (upstream #188, closing #184): under this book's qe-v8
+  # `numbering.book` mode (myst.yml `chapters: label: "Chapter %s"`), a {ref}
+  # to a chapter heading auto-renders "Chapter N", so the prose noun in
+  # "Chapter~\ref{ch:X}" doubles (190 sites found in the R22 visual-parity
+  # audit). `role: ref` targets the {ref}-role matcher added by #188 — this
+  # replaces the R22 Class J raw-regex rewrite at the designed surface.
+  # Opt-in by design: whether chapter {ref}s render a noun depends on the
+  # book's myst.yml numbering mode, which the converter can't know.
+  - { noun: Chapter,  prefix: ch-, role: ref }
+  - { noun: Chapters, prefix: ch-, role: ref }
 
 # --- LaTeX pre-processing ---------------------------------------------------
 
@@ -239,38 +249,6 @@ postprocess:
         from:  '\*\*\[(NEW: wrap the per-step kernel)',
         to:    '**\\[\1' }
 
-    # R22 — Class J: strip the prose noun in "Chapter {ref}`ch-X`" (and the
-    # plural "Chapters {ref}`ch-X`–{ref}`ch-Y`" form). Under this book's
-    # qe-v8 `numbering.book` mode (myst.yml `chapters: label: "Chapter %s"`),
-    # a {ref} to a chapter-level heading auto-renders "Chapter N", so the
-    # prose noun doubles: 190 rendered "Chapter Chapter N" sites across all
-    # 12 chapters + the appF section headings (and thus the appF page TOC).
-    # Upstream's strip_doubled_noun_refs deliberately omits Chapter for the
-    # {ref} role (its comment assumes chapter refs render the *title*, true
-    # only for its older heading_2–6 numbering mode), and the
-    # `doubled_noun_refs:` config extras only feed the {prf:ref}/{numref}
-    # matcher — the {ref}-role table is not configurable — so this cannot be
-    # fixed at the designed config surface. The separator is NBSP for the
-    # 178 "Chapter~\ref" tie sites and a plain space for the 12 appF ones;
-    # all 190 targets verified to be exactly the 12 numbered-chapter labels
-    # (no appendix/section strays). Root cause filed upstream as
-    # QuantEcon/claude-latex-to-myst#184 — drop this rewrite when it lands.
-    - { from: '(?<!\w)Chapters?[ \xa0]+(?=\{ref\}`ch-)',
-        to:   '' }
-
-    # R22 — Class K: ch06's Young-update lstlisting leaks its option string
-    # into the code body — the rendered block's first line is literally
-    # "[language=Python, basicstyle=\footnotesize\ttfamily, …]" before
-    # "import numpy as np". The trigger is the `escapeinside={(*}{*)}` value:
-    # its unbalanced-brace token breaks the converter's bracket-option scan,
-    # so the whole option group survives as content (1 site book-wide; the
-    # book's other lstlistings convert clean). Drop the leaked line. Root
-    # cause filed upstream as QuantEcon/claude-latex-to-myst#185 — drop
-    # this rewrite when it lands.
-    - { stems: [ch06_ha_youngs],
-        from:  '^    \[language=Python, basicstyle=\\footnotesize\\ttfamily[^\n]*\]\n',
-        to:    '' }
-
     # (R16 Class F deleted in R18: upstream #105/#106 landed — \texttt{{@}foo}
     # now converts to a single clean code span in both prose and algorithm
     # bodies, so the `@``-collapse rewrite no longer matched anything.)
@@ -284,6 +262,12 @@ postprocess:
     # clean `simon.scheidegger@unil.ch` mailto link with no `{cite:t}`unil`` left
     # to rewrite; verified by reconverting preface with the rewrite removed.
     # book#2 no longer needs a downstream stopgap.)
+    # (R22 Class J deleted in R23: upstream #188 — issue #184 — added the
+    # `role: ref` key to doubled_noun_refs, so the Chapter/Chapters entries
+    # now live at the designed config surface above; verified byte-identical
+    # output vs the Class J regex. R22 Class K deleted in R23: upstream #187
+    # — issue #185 — fixed the escapeinside={(*}{*)} option-scan break in the
+    # converter, so the ch06 lstlisting no longer leaks its option group.)
 
 # --- Validation -------------------------------------------------------------
 

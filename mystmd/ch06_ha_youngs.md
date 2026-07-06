@@ -225,37 +225,38 @@ A reader implementing the method should recognize three properties from the figu
 
 **Implementation cheatsheet.** The pseudocode above translates into a few lines of `NumPy`; the inner double loop can also be vectorised with `np.add.at` for production use.
 
-    import numpy as np
+```python
+import numpy as np
 
-    def young_step(G, kp, pi_eps, k_grid):
-        """One Young (2010) histogram update on a uniform k-grid.
-        G[i,j]      mass at (k_grid[i], eps_j),       sums to 1
-        kp[i,j]     policy choice k'(k_i, eps_j),     possibly off-grid
-        pi_eps[j,jp] = Pr(eps_{t+1}=jp | eps_t=j)
-        """
-        G_next = np.zeros_like(G)
-        dk     = k_grid[1] - k_grid[0]                       # uniform spacing
-        n_k    = len(k_grid)
-        for j in range(G.shape[1]):                          # current shock
-            for i in range(G.shape[0]):                      # current capital bin
-                x = kp[i, j]
-                # Boundary handling: clip BOTH the bracket index J AND the
-                # lottery weight omega.  Otherwise an off-grid x produces
-                # omega < 0 or omega > 1 and hence negative or super-unit mass.
-                if x <= k_grid[0]:
-                    J, omega = 0, 1.0                        # all mass to the floor
-                elif x >= k_grid[-1]:
-                    J, omega = n_k - 2, 0.0                  # all mass to the cap
-                else:
-                    J     = int((x - k_grid[0]) // dk)
-                    J     = min(max(J, 0), n_k - 2)
-                    omega = (k_grid[J + 1] - x) / dk         # in [0, 1]
-                for jp in range(G.shape[1]):                 # next-period shock
-                    w = pi_eps[j, jp] * G[i, j]              # shock fork x source mass
-                    G_next[J,     jp] += omega       * w
-                    G_next[J + 1, jp] += (1 - omega) * w
-        return G_next
-
+def young_step(G, kp, pi_eps, k_grid):
+    """One Young (2010) histogram update on a uniform k-grid.
+    G[i,j]      mass at (k_grid[i], eps_j),       sums to 1
+    kp[i,j]     policy choice k'(k_i, eps_j),     possibly off-grid
+    pi_eps[j,jp] = Pr(eps_{t+1}=jp | eps_t=j)
+    """
+    G_next = np.zeros_like(G)
+    dk     = k_grid[1] - k_grid[0]                       # uniform spacing
+    n_k    = len(k_grid)
+    for j in range(G.shape[1]):                          # current shock
+        for i in range(G.shape[0]):                      # current capital bin
+            x = kp[i, j]
+            # Boundary handling: clip BOTH the bracket index J AND the
+            # lottery weight omega.  Otherwise an off-grid x produces
+            # omega < 0 or omega > 1 and hence negative or super-unit mass.
+            if x <= k_grid[0]:
+                J, omega = 0, 1.0                        # all mass to the floor
+            elif x >= k_grid[-1]:
+                J, omega = n_k - 2, 0.0                  # all mass to the cap
+            else:
+                J     = int((x - k_grid[0]) // dk)
+                J     = min(max(J, 0), n_k - 2)
+                omega = (k_grid[J + 1] - x) / dk         # in [0, 1]
+            for jp in range(G.shape[1]):                 # next-period shock
+                w = pi_eps[j, jp] * G[i, j]              # shock fork x source mass
+                G_next[J,     jp] += omega       * w
+                G_next[J + 1, jp] += (1 - omega) * w
+    return G_next
+```
 The four scatter-add lines correspond exactly to the four leaves of {numref}`fig-young_cascade`: each leaf receives `omega` or `(1-omega)` from the capital lottery, multiplied by `pi_eps[j, jp]` from the shock fork, multiplied by the source mass. The Krusell–Smith JAX tutorial in `lectures/lecture_10_sequence_space_deqns/code/lecture_10_KrusellSmith_Tutorial_CPU.ipynb` implements this same operation as `distribution_step`, vectorised over the grid via `jax.vmap` and accumulated with `.at[ ].add( )`.
 
 ````{prf:remark} Closed-form bracketing on GPUs, and how to keep it on log-spaced grids
