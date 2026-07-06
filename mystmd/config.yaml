@@ -239,24 +239,6 @@ postprocess:
         from:  '\*\*\[(NEW: wrap the per-step kernel)',
         to:    '**\\[\1' }
 
-    # R20 — Class I: repair the preface author-email mailto. The source now
-    # wraps the visible address in \nolinkurl{} — \href{mailto:…@unil.ch}
-    # {\nolinkurl{…@unil.ch}} (upstream 6b18c3a, the attempted fix for book#2) —
-    # to stop pandoc reading "@unil" as a natbib citation. But pandoc's citation
-    # extension still fires on the "@" inside BOTH the mailto: URL and the
-    # \nolinkurl display text, emitting `{cite:t}`unil`` in each — the sole
-    # "unresolved citation key: unil" build warning, present since the scaffold.
-    # Undo exactly that misparse (restore the literal "@unil") so the address
-    # renders as a clean monospace mailto link, matching the \nolinkurl intent
-    # in the PDF. Two occurrences, both in preface.md; the "unil" token appears
-    # nowhere else in the book. Root cause is converter-side (pandoc should not
-    # scan mailto hrefs / \nolinkurl bodies for @-citations) — filed upstream as
-    # QuantEcon/claude-latex-to-myst#179; downstream tracker book#2. Drop this
-    # rewrite once #179 lands.
-    - { stems: [preface],
-        from:  '\{cite:t\}`unil`',
-        to:    '@unil' }
-
     # (R16 Class F deleted in R18: upstream #105/#106 landed — \texttt{{@}foo}
     # now converts to a single clean code span in both prose and algorithm
     # bodies, so the `@``-collapse rewrite no longer matched anything.)
@@ -264,6 +246,12 @@ postprocess:
     # \includegraphics{fig/restud_*} is now resolved to the copied raster by
     # the converter itself; verified by reconverting ch11 with the rewrite
     # removed.)
+    # (R20 Class I deleted in R21: upstream #181 — QuantEcon/claude-latex-to-myst
+    # #179 — landed, so pandoc no longer misparses the "@" in mailto: URLs /
+    # \nolinkurl / \url bodies as a citation. The preface email now renders as a
+    # clean `simon.scheidegger@unil.ch` mailto link with no `{cite:t}`unil`` left
+    # to rewrite; verified by reconverting preface with the rewrite removed.
+    # book#2 no longer needs a downstream stopgap.)
 
 # --- Validation -------------------------------------------------------------
 
