@@ -8559,28 +8559,38 @@ Figure~\ref{fig:cdice_climate_topology} summarizes the full topology of the clim
 
 \begin{figure}[ht]
 \centering
-\begin{tikzpicture}[>=stealth, node distance=2.4cm,
+\begin{tikzpicture}[>=stealth,
     reservoir/.style={rectangle, draw=uzhblue, fill=uzhblue!8, rounded corners=4pt,
                       minimum width=2.5cm, minimum height=1.0cm, align=center, font=\small},
     temp/.style={rectangle, draw=harvardcrimson, fill=harvardcrimson!8, rounded corners=4pt,
                  minimum width=2.5cm, minimum height=1.0cm, align=center, font=\small},
     src/.style={rectangle, draw=darkgreen, fill=darkgreen!10, rounded corners=4pt,
                 minimum width=2.0cm, minimum height=0.8cm, align=center, font=\small},
-    edgelab/.style={font=\scriptsize, fill=white, inner sep=1pt}]
-    \node[src] (E) at (-3.5, 0.5) {$E_t$};
-    \node[reservoir] (Mat) at (0,1) {$M^{\mathrm{AT}}_t$};
-    \node[reservoir] (Muo) at (0,-0.5) {$M^{\mathrm{UO}}_t$};
-    \node[reservoir] (Mlo) at (0,-2.0) {$M^{\mathrm{LO}}_t$};
-    \node[temp] (F) at (3.4,1) {$F_t$};
-    \node[temp] (Tat) at (6.4,1) {$T^{\mathrm{AT}}_t$};
-    \node[temp] (Toc) at (6.4,-0.5) {$T^{\mathrm{OC}}_t$};
-    \draw[->, thick] (E) -- (Mat);
-    \draw[<->, thick] (Mat) -- node[edgelab] {$b_{12}$} (Muo);
-    \draw[<->, thick] (Muo) -- node[edgelab] {$b_{23}$} (Mlo);
-    \draw[->, thick] (Mat) -- node[edgelab] {$F_{2\times}\log_2(M^{\mathrm{AT}}/M^{\mathrm{AT}}_{\mathrm{PI}})$} (F);
-    \draw[->, thick] (F) -- node[edgelab] {$c_1$} (Tat);
-    \draw[<->, thick] (Tat) -- node[edgelab] {$c_3,c_4$} (Toc);
-    \draw[->, thick, dashed] (Tat) to[bend left=35] node[edgelab, above] {damage $\Omega(T^{\mathrm{AT}})$} (-3.5, 2.0);
+    edgelab/.style={font=\footnotesize, fill=white, inner sep=2pt}]
+    % economy source (far left), carbon column, forcing, temperature column
+    \node[src]       (E)   at (-4.2, 0)   {$E_t$};
+    \node[reservoir] (Mat) at (0, 0)      {$M^{\mathrm{AT}}_t$};
+    \node[reservoir] (Muo) at (0, -2.1)   {$M^{\mathrm{UO}}_t$};
+    \node[reservoir] (Mlo) at (0, -4.2)   {$M^{\mathrm{LO}}_t$};
+    \node[temp]      (F)   at (5.0, 0)    {$F_t$};
+    \node[temp]      (Tat) at (9.4, 0)    {$T^{\mathrm{AT}}_t$};
+    \node[temp]      (Toc) at (9.4, -2.1) {$T^{\mathrm{OC}}_t$};
+    % emissions into the atmospheric box
+    \draw[->, thick] (E) -- node[edgelab, above] {emissions} (Mat);
+    % carbon-box exchange
+    \draw[<->, thick] (Mat) -- node[edgelab, right=3pt] {$b_{12}$} (Muo);
+    \draw[<->, thick] (Muo) -- node[edgelab, right=3pt] {$b_{23}$} (Mlo);
+    % radiative forcing (two-line label above the arrow)
+    \draw[->, thick] (Mat) -- node[edgelab, align=center, above=1pt]
+        {$F_{2\times}\log_2$\\[1pt]$\bigl(M^{\mathrm{AT}}/M^{\mathrm{AT}}_{\mathrm{PI}}\bigr)$} (F);
+    % energy balance
+    \draw[->, thick]  (F)   -- node[edgelab] {$c_1$} (Tat);
+    \draw[<->, thick] (Tat) -- node[edgelab, right=3pt] {$c_3,\,c_4$} (Toc);
+    % damage feedback: orthogonal route above the top row, closing the loop at E
+    \draw[->, thick, dashed]
+        (Tat.north) -- ++(0, 1.1)
+        -| (E.north)
+        node[edgelab, pos=0.25, above=1pt] {damage $\Omega(T^{\mathrm{AT}})$};
 \end{tikzpicture}
 \caption{Topology of the CDICE climate side.  Total emissions $E_t$ enter the atmospheric carbon box $M^{\mathrm{AT}}_t$, leak into the upper- and lower-ocean carbon boxes at exchange rates $b_{12}$ and $b_{23}$, and drive radiative forcing $F_t$ through the logarithmic CO$_2$ relation.  The two-layer energy balance maps $F_t$ into the atmospheric temperature $T^{\mathrm{AT}}_t$ via $c_1$, with $c_3, c_4$ governing the heat exchange between atmosphere and ocean.  The dashed arrow closes the loop through the damage function back into output (developed in \S\ref{sec:dice_damages}).  Five climate states $(M^{\mathrm{AT}}, M^{\mathrm{UO}}, M^{\mathrm{LO}}, T^{\mathrm{AT}}, T^{\mathrm{OC}})$ form the climate-side block of the DEQN state vector \eqref{eq:iam_state}.}
 \label{fig:cdice_climate_topology}
