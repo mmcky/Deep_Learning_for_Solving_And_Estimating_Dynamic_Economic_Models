@@ -44,15 +44,23 @@ jobs:
         with:
           node-version: 22.x
       - uses: oven-sh/setup-bun@v2
-      - name: Install MyST Markdown (QuantEcon fork, qe-v6)
+      - name: Install MyST Markdown (QuantEcon fork, qe-v8)
         # Builds from source — the QuantEcon fork is not on npm.
-        # qe-v6 includes book-mode parts, section-scoped proof numbering,
+        # qe-v8 includes book-mode parts, section-scoped proof numbering,
         # the title→heading chain, and shared proof:* counters.
+        #
+        # R24: pinned to qe-v8 to match what validation actually runs against
+        # (R22/R23 were both audited on qe-v8 while CI still shipped qe-v6).
+        # Rendered-text delta vs qe-v6 across all 22 pages: 18 identical;
+        # Program numbering becomes per-chapter ("Program 1" → "Program 4.1",
+        # consistent with figures/tables/algorithms, 3 sites); and #50's
+        # fancy-list parse eats 10 custom enumerate markers, held by Class L
+        # in config.yaml until QuantEcon/mystmd#51 lands.
         working-directory: /tmp
         run: |
           git clone https://github.com/QuantEcon/mystmd.git qe-mystmd
           cd qe-mystmd
-          git checkout qe-v6
+          git checkout qe-v8
           bun install
           bun run build
           npm install -g /tmp/qe-mystmd/packages/mystmd

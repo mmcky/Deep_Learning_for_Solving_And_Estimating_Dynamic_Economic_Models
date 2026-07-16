@@ -44,9 +44,9 @@ Distance itself is the second casualty of high dimensions, and it is worth flagg
 ```{figure} figures/fig-volume_paradox.svg
 :name: fig-volume_paradox
 
-(a) the unit ball inscribed in $[-1,1]^d$
+\(a\) the unit ball inscribed in $[-1,1]^d$
 
-(b) ratio {eq}`eq-volume_ratio` versus $d$ (log scale)
+\(b\) ratio {eq}`eq-volume_ratio` versus $d$ (log scale)
 
 The volume paradox behind the curse of dimensionality. *(a)* The largest ball that fits inside the cube $[-1,1]^d$ touches the center of every face, at distance $1$ from the center, but its surface stays $\sqrt{d}-1$ away from each of the $2^d$ corners, which lie at distance $\sqrt{d}$. As $d$ grows the corners recede while the ball does not, so almost all of the cube's volume ends up in the corners (tinted), far from the center. *(b)* The ball-to-cube volume ratio of equation {eq}`eq-volume_ratio` on a logarithmic scale: $\pi/4$ at $d=2$, about $2.5\times10^{-3}$ at $d=10$, and below $10^{-70}$ at $d=100$. A grid or quadrature rule built on the bounding hypercube therefore spends an exponentially growing share of its nodes in corners that the model's ergodic set never reaches.
 ```
@@ -60,9 +60,9 @@ Grid-based vs. simulation-based state sampling. A Cartesian grid (left) allocat
 ```{figure} figures/fig-distance_concentration.svg
 :name: fig-distance_concentration
 
-(a) blue core and red shell each hold half a $d$-ball's volume; the shell thins as $d$ grows
+\(a\) blue core and red shell each hold half a $d$-ball's volume; the shell thins as $d$ grows
 
-(b) the radius CDF piles up at $r\to1$ as $d$ grows
+\(b\) the radius CDF piles up at $r\to1$ as $d$ grows
 
 Why a "random" point in high dimensions lives on the shell, not in the core. *(a)* For each $d$, the blue inner disk and the red outer shell each hold half of the $d$-ball's volume; the shell's fractional thickness $1-(1/2)^{1/d}$ shrinks from $\approx0.29$ at $d=2$ to $\approx0.07$ at $d=10$ to $\approx0.014$ at $d=50$, so half of the mass crowds into an ever thinner rim near the surface. *(b)* Equivalently, the radius of a uniform draw has cumulative distribution $r^{d}$, which for large $d$ stays near zero until $r$ is almost $1$ and then jumps: the radius is essentially deterministic at $1$. The companion fact is that pairwise Euclidean distances among random points concentrate, so a query point's nearest and farthest neighbors become nearly indistinguishable {cite:p}`aggarwal2001surprising`; this is why distance-based methods, including the Gaussian-process kernels of {ref}`ch-gp`, lose resolution in high dimensions.
 ```

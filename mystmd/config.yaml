@@ -249,6 +249,26 @@ postprocess:
         from:  '\*\*\[(NEW: wrap the per-step kernel)',
         to:    '**\\[\1' }
 
+    # R24 — Class L: escape line-leading custom enumerate markers so qe-v8
+    # does not eat them. QuantEcon/mystmd#50 (fancy ordered lists) landed
+    # between qe-v6 and qe-v8, so `(a) text` at column 1 is now *parsed* as
+    # an ordered-list marker where qe-v6 left it as literal paragraph text.
+    # The parse itself is right — the AST carries `style: lower-alpha` /
+    # `delimiter: parens` — but the HTML renderer drops both and emits a bare
+    # `<ol start="1">`, so the markers render "1./2./3." instead of
+    # "(a)/(b)/(c)". Net effect on upgrade: 10 labels silently lost (appF ×6:
+    # a,b,c,i,ii,iii; ch02 ×4: a,b). Escaping the parens restores the exact
+    # qe-v6 rendering (literal text, verified byte-identical). Same shape as
+    # Class H above: escape the delimiter that trips a mystmd parser.
+    # Root cause is upstream in QuantEcon/mystmd (HTML renderer, not the
+    # parser) — NOT YET FILED; report drafted at mystmd/docs/mystmd-fancy-
+    # list-render-bug.md. Drop Class L once the renderer honours the
+    # fancy-list style/delimiter, and prefer the designed surface
+    # (`postprocess.enumerate_style`, converter #111) at that point.
+    - { stems: [appF_solutions, ch02_deqns],
+        from:  '^\((iii|ii|i|a|b|c)\) ',
+        to:    '\\(\1\\) ' }
+
     # (R16 Class F deleted in R18: upstream #105/#106 landed — \texttt{{@}foo}
     # now converts to a single clean code span in both prose and algorithm
     # bodies, so the `@``-collapse rewrite no longer matched anything.)
