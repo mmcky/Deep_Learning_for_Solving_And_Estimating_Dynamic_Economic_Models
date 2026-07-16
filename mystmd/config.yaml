@@ -261,9 +261,8 @@ postprocess:
     # qe-v6 rendering (literal text, verified byte-identical). Same shape as
     # Class H above: escape the delimiter that trips a mystmd parser.
     # Root cause is upstream in QuantEcon/mystmd (HTML renderer, not the
-    # parser) — NOT YET FILED; report drafted at mystmd/docs/mystmd-fancy-
-    # list-render-bug.md. Drop Class L once the renderer honours the
-    # fancy-list style/delimiter, and prefer the designed surface
+    # parser), filed as QuantEcon/mystmd#74. Drop Class L once the renderer
+    # honours the fancy-list style/delimiter, and prefer the designed surface
     # (`postprocess.enumerate_style`, converter #111) at that point.
     - { stems: [appF_solutions, ch02_deqns],
         from:  '^\((iii|ii|i|a|b|c)\) ',
