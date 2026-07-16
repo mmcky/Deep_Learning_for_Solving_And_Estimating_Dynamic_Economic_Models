@@ -402,3 +402,4 @@
 <path fill="none" stroke-width="0.79701" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(39.99939%, 39.99939%, 69.999695%)" stroke-opacity="1" stroke-miterlimit="10" d="M 205.713 -0.00034375 L 256.595813 -0.00034375 " transform="matrix(1, 0, 0, -1, 54.787, 33.527)"/>
 <path fill-rule="nonzero" fill="rgb(39.99939%, 39.99939%, 69.999695%)" fill-opacity="1" stroke-width="0.79701" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(39.99939%, 39.99939%, 69.999695%)" stroke-opacity="1" stroke-miterlimit="10" d="M 7.368476 -0.00034375 L 1.286445 2.292625 L 3.290351 -0.00034375 L 1.286445 -2.293312 Z M 7.368476 -0.00034375 " transform="matrix(1, 0, 0, -1, 308.29168, 33.527)"/>
 </svg>
+<!-- tikz-src-sha256:3be6a8bbd5f5b80b90ef26e8c10917415913d229c91ae109089249479aa6317b -->

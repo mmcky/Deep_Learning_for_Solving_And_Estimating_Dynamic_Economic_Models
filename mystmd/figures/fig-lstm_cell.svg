@@ -320,3 +320,4 @@
 <path fill="none" stroke-width="0.79701" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%, 0%, 0%)" stroke-opacity="1" stroke-miterlimit="10" d="M -0.00040625 -55.275125 L -0.00040625 -33.396219 " transform="matrix(1, 0, 0, -1, 143.059, 61.428)"/>
 <path fill="none" stroke-width="0.79701" stroke-linecap="round" stroke-linejoin="round" stroke="rgb(0%, 0%, 0%)" stroke-opacity="1" stroke-miterlimit="10" d="M -2.551413 3.109781 C -2.082663 1.242594 -1.047506 0.363687 -0.00063125 0.00040625 C -1.047506 -0.362875 -2.082663 -1.245688 -2.551413 -3.112875 " transform="matrix(0, -1, -1, 0, 143.059, 94.42515)"/>
 </svg>
+<!-- tikz-src-sha256:e5471975a2620acc82f93aa5d7b4762534ce9ee06d3598682753c2348bd03413 -->

@@ -24,6 +24,7 @@ Requires: pdflatex (TeX Live), pdf2svg.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import re
 import shutil
 import subprocess
@@ -42,6 +43,30 @@ SOURCE_TEX = (
 )
 FIGURES_DIR = MYSTMD_DIR / "figures"
 OVERRIDES_PY = MYSTMD_DIR / "tikz_overrides.py"
+
+# Each rendered SVG carries a trailing comment stamping the sha256 of the
+# standalone document it was compiled from, and that digest is what decides
+# a re-render. mtimes cannot: git does not preserve them, so after any clone
+# or checkout every SVG looks newer than the source and a whole-file mtime
+# test skips all figures forever, letting committed SVGs drift silently out
+# of sync with the TikZ they came from.
+DIGEST_MARKER = "tikz-src-sha256"
+DIGEST_RE = re.compile(rf"<!-- {DIGEST_MARKER}:([0-9a-f]{{64}}) -->")
+
+
+def embedded_digest(svg: Path) -> str | None:
+    """The source digest stamped into ``svg``, or None if absent/unreadable.
+
+    Absent means the SVG predates digest stamping (or was written by hand),
+    so the caller re-renders — which is the safe direction.
+    """
+    try:
+        text = svg.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return None
+    match = DIGEST_RE.search(text)
+    return match.group(1) if match else None
+
 
 # Search path for \includegraphics filenames, mirroring the source's
 # \graphicspath{}. Listed in lookup order: bare filename first, then
@@ -219,12 +244,12 @@ def discover(source: str) -> tuple[list[Figure], list[IncludedImage]]:
 def render(fig: Figure, force: bool = False) -> str:
     """Returns one of: 'rendered', 'skipped', 'failed'."""
     out_svg = FIGURES_DIR / f"{fig.label}.svg"
-    if not force and out_svg.exists():
-        if out_svg.stat().st_mtime > SOURCE_TEX.stat().st_mtime:
-            print(f"  SKIP {fig.label} (up to date)")
-            return "skipped"
-    print(f"  Render {fig.label}...")
     doc = STANDALONE_TEMPLATE.replace("%CONTENT%", fig.content)
+    digest = hashlib.sha256(doc.encode("utf-8")).hexdigest()
+    if not force and out_svg.exists() and embedded_digest(out_svg) == digest:
+        print(f"  SKIP {fig.label} (up to date)")
+        return "skipped"
+    print(f"  Render {fig.label}...")
     with tempfile.TemporaryDirectory(prefix="tikz_render_") as td:
         td_path = Path(td)
         tex_file = td_path / f"{fig.label}.tex"
@@ -265,6 +290,11 @@ def render(fig: Figure, force: bool = False) -> str:
         print(f"  ERROR: {fig.label} SVG too small (likely corrupt)")
         out_svg.unlink()
         return "failed"
+    # Stamp the source digest so the next run can tell "already current" from
+    # "source changed" without consulting mtimes. A trailing comment is valid
+    # XML (document ::= prolog element Misc*) and renderers ignore it.
+    with out_svg.open("a", encoding="utf-8") as fh:
+        fh.write(f"<!-- {DIGEST_MARKER}:{digest} -->\n")
     print(f"  OK     {fig.label} -> figures/{fig.label}.svg")
     return "rendered"
 

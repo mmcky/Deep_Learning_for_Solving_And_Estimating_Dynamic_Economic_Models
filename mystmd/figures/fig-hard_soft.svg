@@ -652,3 +652,4 @@
 <path fill="none" stroke-width="0.79701" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(54.508972%, 0%, 0%)" stroke-opacity="1" stroke-dasharray="2.98883 2.98883" stroke-miterlimit="10" d="M 165.432125 -8.193656 L 189.674312 -48.623344 " transform="matrix(1, 0, 0, -1, 32.646, 89.529)"/>
 <path fill-rule="nonzero" fill="rgb(54.508972%, 0%, 0%)" fill-opacity="1" stroke-width="0.79701" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(54.508972%, 0%, 0%)" stroke-opacity="1" stroke-miterlimit="10" d="M 4.532916 0.000977157 L 1.286122 1.232895 L 2.369027 0.00046873 L 1.288041 -1.232466 Z M 4.532916 0.000977157 " transform="matrix(0.51428, 0.85759, 0.85759, -0.51428, 221.20313, 136.2889)"/>
 </svg>
+<!-- tikz-src-sha256:22c446a582b2315e439cdd71c183c20af01bcd708d51dd6027128e6d442929a7 -->

@@ -325,3 +325,4 @@
 <path fill="none" stroke-width="1.19553" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(29.998779%, 29.998779%, 64.99939%)" stroke-opacity="1" stroke-miterlimit="10" d="M 190.648781 -0.00040625 L 236.62925 -0.00040625 " transform="matrix(1, 0, 0, -1, 47.652, 26.441)"/>
 <path fill-rule="nonzero" fill="rgb(29.998779%, 29.998779%, 64.99939%)" fill-opacity="1" stroke-width="1.19553" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(29.998779%, 29.998779%, 64.99939%)" stroke-opacity="1" stroke-miterlimit="10" d="M 6.801935 -0.00040625 L 1.930841 1.84725 L 3.555841 -0.00040625 L 1.930841 -1.848063 Z M 6.801935 -0.00040625 " transform="matrix(1, 0, 0, -1, 281.02619, 26.441)"/>
 </svg>
+<!-- tikz-src-sha256:804dc840530b089252d5fa86f85c97ea10ca654786b594ad8a8c14ecd890c0ba -->

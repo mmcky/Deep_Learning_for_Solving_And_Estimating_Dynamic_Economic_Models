@@ -714,3 +714,4 @@
 <path fill="none" stroke-width="0.79701" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(50%, 0%, 0%)" stroke-opacity="1" stroke-miterlimit="10" d="M 150.038563 -110.551469 L 54.952625 -83.274125 " transform="matrix(1, 0, 0, -1, 22.188, 143.179)"/>
 <path fill-rule="nonzero" fill="rgb(50%, 0%, 0%)" fill-opacity="1" stroke-width="0.79701" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(50%, 0%, 0%)" stroke-opacity="1" stroke-miterlimit="10" d="M 5.099524 0.00127076 L 1.288293 1.443818 L 2.556154 -0.000903749 L 1.287077 -1.441891 Z M 5.099524 0.00127076 " transform="matrix(-0.96121, -0.27574, -0.27574, 0.96121, 79.40597, 227.10414)"/>
 </svg>
+<!-- tikz-src-sha256:5a88e925b700137cec81ad2743d97722783c623351955a1d11744014657e5226 -->

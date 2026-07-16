@@ -505,3 +505,4 @@
 <path fill="none" stroke-width="0.79701" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(59.999084%, 0%, 0%)" stroke-opacity="1" stroke-miterlimit="10" d="M 8.997344 79.197438 L 29.598906 79.197438 C 32.348906 79.197438 34.579375 81.427906 34.579375 84.177906 L 34.579375 156.349781 C 34.579375 159.099781 32.391875 160.884938 29.696562 160.334156 L 7.083281 155.720875 " transform="matrix(1, 0, 0, -1, 81.53, 194.549)"/>
 <path fill="none" stroke-width="0.79701" stroke-linecap="round" stroke-linejoin="round" stroke="rgb(59.999084%, 0%, 0%)" stroke-opacity="1" stroke-miterlimit="10" d="M -2.550332 3.109544 C -2.085694 1.244502 -1.045679 0.36245 0.000971174 0.00133919 C -1.04622 -0.363071 -2.083173 -1.243892 -2.551683 -3.109879 " transform="matrix(-0.97975, 0.19994, 0.19994, 0.97975, 88.22334, 38.90865)"/>
 </svg>
+<!-- tikz-src-sha256:6d471b1a3e53bcfb7d6a6d372bd001298821b785157eee679c09199c8ccffeec -->
