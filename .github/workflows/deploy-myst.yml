@@ -44,23 +44,25 @@ jobs:
         with:
           node-version: 22.x
       - uses: oven-sh/setup-bun@v2
-      - name: Install MyST Markdown (QuantEcon fork, qe-v8)
+      - name: Install MyST Markdown (QuantEcon fork, qe-v9)
         # Builds from source — the QuantEcon fork is not on npm.
-        # qe-v8 includes book-mode parts, section-scoped proof numbering,
-        # the title→heading chain, and shared proof:* counters.
+        # qe-v9 carries everything qe-v8 had (book-mode parts, section-scoped
+        # proof numbering, the title→heading chain, shared proof:* counters)
+        # plus per-row equation numbering for non-starred `align`
+        # (QuantEcon/mystmd#81) and KaTeX ^0.15.2 → ^0.16.21
+        # (QuantEcon/mystmd#80).
         #
-        # R24: pinned to qe-v8 to match what validation actually runs against
-        # (R22/R23 were both audited on qe-v8 while CI still shipped qe-v6).
-        # Rendered-text delta vs qe-v6 across all 22 pages: 18 identical;
-        # Program numbering becomes per-chapter ("Program 1" → "Program 4.1",
-        # consistent with figures/tables/algorithms, 3 sites); and #50's
-        # fancy-list parse eats 10 custom enumerate markers, held by Class L
-        # in config.yaml until QuantEcon/mystmd#51 lands.
+        # R26: this pin is COUPLED to mystmd/.tool-version. Since
+        # QuantEcon/claude-latex-to-myst#201 the converter emits non-starred
+        # `align` verbatim and depends on the fork's per-row numbering, so
+        # both pins move together — bumping the converter alone silently
+        # forfeits the fix (see issue #17). Checkout is by tag name; the
+        # qe-v9 commit is 24f6ae8009961bcfb5f38d24f35c470405e869ee.
         working-directory: /tmp
         run: |
           git clone https://github.com/QuantEcon/mystmd.git qe-mystmd
           cd qe-mystmd
-          git checkout qe-v8
+          git checkout qe-v9
           bun install
           bun run build
           npm install -g /tmp/qe-mystmd/packages/mystmd

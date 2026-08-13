@@ -131,14 +131,14 @@ Reference IRBC calibration used in the companion notebook. Countries' IES values
 **Worked steady state.** Equation {eq}`eq-atfp` is most compactly written as $A_\mathrm{tfp}=(1/\beta - 1 + \delta)/\zeta$; multiplying numerator and denominator by $\beta$ gives the algebraically equivalent form $A_\mathrm{tfp}=(1-\beta(1-\delta))/(\zeta\beta)$ used below. Substituting the reference values:
 
 $$
-\begin{aligned}
+\begin{align}
 A_\mathrm{tfp} &= \frac{1-\beta(1-\delta)}{\zeta\,\beta}
                = \frac{1 - 0.99 \cdot 0.99}{0.36 \cdot 0.99}
                \;\approx\; 0.0559, \\
 Y^\star_j      &= A_\mathrm{tfp}\,(k^\star)^\zeta \approx 0.0559, \qquad
 I^\star_j      = \delta\,k^\star = 0.01, \qquad
 c^\star_j      = Y^\star_j - I^\star_j \approx 0.0459.
-\end{aligned}
+\end{align}
 $$
 
 The aggregate resource constraint {eq}`eq-irbc_arc` is then satisfied country by country, $Y^\star_j - I^\star_j - c^\star_j = 0$, as a trivial check. These numbers provide a baseline against which the trained network's predictions on an out-of-sample simulation can be compared.

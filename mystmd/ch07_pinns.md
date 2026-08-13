@@ -224,12 +224,12 @@ Qualitative MLP vs. DGM comparison across the problem classes of this chapter. 
 For high-dimensional PDEs, {cite:t}`sirignano2018dgm` introduced the Deep Galerkin Method (DGM), an architecture with LSTM-style gating {cite:p}`hochreiter1997long` and skip connections from the input layer to every hidden layer reminiscent of Highway Networks {cite:p}`srivastava2015highway` (the immediate precursor of ResNets, in which a learned gate controls how much of the previous representation is carried forward unchanged versus transformed).[^2] A related deep BSDE-based formulation was introduced by {cite:t}`e2017deep` (E–Han–Jentzen) and developed in the companion paper of {cite:t}`han2018solving` (Han–Jentzen–E). An accessible exposition of DGM together with several PDE applications is given by {cite:t}`al2018solving`, which also introduces the gate naming convention adopted below. The original DGM architecture of {cite:t}`sirignano2018dgm` uses four gates at each layer $l$:
 
 $$
-\begin{aligned}
+\begin{align}
 Z^{(l)} &= \sigma\!\big(\W_z^{(l)} \a^{(l-1)} + \bm{U}_z^{(l)} \x + \bb_z^{(l)}\big), && \text{(update gate)} \\
 G^{(l)} &= \sigma\!\big(\W_g^{(l)} \a^{(l-1)} + \bm{U}_g^{(l)} \x + \bb_g^{(l)}\big), && \text{(forget gate)} \\
 R^{(l)} &= \sigma\!\big(\W_r^{(l)} \a^{(l-1)} + \bm{U}_r^{(l)} \x + \bb_r^{(l)}\big), && \text{(relevance gate)} \\
 H^{(l)} &= \tanh\!\big(\W_h^{(l)} (R^{(l)} \odot \a^{(l-1)}) + \bm{U}_h^{(l)} \x + \bb_h^{(l)}\big), && \text{(candidate state)}
-\end{aligned}
+\end{align}
 $$
 
 and the state update is:

@@ -483,12 +483,11 @@ c_t^{-1/\psi}\,A_t^{1-1/\psi}\,L_t - \hat{\lambda}_t = 0
 $$ (eq-iam_foc_c)
 
 $$
-\frac{\partial \mathcal{L}}{\partial k_{t+1}} = 0 \; \Leftrightarrow\;
-\exp\!\bigl(g^A_t + g^L_t\bigr)\,\hat{\lambda}_t - \hat{\beta}_t\Bigl\{\hat{\lambda}_{t+1}\bigl[\bigl(1-\Omega(T_{\mathrm{AT},t+1}) - \Theta(\mu_{t+1})\bigr)\alpha k_{t+1}^{\alpha-1} + (1-\delta)\bigr] \nonumber
-$$
-
-$$
-\quad + \hat{\nu}^{\mathrm{AT}}_{t+1}\,\sigma_{t+1}(1-\mu_{t+1})A_{t+1}L_{t+1}\alpha k_{t+1}^{\alpha-1}\Bigr\} = 0
+\begin{aligned}
+\frac{\partial \mathcal{L}}{\partial k_{t+1}} = 0 \;&\Leftrightarrow\;
+\exp\!\bigl(g^A_t + g^L_t\bigr)\,\hat{\lambda}_t - \hat{\beta}_t\Bigl\{\hat{\lambda}_{t+1}\bigl[\bigl(1-\Omega(T_{\mathrm{AT},t+1}) - \Theta(\mu_{t+1})\bigr)\alpha k_{t+1}^{\alpha-1} + (1-\delta)\bigr] \\
+&\quad + \hat{\nu}^{\mathrm{AT}}_{t+1}\,\sigma_{t+1}(1-\mu_{t+1})A_{t+1}L_{t+1}\alpha k_{t+1}^{\alpha-1}\Bigr\} = 0,
+\end{aligned}
 $$ (eq-iam_foc_k)
 
 $$
@@ -559,49 +558,64 @@ The network architecture uses two hidden layers with 1024 units each, SELU activ
 
 **The 8 loss components.** Each remaining equilibrium condition from {ref}`sec-dice_deqn` becomes a residual $l_m = 0$, and the network is asked to drive every $l_m$ to zero simultaneously along simulated paths. The mapping is one-for-one: $l_1$ is the capital-Euler FOC {eq}`eq-iam_foc_k`; $l_2$ is the budget constraint that closes {eq}`eq-capital_accumulation`; $l_3$, $l_4$, $l_5$ are the three carbon-reservoir envelope conditions, of which $l_3$ is {eq}`eq-iam_env_mat`; $l_6$ and $l_7$ are the two temperature-layer envelopes; and $l_8$ is the Fischer–Burmeister smoothing {eq}`eq-iam_fb` of the KKT slack on $\mu_t \le 1$, evaluated at the implied multiplier {eq}`eq-iam_lambdamu_implied`. The consumption FOC {eq}`eq-iam_foc_c` and the abatement FOC {eq}`eq-iam_foc_mu` are enforced *exactly* via the inversions in {eq}`eq-iam_c_recovery` and {eq}`eq-iam_lambdamu_implied`, which is why the loss list contains eight entries instead of nine. Written out, the eight components are:
 
-$$
-l_1 := \exp\!\bigl(g^A_t + g^L_t\bigr)\,\hat{\lambda}_t - \hat{\beta}_t\Bigl\{\hat{\lambda}_{t+1}\bigl[\bigl(1-\Omega(T_{\mathrm{AT},t+1}) - \Theta(\mu_{t+1})\bigr)\alpha k_{t+1}^{\alpha-1} + (1-\delta)\bigr] \nonumber
-$$
+```{math}
+:label: eq-iam_l1
+:enumerator: capital Euler
 
-$$
-\quad + \hat{\nu}^{\mathrm{AT}}_{t+1}\,\sigma_{t+1}(1-\mu_{t+1})A_{t+1}L_{t+1}\alpha k_{t+1}^{\alpha-1}\Bigr\}
-    \tag*{\text{(capital Euler)}}
-$$ (eq-iam_l1)
+\begin{aligned}
+l_1 &:= \exp\!\bigl(g^A_t + g^L_t\bigr)\,\hat{\lambda}_t - \hat{\beta}_t\Bigl\{\hat{\lambda}_{t+1}\bigl[\bigl(1-\Omega(T_{\mathrm{AT},t+1}) - \Theta(\mu_{t+1})\bigr)\alpha k_{t+1}^{\alpha-1} + (1-\delta)\bigr] \\
+&\quad + \hat{\nu}^{\mathrm{AT}}_{t+1}\,\sigma_{t+1}(1-\mu_{t+1})A_{t+1}L_{t+1}\alpha k_{t+1}^{\alpha-1}\Bigr\}
+\end{aligned}
+```
 
-$$
+```{math}
+:label: eq-iam_l2
+:enumerator: budget
+
 l_2 := \bigl(1-\Omega(T_{\mathrm{AT},t}) - \Theta(\mu_t)\bigr)\,k_t^\alpha + (1-\delta)\,k_t - c_t - \exp\!\bigl(g^A_t + g^L_t\bigr)\,k_{t+1}
-    \tag*{\text{(budget)}}
-$$ (eq-iam_l2)
+```
 
-$$
+```{math}
+:label: eq-iam_l3
+:enumerator: atm. carbon
+
 l_3 := \hat{\nu}^{\mathrm{AT}}_t - \hat{\beta}_t\!\left[\hat{\nu}^{\mathrm{AT}}_{t+1}(1-b_{12}) + \hat{\nu}^{\mathrm{UO}}_{t+1}\,b_{12} + \hat{\eta}^{\mathrm{AT}}_{t+1}\,c_1\,F_{\mathrm{2\times CO_2}}\,\tfrac{1}{\ln 2\,M_{\mathrm{AT},t+1}}\right]
-    \tag*{\text{(atm.\ carbon)}}
-$$ (eq-iam_l3)
+```
 
-$$
+```{math}
+:label: eq-iam_l4
+:enumerator: upper ocean C
+
 l_4 := \hat{\nu}^{\mathrm{UO}}_t - \hat{\beta}_t\!\Bigl[\hat{\nu}^{\mathrm{AT}}_{t+1}\,b_{12}\,\tfrac{M^{\mathrm{AT}}_{\mathrm{EQ}}}{M^{\mathrm{UO}}_{\mathrm{EQ}}} + \hat{\nu}^{\mathrm{UO}}_{t+1}\!\Bigl(1-b_{12}\tfrac{M^{\mathrm{AT}}_{\mathrm{EQ}}}{M^{\mathrm{UO}}_{\mathrm{EQ}}}-b_{23}\Bigr) + \hat{\nu}^{\mathrm{LO}}_{t+1}\,b_{23}\Bigr]
-    \tag*{\text{(upper ocean C)}}
-$$ (eq-iam_l4)
+```
 
-$$
+```{math}
+:label: eq-iam_l5
+:enumerator: lower ocean C
+
 l_5 := \hat{\nu}^{\mathrm{LO}}_t - \hat{\beta}_t\!\Bigl[\hat{\nu}^{\mathrm{UO}}_{t+1}\,b_{23}\,\tfrac{M^{\mathrm{UO}}_{\mathrm{EQ}}}{M^{\mathrm{LO}}_{\mathrm{EQ}}} + \hat{\nu}^{\mathrm{LO}}_{t+1}\!\Bigl(1-b_{23}\,\tfrac{M^{\mathrm{UO}}_{\mathrm{EQ}}}{M^{\mathrm{LO}}_{\mathrm{EQ}}}\Bigr)\Bigr]
-    \tag*{\text{(lower ocean C)}}
-$$ (eq-iam_l5)
+```
 
-$$
+```{math}
+:label: eq-iam_l6
+:enumerator: atm. temp.
+
 l_6 := \hat{\eta}^{\mathrm{AT}}_t - \hat{\beta}_t\!\Bigl[-\hat{\lambda}_{t+1}\,\Omega'(T_{\mathrm{AT},t+1})\,k_{t+1}^\alpha + \hat{\eta}^{\mathrm{AT}}_{t+1}\!\Bigl(1-c_1\,\tfrac{F_{\mathrm{2\times CO_2}}}{\Delta T_{\mathrm{AT},\times 2}}-c_1 c_3\Bigr) + \hat{\eta}^{\mathrm{OC}}_{t+1}\,c_4\Bigr]
-    \tag*{\text{(atm.\ temp.)}}
-$$ (eq-iam_l6)
+```
 
-$$
+```{math}
+:label: eq-iam_l7
+:enumerator: ocean temp.
+
 l_7 := \hat{\eta}^{\mathrm{OC}}_t - \hat{\beta}_t\!\left[\hat{\eta}^{\mathrm{AT}}_{t+1}\,c_1 c_3 + \hat{\eta}^{\mathrm{OC}}_{t+1}(1-c_4)\right]
-    \tag*{\text{(ocean temp.)}}
-$$ (eq-iam_l7)
+```
 
-$$
+```{math}
+:label: eq-iam_l8
+:enumerator: Fischer–Burmeister, implied multiplier
+
 l_8 := \hat{\lambda}^{\mu,\mathrm{impl}}_t + (1-\mu_t) - \sqrt{(\hat{\lambda}^{\mu,\mathrm{impl}}_t)^2 + (1-\mu_t)^2 + \varepsilon_{\mathrm{FB}}}
-    \tag*{\text{(Fischer--Burmeister, implied multiplier)}}
-$$ (eq-iam_l8)
+```
 
 Loss components $l_1$–$l_2$ enforce intertemporal optimality and feasibility, $l_3$–$l_7$ are the envelope conditions that price the five climate state variables, and $l_8$ jointly enforces the abatement FOC (via the implied multiplier) and the upper-bound complementarity $\mu_t \le 1$.
 

@@ -303,12 +303,12 @@ With mini-batch sizes of 32–256, SGD achieves both computational efficiency an
 Modern optimizers such as Adam {cite:p}`kingma2015adam` adapt the learning rate for each parameter based on running averages of the first and second moments of the gradient:
 
 $$
-\begin{aligned}
+\begin{align}
 \bm{m}_t &= \beta_1\,\bm{m}_{t-1} + (1-\beta_1)\,\nabla J_t, \\
 \bm{v}_t &= \beta_2\,\bm{v}_{t-1} + (1-\beta_2)\,(\nabla J_t)^2, \\
 \hat{\bm{m}}_t &= \bm{m}_t/(1-\beta_1^t), \qquad \hat{\bm{v}}_t = \bm{v}_t/(1-\beta_2^t), \\
 \bm{\theta}_{t+1} &= \bm{\theta}_t - \eta \cdot \hat{\bm{m}}_t / (\sqrt{\hat{\bm{v}}_t} + \varepsilon).
-\end{aligned}
+\end{align}
 $$
 
 The bias-corrected first moment $\hat{\bm{m}}_t$ provides momentum (smoothing out gradient noise), while the second moment $\hat{\bm{v}}_t$ provides per-parameter adaptive learning rates (parameters with large gradients receive smaller effective steps). The default hyperparameters $\beta_1=0.9$, $\beta_2=0.999$, $\varepsilon=10^{-8}$ work well across a wide range of problems, including all the economic applications in this course.
@@ -386,10 +386,10 @@ In practice, decaying schedules such as exponential decay or cosine annealing te
 For a network with $L$ layers, denote the pre-activation at layer $l$ as $\z^{(l)} = \W^{(l)}\a^{(l-1)} + \bb^{(l)}$ and the activation as $\a^{(l)} = g(\z^{(l)})$. If the final layer is linear, set $g'(z)=1$ at $l=L$ and interpret $\a^{(L)}$ as the prediction $\hat y$. The backpropagation algorithm computes $\partial J / \partial \W^{(l)}$ for all layers simultaneously by propagating a "delta" vector backward:
 
 $$
-\begin{aligned}
+\begin{align}
 \bm{\delta}^{(L)} &= \nabla_{\a^{(L)}} J \odot g'(\z^{(L)}), \\
 \bm{\delta}^{(l)} &= \bigl((\W^{(l+1)})^\top \bm{\delta}^{(l+1)}\bigr) \odot g'(\z^{(l)}), \qquad l = L-1, \ldots, 1,
-\end{aligned}
+\end{align}
 $$
 
 where $\odot$ denotes element-wise multiplication. The parameter gradients are then $\partial J / \partial \W^{(l)} = \bm{\delta}^{(l)} (\a^{(l-1)})^\top$ and $\partial J / \partial \bb^{(l)} = \bm{\delta}^{(l)}$. The computational cost is linear in the number of layers and the total number of parameters, a remarkable efficiency that enables training networks with millions of parameters. {numref}`fig-backprop_passes` shows the forward and backward passes side by side.
@@ -560,12 +560,10 @@ Before discussing overfitting formally, it is essential to fix the experimental 
 
 The key discipline is that no decision about the model (not hyperparameter tuning, not architecture, not early-stopping patience) may be informed by the test set. Using the test set multiple times turns it into an implicit validation set and invalidates its role as a measure of out-of-sample error. For small datasets, $k$-fold cross-validation replaces the fixed train/validation split: the training data are partitioned into $k$ equal folds; for each fold, the model is trained on the other $k-1$ folds and evaluated on the held-out fold; the $k$ resulting validation scores are averaged. Common choices are $k = 5$ or $k = 10$; the test set is always held separately. In DEQNs and PINNs ({ref}`ch-deqn` and {ref}`ch-pinn`), training and validation points are drawn from the same state distribution, and "generalization" is measured against an *independently simulated test trajectory* rather than a held-out labeled set.
 
-A model that memorizes the training data but fails on unseen examples is said to *overfit*. To understand overfitting precisely, consider the following thought experiment. The decomposition below is the classical bias/variance analysis of {cite:t}`geman1992biasvariance`, which provided the canonical framework for thinking about generalization in neural networks long before modern overparameterized regimes were studied. Suppose we draw many independent training sets $\mathcal{D}$, each of size $n$, from the same data-generating process $y = f(\x) + \varepsilon$, where $\varepsilon$ is zero-mean noise with variance $\sigma^2$. On each training set we fit our model, obtaining a predictor $\hat{f}_{\mathcal{D}}$. Conditioning on a fixed test input $\x_0$ and averaging over both the training set and the new test noise $\varepsilon_0$, the squared prediction error decomposes into exactly three terms: 
-
-(eq-bias-variance)=
+A model that memorizes the training data but fails on unseen examples is said to *overfit*. To understand overfitting precisely, consider the following thought experiment. The decomposition below is the classical bias/variance analysis of {cite:t}`geman1992biasvariance`, which provided the canonical framework for thinking about generalization in neural networks long before modern overparameterized regimes were studied. Suppose we draw many independent training sets $\mathcal{D}$, each of size $n$, from the same data-generating process $y = f(\x) + \varepsilon$, where $\varepsilon$ is zero-mean noise with variance $\sigma^2$. On each training set we fit our model, obtaining a predictor $\hat{f}_{\mathcal{D}}$. Conditioning on a fixed test input $\x_0$ and averaging over both the training set and the new test noise $\varepsilon_0$, the squared prediction error decomposes into exactly three terms:
 
 $$
-\begin{aligned}
+\begin{align}
 \mathbb{E}_{\mathcal{D},\varepsilon_0}
 \!\bigl[(y_0 - \hat{f}_{\mathcal{D}}(\x_0))^2\bigr]
 &=
@@ -575,7 +573,8 @@ $$
 \underbrace{\mathbb{E}_{\mathcal{D}}\!\bigl[(\hat{f}_{\mathcal{D}}(\x_0) - \mathbb{E}_{\mathcal{D}}[\hat{f}_{\mathcal{D}}(\x_0)])^2\bigr]}_{\text{Variance}}
 \;+\;
 \underbrace{\sigma^2}_{\text{Irreducible noise}}.
-\end{aligned}
+\label{eq-bias-variance}
+\end{align}
 $$
 
 Each term captures a distinct source of error:
@@ -710,12 +709,12 @@ The LSTM cell. The green top lane is the *protected memory lane*: old memory can
 The *Gated Recurrent Unit* (GRU) of {cite:t}`cho2014gru` is a lighter sibling that merges the forget and input gates into a single *update* gate $\bm{z}_t$ and drops the separate cell state in favor of the hidden state itself:
 
 $$
-\begin{aligned}
+\begin{align}
 \bm{z}_t       &= \sigma(\W_z\,[\h_{t-1}, \x_t] + \bb_z), \\
 \bm{r}_t       &= \sigma(\W_r\,[\h_{t-1}, \x_t] + \bb_r), \\
 \tilde{\h}_t   &= \tanh\!\big(\W_h\,[\bm{r}_t \odot \h_{t-1}, \x_t] + \bb_h\big), \\
 \h_t           &= (1 - \bm{z}_t) \odot \h_{t-1} + \bm{z}_t \odot \tilde{\h}_t.
-\end{aligned}
+\end{align}
 $$
 
 A GRU uses roughly $25\%$ fewer parameters than an LSTM of the same hidden size and performs comparably on many sequence tasks {cite:p}`chung2014empirical`, at the cost of a slightly less expressive memory channel.
@@ -791,12 +790,12 @@ A single attention layer implements *one* similarity pattern between positions. 
 The fix is *multi-head attention*. Run $H$ attention layers in parallel, each with its *own* projection matrices $(\W_Q^{(h)}, \W_K^{(h)}, \W_V^{(h)})$ mapping the input to a lower-dimensional subspace of size $d_k = d/H$, compute $H$ attention outputs independently, then concatenate and linearly project back:
 
 $$
-\begin{aligned}
+\begin{align}
 \mathrm{head}_h
 &= \mathrm{Attention}\bigl(\X\W_Q^{(h)},\, \X\W_K^{(h)},\, \X\W_V^{(h)}\bigr), \\
 \mathrm{MHA}(\X)
 &= \big[\mathrm{head}_1; \,\mathrm{head}_2; \,\ldots;\,\mathrm{head}_H\big]\,\W_O .
-\end{aligned}
+\end{align}
 $$
 
 The total parameter count is essentially unchanged, because each head works on a $1/H$-dimensional slice, but the inductive bias is richer: different heads are free to specialize in different relations. Interpretability studies of trained Transformers routinely find heads that focus on the previous token, on the closing bracket matching an open one, on the subject of the current clause, or, in time-series models, on the most recent analogue of the current calendar month. Multi-head attention is therefore *structurally analogous to a mixture of learned kernels* in a nonparametric regression; the weights $\W_O$ are the mixing coefficients, and the softmax-scored pairs are the kernels themselves.
