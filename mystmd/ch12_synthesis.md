@@ -185,7 +185,6 @@ For further reading, we refer to the comprehensive survey by {cite:t}`fernandezv
 ```
 
 
-(exercises)=
 ## Exercises
 Worked solutions and guidance for these exercises appear in Appendix {ref}`app-solutions`.
 

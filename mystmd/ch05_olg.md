@@ -373,7 +373,6 @@ Residual blocks entering the 56-agent benchmark loss for one training state.
 ```
 
 
-(further-reading)=
 ## Further Reading
 - {cite:t}`azinovicDEEPEQUILIBRIUMNETS2022`, the IER paper that established the 56-agent benchmark.
 
@@ -381,7 +380,6 @@ Residual blocks entering the 56-agent benchmark loss for one training state.
 
 - {cite:t}`azinoviczemlicka_2024`, market-clearing output layer in OLG with rare disasters.
 
-(exercises)=
 ## Exercises
 Worked solutions and guidance for these exercises appear in Appendix {ref}`app-solutions`.
 

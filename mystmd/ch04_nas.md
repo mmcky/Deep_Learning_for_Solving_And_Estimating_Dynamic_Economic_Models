@@ -335,7 +335,6 @@ Quantitative speedup claims depend on the specific problem (PDE vs. Euler resid
 ```
 
 
-(further-reading)=
 ## Further Reading
 - {cite:t}`bergstra2012random`, the original case for random over grid search.
 
@@ -345,7 +344,6 @@ Quantitative speedup claims depend on the specific problem (PDE vs. Euler resid
 
 - {cite:t}`bischof2025relobralo`, ReLoBRaLo loss-balancing scheme used throughout the PINN chapter.
 
-(exercises)=
 ## Exercises
 Worked solutions and guidance for these exercises appear in Appendix {ref}`app-solutions`.
 

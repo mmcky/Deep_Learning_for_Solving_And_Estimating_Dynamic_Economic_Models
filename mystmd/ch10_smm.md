@@ -404,7 +404,6 @@ SMM matches a hand-picked vector of moments. Two close cousins are worth knowing
 ```
 
 
-(further-reading)=
 ## Further Reading
 - {cite:t}`mcfadden1989method` {cite}`pakes1989simulation,duffie1993simulated`, the foundational SMM trio.
 
@@ -412,7 +411,6 @@ SMM matches a hand-picked vector of moments. Two close cousins are worth knowing
 
 - {cite:t}`cranmer2020frontier`, contemporary simulation-based inference.
 
-(exercises)=
 ## Exercises
 Worked solutions and guidance for these exercises appear in Appendix {ref}`app-solutions`.
 

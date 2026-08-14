@@ -677,7 +677,6 @@ The full experiment, including a path-residual histogram, a policy-error heatmap
 ```
 
 
-(further-reading)=
 ## Further Reading
 - {cite:t}`azinovicDEEPEQUILIBRIUMNETS2022`, the foundational DEQN paper; required reading.
 
@@ -691,7 +690,6 @@ The full experiment, including a path-residual histogram, a policy-error heatmap
 
 - {cite:t}`pichler2011` and {cite:t}`Maliar2014325`, monomial integration in large-scale dynamic economic models.
 
-(exercises)=
 ## Exercises
 Worked solutions and guidance for these exercises appear in Appendix {ref}`app-solutions`.
 

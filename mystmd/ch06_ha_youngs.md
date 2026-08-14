@@ -879,7 +879,6 @@ A third notebook, `KrusellSmith_Tutorial_CPU.ipynb`, is a JAX/optax port of the 
 ```
 
 
-(further-reading)=
 ## Further Reading
 - {cite:t}`young2010`, the original non-stochastic histogram paper.
 
@@ -891,7 +890,6 @@ A third notebook, `KrusellSmith_Tutorial_CPU.ipynb`, is a JAX/optax port of the 
 
 - {cite:t}`maliar2021deep` {cite}`han2023deepham`, alternative deep-learning approaches to KS, contrasted in {ref}`sec-ks_alternatives`.
 
-(exercises)=
 ## Exercises
 Worked solutions and guidance for these exercises appear in Appendix {ref}`app-solutions`.
 
