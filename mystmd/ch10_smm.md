@@ -105,12 +105,12 @@ Once trained, the surrogate provides instant evaluation at any $(S, t, \sigma, r
 The stochastic Brock–Mirman model is the partial-depreciation model from {ref}`ch-deqn`:
 
 $$
-\begin{aligned}
+\begin{align}
 Y_t &= z_t K_t^\alpha, \\
 C_t + K_{t+1} &= Y_t + (1-\delta)K_t, \\
 \log z_{t+1} &= \varrho \log z_t + \sigma_z \varepsilon_{t+1}, \qquad
 \varepsilon_{t+1}\sim\mathcal{N}(0,1).
-\end{aligned}
+\end{align}
 $$
 
 We write $\varrho$ for TFP persistence to avoid overloading $\rho$, which elsewhere denotes neural-network parameters. The Python notebooks still use the variable name `rho`; mathematically, that code variable corresponds to $\varrho$.
@@ -126,10 +126,10 @@ s_t = \mathcal{N}_{\rho}(z_t,K_t,\varrho) \in (0,1),
 with $\beta$ calibrated to $0.96$. In the joint exercise the input becomes $(z_t,K_t,\beta,\varrho)$. In either case, recover
 
 $$
-\begin{aligned}
+\begin{align}
 K_{t+1} &= (1-\delta)K_t + s_t Y_t, \\
 C_t &= (1-s_t) Y_t.
-\end{aligned}
+\end{align}
 $$
 
 Because $s_t \in (0,1)$ and $Y_t > 0$, this parameterization enforces $C_t > 0$, $K_{t+1} > (1-\delta)K_t > 0$, and gross investment $I_t = s_t Y_t \ge 0$ by construction, so the resource constraint and the non-negativity of investment hold automatically and the partial-depreciation Euler equation {eq}`eq-smm_euler_residual` applies as written, with no extra multiplier.[^1]
@@ -223,11 +223,11 @@ The exercise uses a deliberately simple synthetic-data workflow so that the econ
 **Single-parameter persistence exercise.** Notebook `lecture_15_03_Structural_Estimation_BM.ipynb` calibrates $\beta=0.96$, sets $\varrho_{\mathrm{true}}=0.90$, and estimates $\varrho\in[0.50,0.99]$. Let $\{C_t(\varrho),I_t(\varrho),Y_t(\varrho)\}_{t=1}^T$ denote a simulated sample at candidate persistence $\varrho$. The estimator uses three moments:
 
 $$
-\begin{aligned}
+\begin{align}
 m_1(\varrho) &= \mathrm{std}\!\bigl(\Delta\log C_t(\varrho)\bigr), \\
 m_2(\varrho) &= \mathrm{corr}\!\bigl(\Delta\log C_t(\varrho),\Delta\log C_{t-1}(\varrho)\bigr), \\
 m_3(\varrho) &= \mathrm{corr}\!\bigl(\log Y_t(\varrho),\log Y_{t-1}(\varrho)\bigr).
-\end{aligned}
+\end{align}
 $$
 
 All three moments are computed on the raw simulated time series with no detrending or demeaning step, and $\mathrm{std}(\cdot)$ and $\mathrm{corr}(\cdot)$ denote sample standard deviation and sample autocorrelation evaluated directly on the simulated panel. The output autocorrelation is the most direct persistence moment. The volatility moment should be interpreted as an empirical simulated moment, not as the level-variance formula. For the AR(1) shock,
