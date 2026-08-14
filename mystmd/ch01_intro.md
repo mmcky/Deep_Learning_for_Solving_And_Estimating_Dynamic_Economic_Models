@@ -934,7 +934,6 @@ For the econometrician's mental library the closest classical objects are the Na
 ```
 
 
-(further-reading)=
 ## Further Reading
 - {cite:t}`goodfellow2016deep`, the standard graduate textbook covering everything in this chapter at greater depth.
 
@@ -946,7 +945,6 @@ For the econometrician's mental library the closest classical objects are the Na
 
 - {cite:t}`bottou2018optimization`, a comprehensive survey of stochastic optimization for large-scale learning, including convergence rates.
 
-(exercises)=
 ## Exercises
 Worked solutions and guidance for these exercises appear in Appendix {ref}`app-solutions`.
 

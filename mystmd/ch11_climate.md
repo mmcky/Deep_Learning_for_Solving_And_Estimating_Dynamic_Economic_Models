@@ -1045,7 +1045,6 @@ The combination of DEQNs, pseudo-states, and GP surrogates provides a scalable a
 ```
 
 
-(further-reading)=
 ## Further Reading
 - {cite:t}`nordhausRevisitingSocialCost2017`, the canonical DICE update.
 
@@ -1059,7 +1058,6 @@ The combination of DEQNs, pseudo-states, and GP surrogates provides a scalable a
 
 - {cite:t}`friedlDeep2023`, deep uncertainty quantification methodology.
 
-(exercises)=
 ## Exercises
 Worked solutions and guidance for these exercises appear in Appendix {ref}`app-solutions`.
 

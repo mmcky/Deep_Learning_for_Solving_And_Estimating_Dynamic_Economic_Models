@@ -376,7 +376,6 @@ The DEQN approach has been successfully applied to IRBC models with up to $N=100
 
 6.  **Zero-shock stochastic steady state (SSS):** Iterate the learned policy from `ZERO_SHOCK_N_STARTS` dispersed feasible starts with all shocks set to zero. A well-trained policy converges to a common point with $I^j \approx \delta\,k^j$ and (in the irreversible case) $\mu^j \approx 0$; the SSS is a fixed point of the learned stochastic policy that is not imposed during training.
 
-(validation-protocol)=
 ### Validation Protocol
 To keep the manuscript self-contained, we summarize here the validation diagnostics used for the IRBC model:
 
@@ -416,7 +415,6 @@ Beyond the IRBC setting, closely related neural-equilibrium methods have been ap
 ```
 
 
-(further-reading)=
 ## Further Reading
 - {cite:t}`ECTA:ECTA1716`, adaptive sparse grids for IRBC, the classical-method benchmark this chapter contrasts with.
 
@@ -426,7 +424,6 @@ Beyond the IRBC setting, closely related neural-equilibrium methods have been ap
 
 - {cite:t}`nuno2024monetary`, a recent DEQN application to optimal monetary policy.
 
-(exercises)=
 ## Exercises
 Worked solutions and guidance for these exercises appear in Appendix {ref}`app-solutions`.
 

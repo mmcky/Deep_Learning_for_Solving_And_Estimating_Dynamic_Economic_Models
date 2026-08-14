@@ -646,7 +646,6 @@ Three uncertainty-quantification recipes compared on the dimensions that drive m
 ```
 
 
-(further-reading)=
 ## Further Reading
 - {cite:t}`Rasmussen:2005:GPM:1162254`, the standard GP textbook.
 
@@ -658,7 +657,6 @@ Three uncertainty-quantification recipes compared on the dimensions that drive m
 
 - {cite:t}`titsias2009variational` {cite}`hensman2013gaussian`, sparse-GP scaling.
 
-(exercises)=
 ## Exercises
 Worked solutions and guidance for these exercises appear in Appendix {ref}`app-solutions`.
 

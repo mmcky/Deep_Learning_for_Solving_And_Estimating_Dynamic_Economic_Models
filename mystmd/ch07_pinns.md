@@ -455,7 +455,6 @@ Operator learning generalizes PINNs by amortising over an entire parametric fami
 ```
 
 
-(further-reading)=
 ## Further Reading
 - {cite:t}`raissi2019physics`, the foundational PINN paper.
 
@@ -467,7 +466,6 @@ Operator learning generalizes PINNs by amortising over an entire parametric fami
 
 - {cite:t}`lu2021deepxde`, the DeepXDE software ecosystem.
 
-(exercises)=
 ## Exercises
 Worked solutions and guidance for these exercises appear in Appendix {ref}`app-solutions`.
 
