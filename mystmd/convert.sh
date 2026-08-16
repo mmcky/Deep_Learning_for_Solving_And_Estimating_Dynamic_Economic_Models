@@ -4,9 +4,14 @@
 # =============================================================================
 #
 # This script lives in the BOOK repository, not in claude-latex-to-myst.
-# It fetches the tool into ../_tools/claude-latex-to-myst (gitignored,
+# It fetches the tool into ./_tools/claude-latex-to-myst (gitignored,
 # self-managed) at the version pinned in .tool-version, then runs its
 # convert pipeline against this directory's config.yaml.
+#
+# Everything the pipeline fetches or generates stays inside this folder —
+# _tools/, tmp/ and _build/ are covered by mystmd/.gitignore — so the
+# conversion adds exactly one directory to the book repo and leaves the
+# repo-root .gitignore untouched.
 #
 # Pinning:
 #   .tool-version contains a git ref — a tag (``v0.1.0``), a branch
@@ -44,7 +49,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BOOK_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 REPO_URL="${CLAUDE_LATEX_TO_MYST_URL:-https://github.com/QuantEcon/claude-latex-to-myst.git}"
-TOOLS_DIR="${CLAUDE_LATEX_TO_MYST_TOOLS:-$BOOK_DIR/_tools}"
+TOOLS_DIR="${CLAUDE_LATEX_TO_MYST_TOOLS:-$SCRIPT_DIR/_tools}"
 TOOL_DIR="$TOOLS_DIR/claude-latex-to-myst"
 
 VERSION_FILE="$SCRIPT_DIR/.tool-version"
