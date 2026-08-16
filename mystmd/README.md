@@ -61,6 +61,8 @@ Open, and each blocked on something specific:
 
 | Issue | What it tracks | Blocked on |
 |---|---|---|
+| [#23](https://github.com/mmcky/Deep_Learning_for_Solving_And_Estimating_Dynamic_Economic_Models/issues/23) | The **Abstract page and epigraph** are absent — pre-chapter frontmatter outside the `config.yaml` allowlist, so never in the converter's input. Found by the Round 28 prose census. | nothing — needs a scope decision (add to `extra_files:` or fold into `index.md`) |
+| [#24](https://github.com/mmcky/Deep_Learning_for_Solving_And_Estimating_Dynamic_Economic_Models/issues/24) | `fig:attention` loses its 5-item "How to read the arrows" legend: the TikZ override replaces the whole `figure` env, and the SVG carries only the diagram. 1 of 88 figures. | nothing — caption fix is a one-liner |
 | [#15](https://github.com/mmcky/Deep_Learning_for_Solving_And_Estimating_Dynamic_Economic_Models/issues/15) | Retire **Class L**, the local escape for 10 line-leading `(a)`/`(i)` enumerate markers. | book adopting `quantecon-theme.mystmd` (the fix is in v2.2.0; the stock `book-theme` still drops `style`/`delimiter` — [QuantEcon/mystmd#74](https://github.com/QuantEcon/mystmd/issues/74)) |
 | [#8](https://github.com/mmcky/Deep_Learning_for_Solving_And_Estimating_Dynamic_Economic_Models/issues/8) | Optional CI convert-and-diff check that fails if committed `.md` drifts from what the converter produces. | nothing — deferred as optional |
 | [#16](https://github.com/mmcky/Deep_Learning_for_Solving_And_Estimating_Dynamic_Economic_Models/issues/16) | Migrating this work upstream: a `myst/` folder alongside the LaTeX sources, AI-licensing permissions. | upstream decision |
