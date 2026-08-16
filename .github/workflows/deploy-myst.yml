@@ -44,25 +44,29 @@ jobs:
         with:
           node-version: 22.x
       - uses: oven-sh/setup-bun@v2
-      - name: Install MyST Markdown (QuantEcon fork, qe-v9)
+      - name: Install MyST Markdown (QuantEcon fork, qe-v10)
         # Builds from source — the QuantEcon fork is not on npm.
-        # qe-v9 carries everything qe-v8 had (book-mode parts, section-scoped
-        # proof numbering, the title→heading chain, shared proof:* counters)
-        # plus per-row equation numbering for non-starred `align`
-        # (QuantEcon/mystmd#81) and KaTeX ^0.15.2 → ^0.16.21
-        # (QuantEcon/mystmd#80).
+        # qe-v10 carries everything qe-v9 had (book-mode parts, section-scoped
+        # proof numbering, the title→heading chain, shared proof:* counters,
+        # per-row equation numbering for non-starred `align`, KaTeX ^0.16.21)
+        # plus heading attribute blocks (QuantEcon/mystmd#89), which let a
+        # heading carry `{.unnumbered}`.
         #
-        # R26: this pin is COUPLED to mystmd/.tool-version. Since
-        # QuantEcon/claude-latex-to-myst#201 the converter emits non-starred
-        # `align` verbatim and depends on the fork's per-row numbering, so
-        # both pins move together — bumping the converter alone silently
-        # forfeits the fix (see issue #17). Checkout is by tag name; the
-        # qe-v9 commit is 24f6ae8009961bcfb5f38d24f35c470405e869ee.
+        # This pin is COUPLED to mystmd/.tool-version, and R28's coupling is
+        # the STRICT kind. Since QuantEcon/claude-latex-to-myst#209 the
+        # converter emits `{.unnumbered}` on starred sections; without a
+        # heading-attribute parser that block renders as LITERAL text in the
+        # heading title and pollutes its auto-slug. So a stale renderer here
+        # corrupts pages rather than merely forfeiting a fix — unlike R26's
+        # qe-v9 coupling (QuantEcon/claude-latex-to-myst#201, per-row align
+        # numbering), which fails silently. Both pins move in one commit.
+        # Checkout is by tag name; the qe-v10 commit is
+        # 12a8b26b200703c7d22bba2531cf497b7baa23c2.
         working-directory: /tmp
         run: |
           git clone https://github.com/QuantEcon/mystmd.git qe-mystmd
           cd qe-mystmd
-          git checkout qe-v9
+          git checkout qe-v10
           bun install
           bun run build
           npm install -g /tmp/qe-mystmd/packages/mystmd

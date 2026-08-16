@@ -335,7 +335,7 @@ Quantitative speedup claims depend on the specific problem (PDE vs. Euler resid
 ```
 
 
-## Further Reading
+## Further Reading {.unnumbered}
 - {cite:t}`bergstra2012random`, the original case for random over grid search.
 
 - {cite:t}`snoek2012practical`, foundational reference for Bayesian optimization in ML.
@@ -344,7 +344,7 @@ Quantitative speedup claims depend on the specific problem (PDE vs. Euler resid
 
 - {cite:t}`bischof2025relobralo`, ReLoBRaLo loss-balancing scheme used throughout the PINN chapter.
 
-## Exercises
+## Exercises {.unnumbered}
 Worked solutions and guidance for these exercises appear in Appendix {ref}`app-solutions`.
 
 ```{exercise}

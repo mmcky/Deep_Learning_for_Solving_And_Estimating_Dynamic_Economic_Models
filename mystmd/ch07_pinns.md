@@ -455,7 +455,7 @@ Operator learning generalizes PINNs by amortising over an entire parametric fami
 ```
 
 
-## Further Reading
+## Further Reading {.unnumbered}
 - {cite:t}`raissi2019physics`, the foundational PINN paper.
 
 - {cite:t}`sirignano2018dgm`, the Deep Galerkin Method, the original deep-PDE solver in finance.
@@ -466,7 +466,7 @@ Operator learning generalizes PINNs by amortising over an entire parametric fami
 
 - {cite:t}`lu2021deepxde`, the DeepXDE software ecosystem.
 
-## Exercises
+## Exercises {.unnumbered}
 Worked solutions and guidance for these exercises appear in Appendix {ref}`app-solutions`.
 
 ```{exercise}

@@ -496,7 +496,7 @@ For stationary, low-dimensional problems, finite differences remain fast and rel
 ```
 
 
-## Further Reading
+## Further Reading {.unnumbered}
 - {cite:t}`achdou2022income`, the canonical continuous-time HA reference.
 
 - {cite:t}`gu2024masterequations`, the EMINN paper.
@@ -507,7 +507,7 @@ For stationary, low-dimensional problems, finite differences remain fast and rel
 
 - Moll's online lecture notes (<https://benjaminmoll.com/lectures/>), pedagogical complement.
 
-## Exercises
+## Exercises {.unnumbered}
 Worked solutions and guidance for these exercises appear in Appendix {ref}`app-solutions`.
 
 ```{exercise}

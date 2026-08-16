@@ -934,7 +934,7 @@ For the econometrician's mental library the closest classical objects are the Na
 ```
 
 
-## Further Reading
+## Further Reading {.unnumbered}
 - {cite:t}`goodfellow2016deep`, the standard graduate textbook covering everything in this chapter at greater depth.
 
 - {cite:t}`schmidhuber2015deep`, a historical survey tracing the deep-learning lineage; useful for context on LSTMs, Highway Networks, and Fast Weight Programmers.
@@ -945,7 +945,7 @@ For the econometrician's mental library the closest classical objects are the Na
 
 - {cite:t}`bottou2018optimization`, a comprehensive survey of stochastic optimization for large-scale learning, including convergence rates.
 
-## Exercises
+## Exercises {.unnumbered}
 Worked solutions and guidance for these exercises appear in Appendix {ref}`app-solutions`.
 
 **Workload labels.** Throughout the script, every exercise carries one of three workload tags inside its title. *[Core\]* marks short analytical or pencil-and-paper questions suitable for a weekly problem set. *[Computational\]* marks notebook-based exercises that involve running or modifying companion code; allow yourself a long evening or a weekend with verification gates and starter code in hand. *[Advanced/project\]* marks longer, research-style assignments that may require a multi-day investment, a proper compute budget, or a small term-project plan. The labels are advisory rather than prescriptive: students with prior exposure can promote a [Computational\] exercise to a quick warm-up, while those new to the material can treat several [Advanced/project\] entries as inspiration for term work.

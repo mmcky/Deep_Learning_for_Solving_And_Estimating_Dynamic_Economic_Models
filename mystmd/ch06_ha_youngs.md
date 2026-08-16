@@ -879,7 +879,7 @@ A third notebook, `KrusellSmith_Tutorial_CPU.ipynb`, is a JAX/optax port of the 
 ```
 
 
-## Further Reading
+## Further Reading {.unnumbered}
 - {cite:t}`young2010`, the original non-stochastic histogram paper.
 
 - {cite:t}`krusell1998income`, the canonical heterogeneous-agent benchmark with aggregate shocks.
@@ -890,7 +890,7 @@ A third notebook, `KrusellSmith_Tutorial_CPU.ipynb`, is a JAX/optax port of the 
 
 - {cite:t}`maliar2021deep` {cite}`han2023deepham`, alternative deep-learning approaches to KS, contrasted in {ref}`sec-ks_alternatives`.
 
-## Exercises
+## Exercises {.unnumbered}
 Worked solutions and guidance for these exercises appear in Appendix {ref}`app-solutions`.
 
 ```{exercise}
