@@ -780,7 +780,7 @@ The scaling factor $\sqrt{d_k}$ (the dimensionality of the keys) prevents the do
 ```{figure} figures/fig-attention.svg
 :name: fig-attention
 
-A worked self-attention pattern. Both $q_{\textit{it}}$ and $\bm{o}_{\textit{it}}$ sit above the "it" position: $q_{\textit{it}}$ is the query projection of "it" (blue), and $\bm{o}_{\textit{it}}$ is the updated representation at that same position (green). The blue arrows show how the query is built from "it" and then compared with every key. The softmax weights above each token sum to one; here the largest weight lands on "cat", so the green aggregation arrow starts above "cat" and curves up to $\bm{o}_{\textit{it}}$, indicating that the update at "it" is driven mainly by the value at "cat".
+A worked self-attention pattern. Both $q_{\textit{it}}$ and $\bm{o}_{\textit{it}}$ sit above the "it" position: $q_{\textit{it}}$ is the query projection of "it" (blue), and $\bm{o}_{\textit{it}}$ is the updated representation at that same position (green). The blue arrows show how the query is built from "it" and then compared with every key. The softmax weights above each token sum to one; here the largest weight lands on "cat", so the green aggregation arrow starts above "cat" and curves up to $\bm{o}_{\textit{it}}$, indicating that the update at "it" is driven mainly by the value at "cat". *How to read the arrows.* (1) Blue down arrow: build the query $q_{\textit{it}}$ from the current token "it". (2) Blue bent arrow: compare that query with all keys in the sequence. (3) Numbers above tokens: $0.05 + 0.58 + 0.08 + 0.20 + 0.09 = 1.00$, as softmax weights must. (4) The weight $0.58$ above "cat" is the largest one. (5) Green arrows: the "cat" value enters $\bm{o}_{\textit{it}}$.
 ```
 
 (sec-mha)=

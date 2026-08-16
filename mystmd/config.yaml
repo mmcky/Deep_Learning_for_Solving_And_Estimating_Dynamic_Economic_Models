@@ -268,6 +268,26 @@ postprocess:
         from:  '^\((iii|ii|i|a|b|c)\) ',
         to:    '\\(\1\\) ' }
 
+    # R28 — Class M: restore fig:attention's "How to read the arrows" legend.
+    # The source figure is two minipages — the TikZ diagram, and a sibling
+    # minipage holding a 5-item enumerate legend. The TikZ override replaces
+    # the *whole* `figure` environment with the rendered SVG, and the SVG
+    # carries only the diagram, so the legend text was dropped from the output
+    # entirely (book#24). Found by the R28 prose census, where it was the one
+    # unresolved residual in the entire book.
+    #
+    # Blast radius is exactly this figure: of 88 `figure` environments in the
+    # source, only this one has >=2 minipages AND a list, so a general fix is
+    # not warranted on current evidence. The legend is appended to the caption
+    # body, which is where a web reader looks and where the surrounding prose
+    # already narrates the same mechanism.
+    #
+    # Anchored on the caption's closing sentence rather than the figure fence,
+    # so it cannot match anything else: that sentence occurs once book-wide.
+    - { stems: [ch01_intro],
+        from:  '(indicating that the update at "it" is driven mainly by the value at "cat"\.)',
+        to:    '\1 *How to read the arrows.* (1) Blue down arrow: build the query $q_{\\textit{it}}$ from the current token "it". (2) Blue bent arrow: compare that query with all keys in the sequence. (3) Numbers above tokens: $0.05 + 0.58 + 0.08 + 0.20 + 0.09 = 1.00$, as softmax weights must. (4) The weight $0.58$ above "cat" is the largest one. (5) Green arrows: the "cat" value enters $\\bm{o}_{\\textit{it}}$.' }
+
     # (R16 Class F deleted in R18: upstream #105/#106 landed — \texttt{{@}foo}
     # now converts to a single clean code span in both prose and algorithm
     # bodies, so the `@``-collapse rewrite no longer matched anything.)
