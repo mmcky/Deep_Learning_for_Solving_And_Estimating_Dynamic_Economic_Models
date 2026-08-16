@@ -1,12 +1,23 @@
 # Build the MyST Markdown version of the script and deploy to GitHub Pages.
 #
-# Triggers on pushes to the mystmd-conversion branch (and main once merged);
-# manual runs via workflow_dispatch.
+# Publishing is driven by `main` only. The published site should mirror the
+# book's released state, so the branch that publishes is the branch that is
+# released — a feature branch publishing to the same Pages target means the
+# live site reflects whichever branch pushed most recently, which is not a
+# property anyone can reason about.
+#
+# `workflow_dispatch` stays, so a maintainer can still publish on demand from
+# whatever ref they select.
+#
+# Note for review: while the conversion work lives on `mystmd-conversion`,
+# this means the deployed preview does not refresh on pushes to that branch.
+# Verify changes with a local `myst build --html`, or trigger the workflow
+# manually against the branch.
 
 name: MyST GitHub Pages Deploy
 on:
   push:
-    branches: [mystmd-conversion, main]
+    branches: [main]
     paths:
       - 'mystmd/**'
       - '.github/workflows/deploy-myst.yml'
