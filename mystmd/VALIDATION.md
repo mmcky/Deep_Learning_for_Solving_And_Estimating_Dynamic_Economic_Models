@@ -92,9 +92,9 @@ Tool pin **`b01fa92` → `182214f`** (3 commits) **and** renderer pin **`qe-v9` 
 
 Every previous round measured *structure*: directive counts, cross-reference resolution, equation numbering, plus ~10 sampled visual locations in R22. §6 has always been explicit that no paragraph-level content diff was attempted. This addendum closes most of that gap, and it is the first evidence in this report that speaks directly to **content fidelity** rather than to structural integrity.
 
-**Method.** Extract the text of the 331-page PDF with `pdftotext`. For every sentence, take the longest run of consecutive *plain words* (ASCII letters, 3+ characters — single letters and greek are maths variables, digits carry reference numbers), keep runs of 8 words or more, and test whether that run appears in the **rendered HTML**. Both sides are normalised to `[a-z0-9]` only, so hyphenation, line-break joins, smart quotes, spacing and markup cannot produce a false miss. A run must be contiguous in the source text, so any intervening maths breaks it — that is what keeps the test from being merely permissive.
+**Method.** Extract the text of the 331-page PDF with `pdftotext`. For every sentence, take the longest run of consecutive *plain words* (ASCII letters, 3+ characters — single letters and Greek letters are math variables, digits carry reference numbers), keep runs of 8 words or more, and test whether that run appears in the **rendered HTML**. Both sides are normalised to `[a-z0-9]` only, so hyphenation, line-break joins, smart quotes, spacing and markup cannot produce a false miss. A run must be contiguous in the source text, so any intervening math breaks it — that is what keeps the test from being merely permissive.
 
-**Comparing against rendered HTML rather than the markdown is essential**, and getting this wrong is why a first pass badly understated fidelity. Four constructs exist in the markdown only as roles and materialise at render time: the deliberate doubled-noun strips from R18/R22 (`see {numref}`fig-x`` renders as "see Figure 2.3"), `{cite:t}` citations, `{ref}` cross-references, and maths. Comparing to the markdown flags all four as losses when every one of them renders correctly. A second trap: KaTeX emits **both** a MathML tree and a visual HTML tree per formula, so naive tag-stripping doubles every symbol (`k` → `k k`) and breaks any run crossing inline maths — the MathML subtree must be dropped.
+**Comparing against rendered HTML rather than the markdown is essential**, and getting this wrong is why a first pass badly understated fidelity. Four constructs exist in the markdown only as roles and materialise at render time: the deliberate doubled-noun strips from R18/R22 (`` see {numref}`fig-x` `` renders as "see Figure 2.3"), `{cite:t}` citations, `{ref}` cross-references, and math. Comparing to the markdown flags all four as losses when every one of them renders correctly. A second trap: KaTeX emits **both** a MathML tree and a visual HTML tree per formula, so naive tag-stripping doubles every symbol (`k` → `k k`) and breaks any run crossing inline math — the MathML subtree must be dropped.
 
 | | |
 |---|---|
@@ -108,9 +108,9 @@ Every previous round measured *structure*: directive counts, cross-reference res
 
 | Count | Category | Status |
 |---|---|---|
-| 124 | citation or maths rendering | test artifact — *none of these match their own LaTeX source either*, which is what proves the failure is the comparison method, not the conversion |
+| 124 | citation or math rendering | test artifact — *none of these match their own LaTeX source either*, which is what proves the failure is the comparison method, not the conversion |
 | 8 | the Abstract page and epigraph | real gap, filed as [#23](https://github.com/mmcky/Deep_Learning_for_Solving_And_Estimating_Dynamic_Economic_Models/issues/23) — frontmatter outside the `config.yaml` allowlist, never in the converter's input |
-| 4 | run-boundary artifacts | the run ended inside maths; the interior fragment does render |
+| 4 | run-boundary artifacts | the run ended inside math; the interior fragment does render |
 | **1** | **`fig:attention`'s "How to read the arrows" legend** | **real loss, filed as [#24](https://github.com/mmcky/Deep_Learning_for_Solving_And_Estimating_Dynamic_Economic_Models/issues/24)** |
 
 **The single confirmed loss** is a two-`minipage` figure: TikZ diagram plus a sibling 5-item legend. The TikZ override replaces the entire `figure` environment with the SVG, which carries only the diagram. Blast radius measured rather than assumed — of 88 `figure` environments in the source, **exactly one** has ≥2 minipages and a list. The caption survives and narrates the same mechanism, so the information largely persists; the numbered walkthrough does not.
@@ -119,7 +119,7 @@ Every previous round measured *structure*: directive counts, cross-reference res
 
 **Accepted deviation, newly documented:** the renderer prints citations with an ampersand where the PDF uses "and" — `Sirignano & Spiliopoulos, 2018` vs `Sirignano and Spiliopoulos, 2018`. Content-equivalent, presentation-different, and it accounts for a large share of the 124 artifact misses.
 
-**What this does and does not establish.** It covers 39% of PDF sentences — those with a long enough plain-prose run. Sentences that are mostly maths, or short, are not reachable by text comparison and rest on the structural gates instead. Within its scope the result is a census, not a sample: every eligible sentence was tested, and exactly one real loss survived triage.
+**What this does and does not establish.** It covers 39% of PDF sentences — those with a long enough plain-prose run. Sentences that are mostly math, or short, are not reachable by text comparison and rest on the structural gates instead. Within its scope the result is a census, not a sample: every eligible sentence was tested, and exactly one real loss survived triage.
 
 ## 1.0 Headline result (Round 27, preserved)
 
@@ -790,7 +790,7 @@ Verified against `mystmd/ch11_climate.md:911–944`. Result: **substantial match
 
 ## 6. What this report does NOT cover
 
-- **Paragraph-level content faithfulness** — *superseded for prose by §1.1 (Round 28)*, which ran a whole-book census against the printed PDF: 2,223 sentences (39% of the book) compared verbatim against the rendered site, with 1 confirmed content loss. What remains uncovered is the other 61% — sentences too short or too maths-dense for text comparison, which rest on the structural gates instead. The original note stands for those: the two spot-checks (§4.1, §4.2) cover ~3 pages of 329.
+- **Paragraph-level content faithfulness** — *superseded for prose by §1.1 (Round 28)*, which ran a whole-book census against the printed PDF: 2,223 sentences (39% of the book) compared verbatim against the rendered site, with 1 confirmed content loss. What remains uncovered is the other 61% — sentences too short or too math-dense for text comparison, which rest on the structural gates instead. The original note stands for those: the two spot-checks (§4.1, §4.2) cover ~3 pages of 329.
 - **HTML rendering fidelity** — `myst build --html` succeeds, but a full visual walkthrough of every chapter in a browser hasn't happened yet. Step (5) of the PR #3 ordering ("Visual review of the deployed preview") is the natural place for that.
 - **Bibliography ordering** — citation keys resolve, but the rendered references section ordering vs PDF wasn't compared.
 - **Index** — the LaTeX source has 0 `\index{}` calls (stripped via `config.yaml`); no index to validate.
