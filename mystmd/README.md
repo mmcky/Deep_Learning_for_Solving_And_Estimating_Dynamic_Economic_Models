@@ -22,7 +22,7 @@ myst start                             # dev server on http://localhost:3000
 myst build --html                      # static site into _build/html/
 ```
 
-Requires the [mystmd CLI](https://mystmd.org/guide/installing). The repo also ships a GitHub Actions workflow ([`../.github/workflows/deploy-myst.yml`](../.github/workflows/deploy-myst.yml)) that builds and publishes to GitHub Pages on every push to **`main`** touching `mystmd/**`, plus manual runs via `workflow_dispatch`.
+Requires the [mystmd CLI](https://mystmd.org/guide/installing). The repo also ships a GitHub Actions workflow ([`../.github/workflows/deploy-myst.yml`](../.github/workflows/deploy-myst.yml)) that builds and publishes to GitHub Pages on every push to **`main`** touching either `mystmd/**` or the workflow file itself, plus manual runs via `workflow_dispatch`. (The workflow is in its own path filter because a change to the renderer pin lives there, not under `mystmd/`, and must still trigger a rebuild.)
 
 Publishing is deliberately tied to `main` alone: the published site should mirror the book's released state, and a feature branch publishing to the same Pages target would make the live site reflect whichever branch pushed last. While conversion work is in flight on a branch, verify with a local `myst build --html` or dispatch the workflow manually against that ref.
 
