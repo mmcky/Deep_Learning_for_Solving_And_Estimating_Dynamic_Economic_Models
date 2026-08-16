@@ -404,14 +404,14 @@ SMM matches a hand-picked vector of moments. Two close cousins are worth knowing
 ```
 
 
-## Further Reading
+## Further Reading {.unnumbered}
 - {cite:t}`mcfadden1989method` {cite}`pakes1989simulation,duffie1993simulated`, the foundational SMM trio.
 
 - {cite:t}`kase2022estimating`, neural-network estimation of nonlinear heterogeneous-agent models; {cite:t}`chen2026Deep`, deep surrogates for finance and option pricing.
 
 - {cite:t}`cranmer2020frontier`, contemporary simulation-based inference.
 
-## Exercises
+## Exercises {.unnumbered}
 Worked solutions and guidance for these exercises appear in Appendix {ref}`app-solutions`.
 
 ```{exercise}

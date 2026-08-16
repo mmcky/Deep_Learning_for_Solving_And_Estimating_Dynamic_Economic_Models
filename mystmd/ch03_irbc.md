@@ -376,7 +376,7 @@ The DEQN approach has been successfully applied to IRBC models with up to $N=100
 
 6.  **Zero-shock stochastic steady state (SSS):** Iterate the learned policy from `ZERO_SHOCK_N_STARTS` dispersed feasible starts with all shocks set to zero. A well-trained policy converges to a common point with $I^j \approx \delta\,k^j$ and (in the irreversible case) $\mu^j \approx 0$; the SSS is a fixed point of the learned stochastic policy that is not imposed during training.
 
-### Validation Protocol
+### Validation Protocol {.unnumbered}
 To keep the manuscript self-contained, we summarize here the validation diagnostics used for the IRBC model:
 
 1.  **Held-out residual table.** Evaluate mean and max absolute residuals on an out-of-sample test set for each equation block (Euler and ARC always; FB only in the irreversible companion). In the two-country benchmark, typical values are mean $\sim 10^{-4}$ and max $\sim 10^{-3}$ for Euler/ARC, with smaller FB residuals.
@@ -415,7 +415,7 @@ Beyond the IRBC setting, closely related neural-equilibrium methods have been ap
 ```
 
 
-## Further Reading
+## Further Reading {.unnumbered}
 - {cite:t}`ECTA:ECTA1716`, adaptive sparse grids for IRBC, the classical-method benchmark this chapter contrasts with.
 
 - {cite:t}`pichler2011`, an IRBC-specific application of the monomial rule of {ref}`sec-monomial_cubature`, useful as a sanity check for the multi-country setting.
@@ -424,7 +424,7 @@ Beyond the IRBC setting, closely related neural-equilibrium methods have been ap
 
 - {cite:t}`nuno2024monetary`, a recent DEQN application to optimal monetary policy.
 
-## Exercises
+## Exercises {.unnumbered}
 Worked solutions and guidance for these exercises appear in Appendix {ref}`app-solutions`.
 
 ```{exercise}

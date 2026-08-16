@@ -1045,7 +1045,7 @@ The combination of DEQNs, pseudo-states, and GP surrogates provides a scalable a
 ```
 
 
-## Further Reading
+## Further Reading {.unnumbered}
 - {cite:t}`nordhausRevisitingSocialCost2017`, the canonical DICE update.
 
 - {cite:t}`Folini_2021`, the CDICE recalibration used in the deep-learning solution.
@@ -1058,7 +1058,7 @@ The combination of DEQNs, pseudo-states, and GP surrogates provides a scalable a
 
 - {cite:t}`friedlDeep2023`, deep uncertainty quantification methodology.
 
-## Exercises
+## Exercises {.unnumbered}
 Worked solutions and guidance for these exercises appear in Appendix {ref}`app-solutions`.
 
 ```{exercise}
