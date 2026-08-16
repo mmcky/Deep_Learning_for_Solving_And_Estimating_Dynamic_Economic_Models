@@ -109,7 +109,7 @@ Every previous round measured *structure*: directive counts, cross-reference res
 | Count | Category | Status |
 |---|---|---|
 | 124 | citation or math rendering | test artifact — *none of these match their own LaTeX source either*, which is what proves the failure is the comparison method, not the conversion |
-| 8 | the Abstract page and epigraph | real gap, filed as [#23](https://github.com/mmcky/Deep_Learning_for_Solving_And_Estimating_Dynamic_Economic_Models/issues/23) — frontmatter outside the `config.yaml` allowlist, never in the converter's input |
+| 8 | the Abstract page and epigraph | **fixed** — [#23](https://github.com/mmcky/Deep_Learning_for_Solving_And_Estimating_Dynamic_Economic_Models/issues/23); frontmatter outside the `config.yaml` allowlist, now carried on the landing page (see below). Re-running the census drops these 8 to **0** |
 | 4 | run-boundary artifacts | the run ended inside math; the interior fragment does render |
 | **1** | **`fig:attention`'s "How to read the arrows" legend** | **real loss, filed as [#24](https://github.com/mmcky/Deep_Learning_for_Solving_And_Estimating_Dynamic_Economic_Models/issues/24)** |
 
@@ -120,6 +120,24 @@ Every previous round measured *structure*: directive counts, cross-reference res
 **Accepted deviation, newly documented:** the renderer prints citations with an ampersand where the PDF uses "and" — `Sirignano & Spiliopoulos, 2018` vs `Sirignano and Spiliopoulos, 2018`. Content-equivalent, presentation-different, and it accounts for a large share of the 124 artifact misses.
 
 **What this does and does not establish.** It covers 39% of PDF sentences — those with a long enough plain-prose run. Sentences that are mostly math, or short, are not reachable by text comparison and rest on the structural gates instead. Within its scope the result is a census, not a sample: every eligible sentence was tested, and exactly one real loss survived triage.
+
+### 1.1.1 Follow-up — [#23](https://github.com/mmcky/Deep_Learning_for_Solving_And_Estimating_Dynamic_Economic_Models/issues/23) fixed, census re-run
+
+The Abstract page and epigraph are now carried on the landing page. `index.md` is hand-maintained rather than conversion output — the converter never writes it, and git shows it untouched since the scaffold commit — so the four abstract paragraphs and the epigraph were transcribed into it directly, replacing the two-sentence paraphrase that stood there before. The alternative, adding them to `extra_files:`, was rejected: both blocks sit between `\end{titlepage}` and the first `\chapter`, and `extra_files:` entries are chapter-level units, so it would have required a source change — out of bounds from this repo.
+
+**Acceptance check, as stated in the issue.** Re-running the census: hits **2,086 → 2,094**, misses **137 → 129**, hit rate **93.84% → 94.20%**. The delta is exactly the 8 Abstract sentences and nothing else, and the Abstract category disappears from the triage entirely.
+
+| | before | after |
+|---|---|---|
+| residual misses | 137 | **129** |
+| — citation/math rendering artifact | 124 | 125 |
+| — Abstract / epigraph | **8** | **0** |
+| — run-boundary artifact | 4 | 3 |
+| — **confirmed content losses** | **1** | **1** (only [#24](https://github.com/mmcky/Deep_Learning_for_Solving_And_Estimating_Dynamic_Economic_Models/issues/24)) |
+
+**A harness bug surfaced by the fix, worth recording.** The first re-run showed *no change at all*, because the census globbed `*/index.html` and `index.md` renders to the **root** `index.html` — so the landing page had never been in the corpus (22 pages, not 23). That silence is the dangerous kind: it would have read as "the fix did nothing" when the page was rendering correctly all along. The counts above are after correcting the glob. Any future use of this method must include the root page.
+
+Build unchanged at **2 warnings / 0 errors**; the fix touches one hand-maintained file and no converter output.
 
 ## 1.0 Headline result (Round 27, preserved)
 
