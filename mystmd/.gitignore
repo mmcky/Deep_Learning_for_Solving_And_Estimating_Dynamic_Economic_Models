@@ -1,0 +1,17 @@
+# Everything the MyST pipeline generates or fetches stays inside this folder,
+# so the ignore rules live here rather than in the repo-root .gitignore. That
+# keeps the conversion self-contained: adding it to a book is one new
+# directory, and removing it is one `rm -rf`.
+
+# claude-latex-to-myst: tool checkout, cloned by convert.sh at the SHA in
+# .tool-version. Self-managed — delete it and the next run re-clones.
+_tools/
+
+# Per-chapter preprocessed .tex slices + pandoc intermediates
+tmp/
+
+# MyST build output (published via GitHub Actions)
+_build/
+
+# Python bytecode from the book-side helper scripts
+__pycache__/

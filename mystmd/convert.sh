@@ -4,9 +4,17 @@
 # =============================================================================
 #
 # This script lives in the BOOK repository, not in claude-latex-to-myst.
-# It fetches the tool into ../_tools/claude-latex-to-myst (gitignored,
+# It fetches the tool into mystmd/_tools/claude-latex-to-myst (gitignored,
 # self-managed) at the version pinned in .tool-version, then runs its
-# convert pipeline against this directory's config.yaml.
+# convert pipeline against this directory's config.yaml. That path is
+# resolved from the script's own location, not the caller's working
+# directory — the documented invocation is `bash mystmd/convert.sh` from
+# the repo root, so a leading `./` here would name the wrong directory.
+#
+# Everything the pipeline fetches or generates stays inside this folder —
+# _tools/, tmp/ and _build/ are covered by mystmd/.gitignore — so the
+# conversion adds exactly one directory to the book repo and leaves the
+# repo-root .gitignore untouched.
 #
 # Pinning:
 #   .tool-version contains a git ref — a tag (``v0.1.0``), a branch
@@ -28,7 +36,9 @@
 #
 # Env overrides:
 #   CLAUDE_LATEX_TO_MYST_URL    Alternate clone URL (forks, mirrors).
-#   CLAUDE_LATEX_TO_MYST_TOOLS  Override the _tools/ directory location.
+#   CLAUDE_LATEX_TO_MYST_TOOLS  Override the tool-checkout parent directory
+#                               (default: mystmd/_tools). Useful to share one
+#                               checkout across several books.
 #
 # Book-side post-conversion steps:
 #   Add commands at the bottom of this script (after the tool delegates).
@@ -41,10 +51,9 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-BOOK_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 REPO_URL="${CLAUDE_LATEX_TO_MYST_URL:-https://github.com/QuantEcon/claude-latex-to-myst.git}"
-TOOLS_DIR="${CLAUDE_LATEX_TO_MYST_TOOLS:-$BOOK_DIR/_tools}"
+TOOLS_DIR="${CLAUDE_LATEX_TO_MYST_TOOLS:-$SCRIPT_DIR/_tools}"
 TOOL_DIR="$TOOLS_DIR/claude-latex-to-myst"
 
 VERSION_FILE="$SCRIPT_DIR/.tool-version"

@@ -12,7 +12,7 @@ bash mystmd/convert.sh ch01_intro      # one stem
 bash mystmd/convert.sh --build         # convert + myst build --html
 ```
 
-Prerequisites: [`uv`](https://github.com/astral-sh/uv) (used to bootstrap a recent Python — falls back to `python3` if absent) and `pandoc >= 3.0`. The wrapper script clones `claude-latex-to-myst` into [`../_tools/claude-latex-to-myst/`](../_tools/) (gitignored, self-managed) at the SHA pinned in [`.tool-version`](.tool-version).
+Prerequisites: [`uv`](https://github.com/astral-sh/uv) (used to bootstrap a recent Python — falls back to `python3` if absent) and `pandoc >= 3.0`. The wrapper script clones `claude-latex-to-myst` into `_tools/claude-latex-to-myst/` **inside this directory** (gitignored, self-managed) at the SHA pinned in [`.tool-version`](.tool-version). Override the location with `CLAUDE_LATEX_TO_MYST_TOOLS` if you want to share one checkout across books.
 
 ## Local preview
 
@@ -40,9 +40,12 @@ Requires the [mystmd CLI](https://mystmd.org/guide/installing). The repo also sh
 | `references.bib` | Bibliography (mirror of `../readings/bibliography.bib`, copied during convert) | ✅ |
 | `index.md`, `preface.md`, `notation.md`, `ch??_*.md`, `appA…F_*.md` | Conversion output — 23 files (12 chapters + 6 appendices + 5 frontmatter) | ✅ |
 | `VALIDATION.md` | Per-round validation report (structural counts, build warnings, round-to-round deltas) | ✅ |
+| `.gitignore` | Ignore rules for everything the pipeline fetches or generates — keeps them out of the repo-root `.gitignore` | ✅ |
 | `tmp/` | Per-chapter `.tex` slices produced by `preprocess.split:`, plus pandoc intermediate markdown | gitignored |
 | `_build/` | mystmd HTML output | gitignored |
-| `_tools/claude-latex-to-myst/` (parent dir) | Vendored tool checkout | gitignored |
+| `_tools/claude-latex-to-myst/` | Tool checkout, cloned at the pinned SHA | gitignored |
+
+**Everything above lives inside this one directory.** The only file this conversion adds outside `mystmd/` is [`../.github/workflows/deploy-myst.yml`](../.github/workflows/deploy-myst.yml), which GitHub requires to sit in `.github/workflows/`. Nothing in `../lecture_script/` is modified — source-side problems are routed to issues rather than patched here — and the repo-root `.gitignore` is untouched. Adding the conversion to a book is one new directory plus one workflow file; removing it is `rm -rf mystmd/`.
 
 ## Bumping the tool version
 
