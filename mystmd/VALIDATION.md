@@ -139,6 +139,27 @@ The Abstract page and epigraph are now carried on the landing page. `index.md` i
 
 Build unchanged at **2 warnings / 0 errors**; the fix touches one hand-maintained file and no converter output.
 
+### 1.1.2 Follow-up — [#24](https://github.com/mmcky/Deep_Learning_for_Solving_And_Estimating_Dynamic_Economic_Models/issues/24) fixed; the book reaches **zero** confirmed content losses
+
+`fig:attention` is a two-`minipage` figure — the TikZ diagram, and a sibling minipage holding a 5-item "How to read the arrows" legend. The TikZ override replaces the whole `figure` environment with the rendered SVG, which carries only the diagram, so the legend was dropped. It was the single unresolved residual of the census.
+
+Fixed as **Class M**, a `postprocess.rewrites` entry rather than an edit to `ch01_intro.md`. The `.md` files are conversion output and a direct edit would be destroyed by the next `convert.sh` run; a config rewrite survives re-conversion, which is the same reasoning that governs Classes H and L. The rewrite anchors on the caption's closing sentence — a string that occurs once book-wide — and appends the five items to the caption body, where the surrounding prose already narrates the same mechanism. Output effect is **one line in one file**.
+
+The general fix (teach the override to replace only the `tikzpicture`, leaving sibling content) was not pursued, and the measurement is the reason: of 88 `figure` environments in the source, **exactly one** has ≥2 minipages and a list, so there is no class here to fix — a point recorded upstream in the issue rather than acted on locally.
+
+| | before | after |
+|---|---|---|
+| hits | 2,094 | **2,096** |
+| residual misses | 129 | **127** |
+| hit rate | 94.20% | **94.29%** |
+| — citation/math rendering artifact | 125 | 124 |
+| — run-boundary artifact | 3 | 3 |
+| — **confirmed content losses** | 1 | **0** |
+
+**Every residual miss is now a known artifact of the comparison method**, with none left unexplained: 124 runs that do not match their own LaTeX source either (citations rendered as `{cite:t}`, maths rendered as glyphs), and 3 whose interior fragment does render. Build stays **2 warnings / 0 errors**, and the legend's inline maths renders cleanly with no new KaTeX errors.
+
+Within the census's scope — 39% of PDF sentences, those carrying a run of 8+ plain words — **the MyST rendering now reproduces the printed book's prose with no known loss.**
+
 ## 1.0 Headline result (Round 27, preserved)
 
 Tool pin **`c4debe3` → `b01fa92`** (1 commit). **Renderer pin deliberately unchanged at `qe-v9`** — see below. Source pin unchanged (`8c37a8b`). [QE#205](https://github.com/QuantEcon/claude-latex-to-myst/pull/205) (issue [#194](https://github.com/QuantEcon/claude-latex-to-myst/issues/194)) stops promoting pandoc-derived heading slugs to `(slug)=` anchors, and the build reaches **2 warnings / 0 errors** — the first round in which every remaining warning is one this book keeps *by design*.
