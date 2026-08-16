@@ -77,6 +77,16 @@ GRAPHICSPATH = [
     SOURCE_DIR / "fig" / "chapter11",
 ]
 
+# Tried in order when \includegraphics gives a bare name, mirroring the
+# source preamble's \DeclareGraphicsExtensions.
+#
+# Web-renderable rasters come FIRST, which is the opposite of what LaTeX
+# would prefer. The target here is HTML: a browser cannot display a PDF
+# inside an <img>, so resolving `fig/restud_fig11a` to the .pdf would emit
+# a figure that silently fails to render. Both of this book's extensionless
+# includes ship a .png alongside the .pdf precisely for that reason.
+GRAPHICS_EXTENSIONS = [".png", ".jpg", ".jpeg", ".svg", ".pdf", ".eps"]
+
 # Standalone preamble — mirrors the book's TikZ-relevant packages and
 # math macros so figures compile out-of-context. lmodern + pdflatex
 # matches the source (not XeLaTeX/STIX like dp1).
@@ -308,6 +318,11 @@ def resolve_image(src: str) -> Path | None:
     1. If the basename already exists under mystmd/figures/, use it.
     2. Otherwise search GRAPHICSPATH for the basename and copy it in.
     3. Return ``None`` if the file can't be located.
+
+    LaTeX permits an extensionless argument — ``\\includegraphics{fig/foo}``
+    resolves against ``\\DeclareGraphicsExtensions``. Both lookups therefore
+    try the name as given first, then each known extension in turn, so a
+    bare name still finds ``foo.png`` / ``foo.pdf``.
     """
     src = src.strip()
     # Strip a leading 'fig/' or './fig/' (source-tree convention)
@@ -315,16 +330,25 @@ def resolve_image(src: str) -> Path | None:
     if src.startswith("fig/"):
         src = src[len("fig/"):]
     basename = Path(src).name
-    target = FIGURES_DIR / basename
-    if target.exists():
-        return target
-    for d in GRAPHICSPATH:
-        candidate = d / basename
-        if candidate.exists():
-            FIGURES_DIR.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(candidate, target)
-            print(f"  Copied {candidate.relative_to(REPO_DIR)} -> figures/{basename}")
+
+    # Candidate filenames: as written, then extension-completed if bare.
+    names = [basename]
+    if not Path(basename).suffix:
+        names += [basename + ext for ext in GRAPHICS_EXTENSIONS]
+
+    for name in names:
+        target = FIGURES_DIR / name
+        if target.exists():
             return target
+    for d in GRAPHICSPATH:
+        for name in names:
+            candidate = d / name
+            if candidate.exists():
+                FIGURES_DIR.mkdir(parents=True, exist_ok=True)
+                target = FIGURES_DIR / name
+                shutil.copy2(candidate, target)
+                print(f"  Copied {candidate.relative_to(REPO_DIR)} -> figures/{name}")
+                return target
     return None
 
 
@@ -385,10 +409,7 @@ def write_overrides(figures: list[Figure], images: list[IncludedImage]) -> None:
 
 
 def check_tools() -> None:
-    missing = []
-    for cmd in ("pdflatex", "pdf2svg"):
-        if subprocess.run(["which", cmd], capture_output=True).returncode != 0:
-            missing.append(cmd)
+    missing = [cmd for cmd in ("pdflatex", "pdf2svg") if shutil.which(cmd) is None]
     if missing:
         sys.stderr.write(f"ERROR: missing required commands: {', '.join(missing)}\n")
         sys.stderr.write("Install: brew install --cask mactex && brew install pdf2svg\n")
@@ -418,7 +439,10 @@ def main() -> None:
             status = "EXISTS" if (FIGURES_DIR / f"{f.label}.svg").exists() else "MISSING"
             print(f"  [{status}] tikz  {f.label}   (\\label{{{f.raw_label}}})")
         for img in all_images:
-            status = "EXISTS" if (FIGURES_DIR / img.src).exists() else "MISSING"
+            # Ask resolve_image rather than testing the raw src, so a bare
+            # \includegraphics name is reported against the file it actually
+            # resolves to instead of showing a spurious MISSING.
+            status = "EXISTS" if resolve_image(img.src) else "MISSING"
             print(f"  [{status}] image {img.label}   ({img.src})")
         return
 

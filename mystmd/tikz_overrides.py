@@ -73,6 +73,8 @@ TIKZ_FIGURE_MAP: dict[str, tuple[str, str | None]] = {
     'fig-pseudo_state_surrogate'      : ('figures/fig-pseudo_state_surrogate.svg', None),
     'fig-rbf_length_scale'            : ('figures/fig-rbf_length_scale.svg', None),
     'fig-regression'                  : ('figures/fig-regression.svg', None),
+    'fig-restud_bau_emissions'        : ('figures/restud_fig11a.png', None),
+    'fig-restud_bau_mat'              : ('figures/restud_fig15a.png', None),
     'fig-rl-loop'                     : ('figures/fig-rl-loop.svg', None),
     'fig-rnn'                         : ('figures/fig-rnn.svg', None),
     'fig-sequence_space_compare'      : ('figures/fig-sequence_space_compare.svg', None),

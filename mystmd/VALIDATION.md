@@ -8,7 +8,7 @@ That process ran over 28 rounds between May and August 2026. This file records t
 
 ## Current state
 
-Pins: converter [`182214f`](https://github.com/QuantEcon/claude-latex-to-myst), renderer `qe-v10` ([QuantEcon mystmd fork](https://github.com/QuantEcon/mystmd)).
+Pins: converter [`182214f`](https://github.com/QuantEcon/claude-latex-to-myst/commit/182214f860132e7447d0ec40bc0fba9ffb9136be), renderer [`qe-v10`](https://github.com/QuantEcon/mystmd/releases/tag/qe-v10) (QuantEcon mystmd fork).
 
 | Check | Result |
 |---|---|
