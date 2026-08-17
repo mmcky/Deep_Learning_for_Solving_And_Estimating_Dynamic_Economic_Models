@@ -10457,7 +10457,7 @@ The KS log-linear rule is built on the empirical observation that mean capital $
 \emph{Why higher moments do not always rescue.}  Adding the variance to the forecasting rule helps with smooth perturbations but cannot capture multi-modal distributions, regime-switching, or non-monotone responses to skewness.  The fundamental issue is that the master equation requires \emph{full} cross-sectional information whenever prices are non-linear in the distribution; truncating to any finite set of moments is exact only in the linear-pricing case.
 
 \paragraph{Exercise~\ref{ex:ch6:4} (statement: p.~\pageref{ex:ch6:4}): Sequence-space vs.\ histogram DEQN.}
-Coding exercise.  Empirically: with truncation horizon $T = 80$ and the chapter's reference calibration, the sequence-space residual after training matches the histogram-based DEQN to within a factor of $1.2$--$1.5$ on the same model.  The sequence-space variant generalizes \emph{worse} to a much longer test horizon ($T_\mathrm{test} \gg 80$): its input is a fixed-length shock window, so it inherits an error floor of order $\max\{|\varrho_z|,\alpha\}^{T}$ that training cannot remove and that is paid afresh at every date of a long test path.  The histogram variant does not have this issue because its state is the current distribution, a genuine Markov state.  The trade-off favors sequence-space when the cross-sectional distribution is intrinsically high-dimensional (e.g., multiple assets, multi-cohort wealth), at which point storing $T$ shock realizations is cheaper than discretizing the distribution.
+Coding exercise.  Empirically: with truncation horizon $T = 80$ and the chapter's reference calibration, the sequence-space residual after training matches the histogram-based DEQN to within a factor of $1.2$--$1.5$ on the same model.  The sequence-space variant generalizes \emph{worse} to a much longer test horizon ($T_\mathrm{test} \gg 80$): its input is a fixed-length shock window, so it inherits an error floor of order $\max\{|\varrho|,|\alpha|\}^{T}$ that training cannot remove and that is paid afresh at every date of a long test path.  The histogram variant does not have this issue because its state is the current distribution, a genuine Markov state.  The trade-off favors sequence-space when the cross-sectional distribution is intrinsically high-dimensional (e.g., multiple assets, multi-cohort wealth), at which point storing $T$ shock realizations is cheaper than discretizing the distribution.
 
 \paragraph{Exercise~\ref{ex:ch6:5} (statement: p.~\pageref{ex:ch6:5}): DeepSets permutation invariance.}
 \emph{(i)} Let $\pi$ be a permutation of $\{1, \dots, N\}$.  The aggregator's $m$-th component is
@@ -10908,6 +10908,28 @@ The threshold occurs at
 where the value of information just balances the irreversibility cost.
 
 \emph{Connection to climate policy.}  This stylized model captures the central tension in climate policy: information arrives over time about ECS, damage functions, and tipping thresholds, but emissions are largely irreversible (atmospheric CO$_2$ persists for centuries).  The chapter's Bayesian-learning treatment makes the trade-off quantitative: under fast learning and slow climate dynamics, waiting can be optimal; under slow learning and fast tipping risks, an early-action premium emerges.  The empirical literature \citep{pindyck2007uncertainty, caiSocialCostCarbon2019} finds that for realistic climate calibrations, the irreversibility channel typically dominates, supporting near-term carbon tax implementation rather than ``wait and see'' policies.
+
+\paragraph{Exercise~\ref{ex:ch11:10} (statement: p.~\pageref{ex:ch11:10}): Non-stationary DEQN on a 1D toy.}
+\emph{(i) LQ-Riccati baseline.}  This is a finite-horizon linear-quadratic tracking problem, so the value function is quadratic in the state with time-varying coefficients.  Conjecture $V_t(x) = P_t x^2 + 2 q_t x + c_t$ with terminal condition $V_{T_{\max}}(x) = \lambda_T (x - x^\ast_{T_{\max}})^2$, i.e.\ $P_{T_{\max}} = \lambda_T$ and $q_{T_{\max}} = -\lambda_T\,x^\ast_{T_{\max}}$.  Writing $D_t = r + P_{t+1}$, the Bellman first-order condition in $u$ gives the affine policy
+\[
+   u^\star_t(x) \;=\; -\,\frac{P_{t+1}\bigl(\alpha x + g_t\bigr) + q_{t+1}}{D_t}
+   \;=\; -K_t\,x - k_t,
+   \qquad
+   K_t = \frac{\alpha P_{t+1}}{D_t},
+   \quad
+   k_t = \frac{P_{t+1}\,g_t + q_{t+1}}{D_t},
+\]
+and substituting back yields the backward Riccati recursions
+\[
+   P_t \;=\; 1 + \frac{\alpha^2 r\,P_{t+1}}{D_t},
+   \qquad
+   q_t \;=\; -x^\ast_t + \frac{\alpha r\,\bigl(P_{t+1}\,g_t + q_{t+1}\bigr)}{D_t}.
+\]
+The additive Gaussian shock exhibits certainty equivalence: $\sigma$ enters only the constant $c_t$ (through a $P_{t+1}\sigma^2$ term), so the optimal policy is identical whether the rollouts are noisy or deterministic, and the trained DEQN must recover the same feedback rule in both cases.  At the stated calibration, iterating the recursions shows that $P_t$ sits at its stationary value $\approx 1.083$ and the gain at $K_t \approx 0.870$ over almost the entire horizon, with a short boundary layer near $T_{\max}$ (the terminal weight $P_{T_{\max}} = \lambda_T = 5$ is far above the stationary $P$, pulling $K_{T_{\max}-1}$ up to $\approx 0.931$).  The genuine calendar-time dependence of the policy therefore lives almost entirely in the intercept $k_t$, through the drift $g_t$, the target path $x^\ast_t = a + bt$, and $q_{t+1}$, plus the end-of-horizon Riccati transient.
+
+\emph{(ii)--(iii) Training and verification.}  Coding parts; the three ingredients map one-to-one onto the modifications of \S\ref{sec:nsdeqn_algo}: the bounded time input $\tau_t$ is ``time enters as a state,'' the calendar-time stratification mirrors the forward-simulated training pool, and the terminal penalty is the short-horizon replacement for the transversality-by-long-horizon argument.  Anchor the verification in part~(iii) on the closed form above: evaluate $u^\star_t(x)$ from the recursions along a test set of simulated paths and compare with the network's actions in the mean-squared-action metric; the $1\%$ tolerance is achievable with a small MLP, and the realized gap is a run output.
+
+\emph{(iv) Ablations.}  The analysis in (i) predicts the ranking.  Dropping $\tau_t$ hurts most, and increasingly so as $T_{\max}$ grows: without a time input the network can only represent a time-averaged policy, while the true intercept $k_t$ drifts linearly through $g_t$ and $x^\ast_t$, so the representation error grows with the length of the target path.  Removing the terminal penalty degrades tracking only in the boundary layer near $T_{\max}$ where the $K_t$ transient lives, leaving the interior fit largely intact.  Removing stratification does not change what the network \emph{can} represent; it degrades the optimization by under-weighting sparsely sampled calendar-time bins, an effect that is real but typically the mildest of the three.  Exact magnitudes are outputs of the ablation runs and should be reported from them.
 
 \section{Chapter \ref{ch:outlook}: Synthesis and Outlook}
 \label{sol:ch12}
