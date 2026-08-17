@@ -488,26 +488,26 @@ The following table maps each manuscript chapter to its companion slide deck(s) 
 \toprule
 \textbf{Ch.} & \textbf{Topic} & \textbf{Lecture folder \& deck} & \textbf{Notebooks (role)} \\
 \midrule
-1  & Intro to ML \& DL                         & L02: \texttt{01\_Intro\_to\_DL}                          & L02 \texttt{01}--\texttt{09} (c$\times$9) \\
-2  & Deep Equilibrium Nets                     & L03: \texttt{02\_DEQNs}; L07: \texttt{05b\_AutoDiff} & L03 \texttt{01}--\texttt{02} (c), \texttt{03}--\texttt{04} (e/s), \texttt{05} (c); L07 \texttt{01}--\texttt{04} (c) \\
-3  & IRBC Model                                & L04: \texttt{03\_IRBC}                                  & L04 \texttt{01}--\texttt{02} (c) \\
-4  & NAS \& Loss Norm.                         & L05: \texttt{04\_NAS}, \texttt{05\_Loss}                 & L05 \texttt{02}--\texttt{04} (c), \texttt{05} (e) \\
-5  & OLG Models                                & L08: \texttt{08\_OLG}                                   & L08 \texttt{07}--\texttt{10} (c), \texttt{11} (e) \\
-6  & HA, Young, Seq.\ Space                    & L09: \texttt{09\_HA\_Young}; L10: \texttt{10\_SeqSpace} & L09 \texttt{10}--\texttt{12} (c); L10 \texttt{05}, \texttt{05b}, \texttt{06} (c), \texttt{KrusellSmith\_Tutorial\_CPU} (x) \\
-7  & PINNs                                     & L11: \texttt{06\_PINNs}                                 & L11 \texttt{01}--\texttt{05} (c) \\
-8  & CT Het.\ Agents                           & L12: \texttt{07\_CT\_Theory}; L13: \texttt{08\_CT\_Num} & L13 \texttt{06}--\texttt{08} (c), \texttt{09} (e) \\
-9  & Surrogates, GPs, DKL                      & L14: \texttt{07\_Surrogates\_GPs}                       & L14 \texttt{01}, \texttt{02}, \texttt{04}--\texttt{08} (c), \texttt{07}, \texttt{09}, \texttt{10} (x) \\
-10 & Structural Estimation                     & L15: \texttt{08\_Struct\_Est}                          & L15 \texttt{03}, \texttt{03b} (c) \\
-11 & Climate \& Deep UQ                        & L16: \texttt{08\_Climate}; L17: \texttt{09\_UQ}    & L16 \texttt{01}--\texttt{03} (c); L17 \texttt{09\_DICE\_2P\_UQ\_Analysis} (c) plus 4 \texttt{.py} pipeline drivers \\
-12 & Synthesis \& Outlook                      & L18: \texttt{10\_Wrap\_Up}                              & --- \\
+1  & Intro to ML \& DL      & L02: \texttt{intro\_deep\_learning}                                          & L02 \texttt{01}--\texttt{09} (c$\times$9) \\
+2  & Deep Equilibrium Nets  & L03: \texttt{deep\_equilibrium\_nets}; L07: \texttt{autodiff\_for\_deqns}     & L03 \texttt{01}--\texttt{02} (c), \texttt{03}--\texttt{04} (e/s), \texttt{05} (c); L07 \texttt{01}--\texttt{04} (c) \\
+3  & IRBC Model             & L04: \texttt{irbc}                                                           & L04 \texttt{01}--\texttt{02} (c) \\
+4  & NAS \& Loss Norm.      & L05: \texttt{neural\_architecture\_search}, \texttt{loss\_normalization}      & L05 \texttt{02}--\texttt{04} (c), \texttt{05} (e) \\
+5  & OLG Models             & L08: \texttt{olg\_models\_deqns}                                             & L08 \texttt{07}--\texttt{10} (c), \texttt{11} (e) \\
+6  & HA, Young, Seq.\ Space & L09: \texttt{heterogeneous\_agents\_youngs}; L10: \texttt{sequence\_space\_deqns} & L09 \texttt{10}--\texttt{12} (c); L10 \texttt{05}, \texttt{05b}, \texttt{06} (c), \texttt{KrusellSmith\_Tutorial\_CPU} (x) \\
+7  & PINNs                  & L11: \texttt{pinns}                                                          & L11 \texttt{01}--\texttt{05} (c) \\
+8  & CT Het.\ Agents        & L12: \texttt{continuous\_time\_ha\_theory}; L13: \texttt{continuous\_time\_ha\_numerics} & L13 \texttt{08} (c) \\
+9  & Surrogates, GPs, DKL   & L14: \texttt{surrogates\_and\_gps}                                           & L14 \texttt{01}, \texttt{02}, \texttt{04}--\texttt{08} (c), \texttt{09}, \texttt{10} (x) \\
+10 & Structural Estimation  & L15: \texttt{structural\_estimation\_smm}                                    & L15 \texttt{03}, \texttt{03b} (c) \\
+11 & Climate \& Deep UQ     & L16: \texttt{climate\_economics\_iams}; L17: \texttt{deep\_uq\_pareto\_policy} & L16 \texttt{01}--\texttt{03} (c); L17 \texttt{09\_DICE\_2P\_UQ\_Analysis} (c) plus 4 \texttt{.py} pipeline drivers \\
+12 & Synthesis \& Outlook   & L18: \texttt{wrap\_up}                                                       & --- \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\noindent{\scriptsize\textbf{Path conventions.} The repository organizes lectures by stable block id (\texttt{lectures/lecture\_$N$\_B$YY$\_*/}); the leading \texttt{L$N$} in the table is the student-facing lecture number and the parenthetical \texttt{B$YY$} is the canonical block id (which is stable across renumberings).  Slide and notebook names in the table are abbreviated; full paths follow \texttt{lectures/lecture\_$N$\_B$YY$\_*/\{slides,code\}/}.  Notebook role letters: \texttt{c}~=~core, \texttt{e}~=~exercise, \texttt{s}~=~solution (paired with an exercise notebook), \texttt{x}~=~extension/self-study.  See the README for complete file names and direct links.}
+\noindent{\scriptsize\textbf{Path conventions.} Lecture folders are \texttt{lectures/lecture\_$NN$\_*/}, where \texttt{L$NN$} in the table is the lecture number; the slide sources live in that folder's \texttt{slides/} subfolder and the notebooks in \texttt{code/}.  Names in the table are abbreviated: deck names drop the \texttt{lecture\_$NN$\_} prefix that every slide file carries, and a notebook is cited by the number that follows that prefix, so \texttt{L03 01} is \texttt{lectures/lecture\_03\_deep\_equilibrium\_nets/code/lecture\_03\_01\_Brock\_Mirman\_1972\_DEQN.ipynb}.  Notebook role letters: \texttt{c}~=~core, \texttt{e}~=~exercise, \texttt{s}~=~solution (paired with an exercise notebook), \texttt{x}~=~extension/self-study.  See the README for complete file names and direct links.}
 
 \medskip
-\noindent{\scriptsize\textbf{Workshop material.} The live course includes a hands-on workshop on agentic programming (using AI agents as coding partners), delivered as L06.  Because this field is evolving quickly, it is presented through slides, two Python helper scripts, and exercises rather than as a fixed manuscript chapter.  The manuscript remains organized chapter by chapter, with the workshop material collected in the L06 slides and exercise prompts.}
+\noindent{\scriptsize\textbf{Lectures without a chapter.} Two lectures have no manuscript chapter of their own.  L01 (\texttt{lecture\_01\_python\_primer}) is a self-contained Python primer for readers who want a refresher before Chapter~\ref{ch:intro}.  L06 (\texttt{lecture\_06\_agentic\_programming}) is a hands-on workshop on agentic programming (using AI agents as coding partners); because this field is evolving quickly, it is presented through slides, two Python helper scripts, and exercise prompts rather than as a fixed manuscript chapter.}
 
 \medskip
 \noindent{\scriptsize\textbf{Reproducibility.} Random-seed conventions, the \tpath{RUN_MODE} budget split, hardware and software pins, and GPU-determinism flags used by every notebook in the table above are documented in Appendix~\ref{app:reproducibility}.  Worked solutions and guidance for the end-of-chapter exercises are collected in Appendix~\ref{app:solutions}.}
