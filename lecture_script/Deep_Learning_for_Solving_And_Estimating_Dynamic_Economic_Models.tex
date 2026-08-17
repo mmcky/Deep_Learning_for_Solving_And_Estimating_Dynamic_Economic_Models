@@ -9850,21 +9850,21 @@ A short glossary of recurring concepts.  Each entry is one or two sentences; for
 \item[\textbf{Bayesian active learning (BAL).}]  Adaptive sample-design strategy in which the next training point is chosen to maximize an acquisition function based on predictive uncertainty; pairs naturally with GPs (Chapter~\ref{ch:gp}).
 \item[\textbf{Bellman equation.}]  Recursive characterization of the value function in a discrete-time dynamic program.  Continuous-time analogue is the HJB equation.
 \item[\textbf{Brock--Mirman model.}]  Stochastic neoclassical growth model with log utility and full depreciation that admits a closed-form policy $s^\star = \alpha\beta$; the canonical DEQN benchmark in this script.
-\item[\textbf{Common random numbers (CRN).}]  Variance-reduction technique in which the same shock realizations are reused across simulations of different parameter values, removing simulation noise from comparisons \citep{glasserman2004monte}.
 \item[\textbf{Collocation point.}]  A spatial location at which a PDE residual is evaluated and minimized in a PINN training loop (Chapter~\ref{ch:pinn}).
+\item[\textbf{Common random numbers (CRN).}]  Variance-reduction technique in which the same shock realizations are reused across simulations of different parameter values, removing simulation noise from comparisons \citep{glasserman2004monte}.
 \item[\textbf{Curse of dimensionality.}]  Exponential blow-up of grid-based methods in the dimension of the state space; mitigated, not eliminated, by neural-network and GP approximators.
 \item[\textbf{Deep Equilibrium Net (DEQN).}]  A neural-network-based solver for dynamic stochastic equilibrium models that minimizes the equilibrium-equation residuals directly via SGD (Chapter~\ref{ch:deqn}).
 \item[\textbf{Deep Galerkin Method (DGM).}]  An LSTM-style architecture introduced by \citet{sirignano2018dgm} for solving high-dimensional PDEs; the architectural sibling of standard PINNs.
 \item[\textbf{Deep kernel learning (DKL).}]  Composes a neural-network feature extractor with a GP layer in the learned feature space \citep{wilson2016deep}.
 \item[\textbf{DeepONet.}]  A neural architecture for operator learning: a branch net encodes the input function and a trunk net encodes the query point; the inner product is the predicted output \citep{lu2021learning}.
-\item[\textbf{EMINN.}]  Economic-Model Informed Neural Network: a PINN-style approach to the master equation in continuous-time HA models \citep{gu2024masterequations}.
+\item[\textbf{EMINN.}]  Economic Model Informed Neural Network: a PINN-style approach to the master equation in continuous-time HA models \citep{gu2024masterequations}.
 \item[\textbf{Ergodic distribution.}]  The stationary distribution of a Markov process; in a Krusell--Smith economy it is the long-run distribution of wealth across agents.
-\item[\textbf{Fischer--Burmeister (FB).}]  A smooth complementarity function $\Phi(a,b) = a + b - \sqrt{a^2+b^2}$ used to encode KKT conditions in differentiable losses; the opposite sign has the same zero set but the chapter and notebooks use this convention \citep{fischer1992special}.
+\item[\textbf{Fischer--Burmeister (FB).}]  A smooth complementarity function $\Phi(a,b) = a + b - \sqrt{a^2+b^2}$ used to encode KKT conditions in differentiable losses; the opposite sign convention has the same zero set but the chapter and notebooks use this convention \citep{fischer1992special}.
 \item[\textbf{Fourier Neural Operator (FNO).}]  Operator-learning architecture parameterizing a kernel integral operator in Fourier space; cheap and resolution-invariant \citep{li2021fourier}.
 \item[\textbf{Functional derivative.}]  $\delta V/\delta g$, the density / Riesz representer of the Fr\'echet derivative of $V$ with respect to a function-valued argument $g$ (equivalently, the directional derivative of $V$ at $g$ in the direction of a Dirac perturbation $\delta_{y_0}$); appears in the master equation (Chapter~\ref{ch:ct_theory}).
 \item[\textbf{Gauss--Hermite quadrature.}]  Polynomial quadrature rule for integrals against the standard normal density; backbone of the expectations step in DEQNs.
-\item[\textbf{HJB equation.}]  Hamilton--Jacobi--Bellman equation; continuous-time analogue of the Bellman equation, a PDE in the value function.
 \item[\textbf{Histogram (Young 2010).}]  Mass-redistribution scheme on a fixed grid that propagates a wealth distribution deterministically without Monte Carlo noise (Chapter~\ref{ch:young}).
+\item[\textbf{HJB equation.}]  Hamilton--Jacobi--Bellman equation; continuous-time analogue of the Bellman equation, a PDE in the value function.
 \item[\textbf{Hyperband.}]  Successive-halving multi-fidelity hyperparameter scheduler that explores many configurations cheaply and concentrates budget on the survivors \citep{li2018hyperband}.
 \item[\textbf{Inducing points.}]  A small set of pseudo-data points used in sparse GPs to approximate the full kernel matrix at $\mathcal{O}(nm^2)$ cost \citep{titsias2009variational}.
 \item[\textbf{Itô's lemma.}]  The chain rule of stochastic calculus; for the scalar diffusion $dX_t=\mu\,dt+\sigma\,dB_t$, the only difference from ordinary calculus is the second-order correction $\tfrac{1}{2}f''(X_t)\sigma^2\,dt$.
@@ -9876,14 +9876,14 @@ A short glossary of recurring concepts.  Each entry is one or two sentences; for
 \item[\textbf{Neural Tangent Kernel (NTK).}]  In the infinite-width limit, gradient-descent training of a deep network is equivalent to kernel regression with the (deterministic) NTK \citep{jacot2018neural}.
 \item[\textbf{Operator learning.}]  Learning a map between function spaces (input field $\to$ solution function) rather than a single solution; DeepONet and FNO are the leading architectures.
 \item[\textbf{Physics-Informed Neural Network (PINN).}]  A neural network trained by minimizing a PDE residual at collocation points plus boundary-condition penalties \citep{raissi2019physics}.
-\item[\textbf{Pseudo-state.}]  Treating model parameters as additional inputs to a neural network so that the trained surrogate covers an entire parameter range without retraining (Chapter~\ref{ch:gp}).
+\item[\textbf{Pseudo-state.}]  Treating model parameters as additional inputs to a neural network so that the trained surrogate covers an entire parameter range without retraining (Chapter~\ref{ch:estimation}).
 \item[\textbf{Quasi-Monte Carlo (QMC).}]  Deterministic low-discrepancy sequences (Sobol, Halton, Niederreiter) achieving error rates close to $\mathcal{O}(1/M)$ for smooth integrands.
 \item[\textbf{ReLoBRaLo.}]  Adaptive loss-balancing scheme that reweights multi-component losses by recent relative-decrease ratios \citep{bischof2025relobralo}.
 \item[\textbf{Simulated Method of Moments (SMM).}]  Estimator that matches simulated to empirical moments; the natural extension of GMM when moments lack closed form \citep{mcfadden1989method}.
 \item[\textbf{Simulation-based inference (SBI).}]  Modern likelihood-free Bayesian inference using neural conditional density estimators \citep{cranmer2020frontier}.
 \item[\textbf{Social cost of carbon (SCC).}]  Marginal welfare cost of one additional unit of emissions, commonly reported as USD/tCO$_2$ after choosing the consumption numeraire and applying the carbon-to-CO$_2$ conversion; the headline policy number from a climate IAM.
 \item[\textbf{Sobol / Shapley indices.}]  Variance-decomposition tools for global sensitivity analysis.  Sobol decompositions are cleanest under independent inputs; Shapley effects allocate variance across inputs and can be defined for dependent inputs when the dependence structure is modeled explicitly.
-\item[\textbf{Universal approximation.}]  A single-hidden-layer network with a non-polynomial activation can approximate any continuous function on a compact set arbitrarily well \citep{cybenko1989approximation, hornik1989multilayer}.
+\item[\textbf{Universal approximation.}]  A single-hidden-layer network with sufficiently many neurons can approximate any continuous function on a compact set arbitrarily well \citep{cybenko1989approximation, hornik1989multilayer}.
 \item[\textbf{Value Function Iteration (VFI).}]  Classical contraction-mapping algorithm for solving the Bellman equation by iterating the Bellman operator until convergence.
 \item[\textbf{Young's lottery.}]  The unique two-point split that, when applied to off-grid policy choices, preserves the conditional mean exactly; the building block of the histogram update.
 \end{description}
