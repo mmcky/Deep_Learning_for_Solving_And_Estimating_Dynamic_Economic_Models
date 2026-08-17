@@ -8624,8 +8624,6 @@ A key contribution of \citet{Folini_2021} is a systematic recalibration of the D
 \begin{table}[ht]
 \centering
 \small
-\caption{CDICE climate-module calibration protocol.  The first two tests discipline the carbon-cycle and temperature-response blocks directly; the last two check whether the calibrated reduced-form module remains accurate on out-of-sample and historically realistic forcing paths.}
-\label{tab:cdice_tests}
 \begin{tabular}{lll}
 \toprule
 \textbf{Test} & \textbf{Target} & \textbf{Use} \\
@@ -8636,6 +8634,8 @@ A key contribution of \citet{Folini_2021} is a systematic recalibration of the D
 4.\ Historical + RCP & Realistic forcing paths & End-to-end validation \\
 \bottomrule
 \end{tabular}
+\caption{CDICE climate-module calibration protocol.  The first two tests discipline the carbon-cycle and temperature-response blocks directly; the last two check whether the calibrated reduced-form module remains accurate on out-of-sample and historically realistic forcing paths.}
+\label{tab:cdice_tests}
 \end{table}
 This calibration ensures that the reduced-form climate module is consistent with state-of-the-art earth system models.  CDICE also introduces a transparent time-step formulation, $X_{t+\Delta t} = X_t + \Delta t \cdot f(X_t, u_t; \theta)$, that allows coherent implementation at annual, 5-year, or 10-year resolution within a single generic framework.  Figure~\ref{fig:restud_bau_mat} illustrates how much the climate-cycle calibration matters even before the planner makes any decision: under business-as-usual, DICE-2016 and CDICE produce visibly different atmospheric carbon trajectories, and the gap propagates into temperature, damages, and ultimately the SCC.
 
@@ -8654,8 +8654,6 @@ The block-by-block model description above introduces a fairly large set of para
 \begin{table}[ht]
 \centering
 \small
-\caption{CDICE baseline calibration used in the deterministic CDICE-DEQN solve.  Parameter values follow the Online Appendix of \citet{Folini_2021} and are stated on an annual time step ($\Delta_t = 1$\,yr).  All carbon quantities ($M_{\mathrm{eq}}, M_0, \sigma_0, E_{\mathrm{Land},0}$) are in CDICE's $10^3$\,GtC working units; multiply by $10^3$ to recover GtC.  Two alternative climate calibrations (CDICE-HadGEM2-ES, CDICE-GISS-E2-R) are listed in the temperature block, with their full free-parameter sets $\{c_1, c_3, c_4, F_{\mathrm{2\times CO_2}}, \lambda\}$ and corresponding ECS, since simply varying ECS while holding the rest of the temperature block fixed is \emph{not} equivalent to using the full CMIP5 calibration \citep[\S 4.6 of][]{Folini_2021}.  Initial state is for year 2015.}
-\label{tab:dice_calibration}
 \begin{tabular}{@{}p{2.0cm} l p{5.2cm} p{4.4cm}@{}}
 \toprule
 \textbf{Block} & \textbf{Parameter} & \textbf{Value} & \textbf{Meaning} \\
@@ -8707,6 +8705,8 @@ Initial state
  & $T_0$               & $(1.10, 0.27)\,^\circ$C & Atm./ocean temp.\ above pre-industrial, 2015 \\
 \bottomrule
 \end{tabular}
+\caption{CDICE baseline calibration used in the deterministic CDICE-DEQN solve.  Parameter values follow the Online Appendix of \citet{Folini_2021} and are stated on an annual time step ($\Delta_t = 1$\,yr).  All carbon quantities ($M_{\mathrm{eq}}, M_0, \sigma_0, E_{\mathrm{Land},0}$) are in CDICE's $10^3$\,GtC working units; multiply by $10^3$ to recover GtC.  Two alternative climate calibrations (CDICE-HadGEM2-ES, CDICE-GISS-E2-R) are listed in the temperature block, with their full free-parameter sets $\{c_1, c_3, c_4, F_{\mathrm{2\times CO_2}}, \lambda\}$ and corresponding ECS, since simply varying ECS while holding the rest of the temperature block fixed is \emph{not} equivalent to using the full CMIP5 calibration \citep[\S 4.6 of][]{Folini_2021}.  Initial state is for year 2015.}
+\label{tab:dice_calibration}
 \end{table}
 
 \subsection{The full IAM, summarized}
@@ -9048,8 +9048,6 @@ and the loss is still a sum of normalized equilibrium residuals.  The only chang
 \begin{table}[H]
 \centering
 \small
-\caption{The layers of the climate-economy pipeline used in the remainder of the chapter.  Each layer is a small extension of the previous one; no new numerical paradigm is introduced after the deterministic CDICE-DEQN.}
-\label{tab:climate_frontier_map}
 \begin{tabular}{@{}p{3.4cm}p{4.4cm}p{5.4cm}@{}}
 \toprule
 \textbf{Layer} & \textbf{Economic question} & \textbf{Computational change} \\
@@ -9062,6 +9060,8 @@ Deep UQ (\S\ref{sec:deep_uq}) & Which uncertain parameters drive SCC variation? 
 Stochastic OLG-IAM (\S\ref{sec:pareto_carbon_tax}) & Can carbon taxes be welfare improving and Pareto improving across cohorts? & Treat tax coefficients and transfer shares as pseudo-states; fit GP surrogates for cohort welfare; solve constrained policy design on the surrogate. \\
 \bottomrule
 \end{tabular}
+\caption{The layers of the climate-economy pipeline used in the remainder of the chapter.  Each layer is a small extension of the previous one; no new numerical paradigm is introduced after the deterministic CDICE-DEQN.}
+\label{tab:climate_frontier_map}
 \end{table}
 
 \begin{remarkbox}[Adding aggregate shocks: AR(1) productivity and Gauss--Hermite quadrature]
@@ -9962,8 +9962,6 @@ Every empirical statement in the main text relies on the companion notebooks lis
 \begin{table}[ht]
 \centering
 \small
-\caption{Reproducibility conventions used by the companion notebooks.  The conventions pin random seeds and document hardware, software, and precision choices; bit-exact reproduction additionally requires the deterministic settings and caveats described below the table.}
-\label{tab:repro_conventions}
 \begin{tabular}{@{}>{\RaggedRight\arraybackslash}p{3.0cm} >{\RaggedRight\arraybackslash}p{10.0cm}@{}}
 \toprule
 \textbf{Item} & \textbf{Convention} \\
@@ -9977,6 +9975,8 @@ GPU determinism & \emph{Optional, bit-exact runs only}: set \tpath{CUBLAS_WORKSP
 Reported numbers & Where the script states an accuracy or runtime, the source is either the cited paper (for production-scale results) or the companion notebook with the seed above (for classroom-scale results). \\
 \bottomrule
 \end{tabular}
+\caption{Reproducibility conventions used by the companion notebooks.  The conventions pin random seeds and document hardware, software, and precision choices; bit-exact reproduction additionally requires the deterministic settings and caveats described below the table.}
+\label{tab:repro_conventions}
 \end{table}
 
 For full bit-exact reproduction, e.g.\ for a regulatory-grade audit, the determinism flags above are necessary but not sufficient: GPU non-determinism in atomic accumulators and BLAS implementation differences across CUDA versions can still cause diverging results in the last few decimal places.  This is a known limitation of GPU-accelerated deep learning and is one of the reasons \S\ref{sec:when_not_to_use_dl} flags reproducibility-critical settings as a regime where deterministic finite-difference solvers may still be preferred.
@@ -10118,8 +10118,6 @@ with classical nodes $\xi_q$ and weights $w_q$ that satisfy $\sum_q w_q = \sqrt{
 \begin{table}[ht]
 \centering
 \small
-\caption{Five-point Gauss--Hermite nodes and weights for the convention $\E[h(\varepsilon)] \approx \pi^{-1/2}\sum_q w_q h(\sqrt{2}\xi_q)$.  The weights sum to $\sqrt{\pi}$ before the outside normalization.}
-\label{tab:gh5_nodes}
 \begin{tabular}{@{}rrr@{}}
 \toprule
 $q$ & $\xi_q$ & $w_q$ \\\midrule
@@ -10130,6 +10128,8 @@ $q$ & $\xi_q$ & $w_q$ \\\midrule
 5 & $+2.0202$ & $0.0200$ \\
 \bottomrule
 \end{tabular}
+\caption{Five-point Gauss--Hermite nodes and weights for the convention $\E[h(\varepsilon)] \approx \pi^{-1/2}\sum_q w_q h(\sqrt{2}\xi_q)$.  The weights sum to $\sqrt{\pi}$ before the outside normalization.}
+\label{tab:gh5_nodes}
 \end{table}
 Substituting, the residual at a state $(K_t, z_t)$ becomes
 \[
@@ -10257,8 +10257,6 @@ Hyperband with $R = 81$, $\eta = 3$ runs a ladder of brackets indexed by $s = s_
 \begin{table}[ht]
 \centering
 \small
-\caption{Hyperband schedule for maximum resource $R=81$ and reduction factor $\eta=3$.  Each row reports the successive-halving rungs inside one bracket and the total resource consumed by that bracket.}
-\label{tab:hyperband_r81_eta3}
 \begin{tabular}{@{}r >{\RaggedRight\arraybackslash}p{9.2cm} r@{}}
 \toprule
 $s$ & \textbf{SHA rungs $(n\times r)$} & \textbf{Total} \\
@@ -10270,6 +10268,8 @@ $1$ & $8{\times}27 \to 2{\times}81$ & $378$ \\
 $0$ & $5{\times}81$ & $405$ \\
 \bottomrule
 \end{tabular}
+\caption{Hyperband schedule for maximum resource $R=81$ and reduction factor $\eta=3$.  Each row reports the successive-halving rungs inside one bracket and the total resource consumed by that bracket.}
+\label{tab:hyperband_r81_eta3}
 \end{table}
 
 Within each bracket, Successive Halving reduces candidates by $\eta$ at each rung and increases the resource per surviving candidate by $\eta$.  Therefore the total cost must sum all rungs, not only the first rung.  With the floor/ceil schedule above, total Hyperband budget is
