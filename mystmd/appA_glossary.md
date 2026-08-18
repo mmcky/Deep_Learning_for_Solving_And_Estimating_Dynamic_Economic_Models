@@ -29,11 +29,11 @@ A short glossary of recurring concepts. Each entry is one or two sentences; for 
 **Brock–Mirman model.**
 : Stochastic neoclassical growth model with log utility and full depreciation that admits a closed-form policy $s^\star = \alpha\beta$; the canonical DEQN benchmark in this script.
 
-**Common random numbers (CRN).**
-: Variance-reduction technique in which the same shock realisations are reused across simulations of different parameter values, removing simulation noise from comparisons {cite:p}`glasserman2004monte`.
-
 **Collocation point.**
 : A spatial location at which a PDE residual is evaluated and minimized in a PINN training loop ({ref}`ch-pinn`).
+
+**Common random numbers (CRN).**
+: Variance-reduction technique in which the same shock realizations are reused across simulations of different parameter values, removing simulation noise from comparisons {cite:p}`glasserman2004monte`.
 
 **Curse of dimensionality.**
 : Exponential blow-up of grid-based methods in the dimension of the state space; mitigated, not eliminated, by neural-network and GP approximators.
@@ -51,13 +51,13 @@ A short glossary of recurring concepts. Each entry is one or two sentences; for 
 : A neural architecture for operator learning: a branch net encodes the input function and a trunk net encodes the query point; the inner product is the predicted output {cite:p}`lu2021learning`.
 
 **EMINN.**
-: Economic-Model Informed Neural Network: a PINN-style approach to the master equation in continuous-time HA models {cite:p}`gu2024masterequations`.
+: Economic Model Informed Neural Network: a PINN-style approach to the master equation in continuous-time HA models {cite:p}`gu2024masterequations`.
 
 **Ergodic distribution.**
 : The stationary distribution of a Markov process; in a Krusell–Smith economy it is the long-run distribution of wealth across agents.
 
 **Fischer–Burmeister (FB).**
-: A smooth complementarity function $\Phi(a,b) = a + b - \sqrt{a^2+b^2}$ used to encode KKT conditions in differentiable losses; the opposite sign has the same zero set but the chapter and notebooks use this convention {cite:p}`fischer1992special`.
+: A smooth complementarity function $\Phi(a,b) = a + b - \sqrt{a^2+b^2}$ used to encode KKT conditions in differentiable losses; the opposite sign convention has the same zero set but the chapter and notebooks use this convention {cite:p}`fischer1992special`.
 
 **Fourier Neural Operator (FNO).**
 : Operator-learning architecture parameterizing a kernel integral operator in Fourier space; cheap and resolution-invariant {cite:p}`li2021fourier`.
@@ -68,11 +68,11 @@ A short glossary of recurring concepts. Each entry is one or two sentences; for 
 **Gauss–Hermite quadrature.**
 : Polynomial quadrature rule for integrals against the standard normal density; backbone of the expectations step in DEQNs.
 
-**HJB equation.**
-: Hamilton–Jacobi–Bellman equation; continuous-time analogue of the Bellman equation, a PDE in the value function.
-
 **Histogram (Young 2010).**
 : Mass-redistribution scheme on a fixed grid that propagates a wealth distribution deterministically without Monte Carlo noise ({ref}`ch-young`).
+
+**HJB equation.**
+: Hamilton–Jacobi–Bellman equation; continuous-time analogue of the Bellman equation, a PDE in the value function.
 
 **Hyperband.**
 : Successive-halving multi-fidelity hyperparameter scheduler that explores many configurations cheaply and concentrates budget on the survivors {cite:p}`li2018hyperband`.
@@ -108,7 +108,7 @@ A short glossary of recurring concepts. Each entry is one or two sentences; for 
 : A neural network trained by minimizing a PDE residual at collocation points plus boundary-condition penalties {cite:p}`raissi2019physics`.
 
 **Pseudo-state.**
-: Treating model parameters as additional inputs to a neural network so that the trained surrogate covers an entire parameter range without retraining ({ref}`ch-gp`).
+: Treating model parameters as additional inputs to a neural network so that the trained surrogate covers an entire parameter range without retraining ({ref}`ch-estimation`).
 
 **Quasi-Monte Carlo (QMC).**
 : Deterministic low-discrepancy sequences (Sobol, Halton, Niederreiter) achieving error rates close to $\mathcal{O}(1/M)$ for smooth integrands.
@@ -129,7 +129,7 @@ A short glossary of recurring concepts. Each entry is one or two sentences; for 
 : Variance-decomposition tools for global sensitivity analysis. Sobol decompositions are cleanest under independent inputs; Shapley effects allocate variance across inputs and can be defined for dependent inputs when the dependence structure is modeled explicitly.
 
 **Universal approximation.**
-: A single-hidden-layer network with a non-polynomial activation can approximate any continuous function on a compact set arbitrarily well {cite:p}`cybenko1989approximation,hornik1989multilayer`.
+: A single-hidden-layer network with sufficiently many neurons can approximate any continuous function on a compact set arbitrarily well {cite:p}`cybenko1989approximation,hornik1989multilayer`; the sharp condition on the activation is that it be non-polynomial {cite:p}`leshno1993multilayer`.
 
 **Value Function Iteration (VFI).**
 : Classical contraction-mapping algorithm for solving the Bellman equation by iterating the Bellman operator until convergence.

@@ -248,7 +248,7 @@ The two OLG models solved in this chapter, side by side. The economic richness o
 
 - **Hump-shaped labor endowment** $e^h$ peaking in the early 50s.
 
-- **No-short-sale of capital:** $k'^h \geq 0$ (the constraint historically labelled the "borrowing constraint" in this literature; we keep the more precise name to free "borrowing" for the bond side).
+- **No-short-sale of capital:** $k'^h \geq 0$ (the constraint historically labeled the "borrowing constraint" in this literature; we keep the more precise name to free "borrowing" for the bond side).
 
 - **Collateral constraint:** $k'^h + \kappa\, b'^h \geq 0$, where $\kappa = 1/(1-\delta_{\max})$.
 
@@ -369,7 +369,7 @@ Residual blocks entering the 56-agent benchmark loss for one training state.
 
 ```{prf:remark} Chapter Summary
 
- OLG models discretise the cross-section into a finite number of cohorts $A$, so the minimal state vector contains the aggregate shock together with the cohort asset holdings and has dimension $\mathcal{O}(A)$. Market clearing $\sum_h k_{t+1}^h = K_{t+1}$ closes the model and is the natural place to encode aggregation exactly via a market-clearing output layer ({ref}`ch-deqn`, footnote on Azinovic–Yang & Žemlička 2024). No-short-sale-of-capital and collateral constraints introduce KKT complementarity, which we enforce by combining softplus output activations (for non-negativity) with squared product residuals $(a\cdot b)^2$ in the loss. Across both instances, the 6-agent analytic OLG and the 56-agent IER benchmark, the *same* training loop covers the spectrum from textbook closed-form validation to research-scale scalability.
+ OLG models discretize the cross-section into a finite number of cohorts $A$, so the minimal state vector contains the aggregate shock together with the cohort asset holdings and has dimension $\mathcal{O}(A)$. Market clearing $\sum_h k_{t+1}^h = K_{t+1}$ closes the model and is the natural place to encode aggregation exactly via a market-clearing output layer ({ref}`ch-deqn`, footnote on Azinovic–Yang & Žemlička 2024). No-short-sale-of-capital and collateral constraints introduce KKT complementarity, which we enforce by combining softplus output activations (for non-negativity) with squared product residuals $(a\cdot b)^2$ in the loss. Across both instances, the 6-agent analytic OLG and the 56-agent IER benchmark, the *same* training loop covers the spectrum from textbook closed-form validation to research-scale scalability.
 ```
 
 
@@ -404,7 +404,7 @@ Worked solutions and guidance for these exercises appear in Appendix {ref}`app-
 ```{exercise}
 :label: ex-ch5-4
 
-**[Computational\] Hard aggregation layer.** The analytic notebook currently predicts cohort savings and then defines aggregate next-period capital as their sum, so capital-market clearing is already exact. Implement an alternative architecture in notebook `lecture_08_08_OLG_Analytic_DEQN_persistent.ipynb` in which the network outputs a scalar $\widehat K_{t+1}>0$ and unnormalised cohort scores $(z^2,\ldots,z^A)$, then sets $s^h=\mathrm{softmax}(z^h)$ and $k_{t+1}^h=\widehat K_{t+1}s^h$. Verify that $\sum_{h=2}^{A} k_{t+1}^h=\widehat K_{t+1}$ is at machine precision (below $10^{-12}$) at every training step. Compare the Euler residual and runtime against the current "sum-of-savings" implementation, and explain why the hard layer is useful mainly when aggregate $K_{t+1}$ is a separate policy head.
+**[Computational\] Hard aggregation layer.** The analytic notebook currently predicts cohort savings and then defines aggregate next-period capital as their sum, so capital-market clearing is already exact. Implement an alternative architecture in notebook `lecture_08_08_OLG_Analytic_DEQN_persistent.ipynb` in which the network outputs a scalar $\widehat K_{t+1}>0$ and unnormalized cohort scores $(z^2,\ldots,z^A)$, then sets $s^h=\mathrm{softmax}(z^h)$ and $k_{t+1}^h=\widehat K_{t+1}s^h$. Verify that $\sum_{h=2}^{A} k_{t+1}^h=\widehat K_{t+1}$ is at machine precision (below $10^{-12}$) at every training step. Compare the Euler residual and runtime against the current "sum-of-savings" implementation, and explain why the hard layer is useful mainly when aggregate $K_{t+1}$ is a separate policy head.
 ```
 
 ````{exercise}
@@ -433,6 +433,6 @@ and show that the same expression equals $\mathbb{E}_t[M_{t,t+1}]$ for the stoch
 **[Advanced/project\] KKT-binding frequency under aggregate volatility.** Still in the 56-agent benchmark, vary the standard deviation of the aggregate productivity shock $\sigma_z \in \{0.005, 0.01, 0.02, 0.04\}$ (the reference calibration uses $\sigma_z \approx 0.01$). For each, retrain and report the fraction of ergodic-set draws on which (a) the borrowing constraint $k'^h \ge 0$ binds and (b) the collateral constraint $k'^h + \kappa b'^h \ge 0$ binds, broken out by cohort age. Use the same small-slack/positive-multiplier convention as in {prf:ref}`ex-ch5-6`. Show that the binding fraction grows roughly linearly in $\sigma_z$ for the youngest cohorts but stays near zero for older cohorts, and connect this to the chapter's recommendation ({ref}`sec-olg_fb`) that product-form KKT residuals suffice when the constraint binds rarely.
 ```
 
-[^1]: The 56-agent benchmark of {ref}`sec-olg_56` adds two genuine extras to {eq}`eq-olg_loss`: KKT product residuals (because the borrowing and collateral constraints actually bind) and an explicit bond-market-clearing residual (because the network outputs each agent's bond holding independently). An orthogonal extension is to encode capital-market clearing *exactly* via a dedicated output layer that rescales unnormalised cohort savings so that $\sum_{h=2}^{A} k_{t+1}^{h} = K_{t+1}$ holds by construction; {cite:t}`azinoviczemlicka_2024` adopt this design in an OLG economy with rare disasters.
+[^1]: The 56-agent benchmark of {ref}`sec-olg_56` adds two genuine extras to {eq}`eq-olg_loss`: KKT product residuals (because the borrowing and collateral constraints actually bind) and an explicit bond-market-clearing residual (because the network outputs each agent's bond holding independently). An orthogonal extension is to encode capital-market clearing *exactly* via a dedicated output layer that rescales unnormalized cohort savings so that $\sum_{h=2}^{A} k_{t+1}^{h} = K_{t+1}$ holds by construction; {cite:t}`azinoviczemlicka_2024` adopt this design in an OLG economy with rare disasters.
 
 [^2]: In the current notebook implementation $\hat q^h$ is parameterized *relative* to $\hat k'^h$, so it cannot fall to zero while $\hat k'^h>0$; the collateral-complementarity residual is then satisfied by $\hat\mu^h\to 0$, and the collateral constraint is effectively non-binding on the learned ergodic set, consistent with the chapter-opening note. Allowing it to bind exactly requires a free positive slack output (a softplus head on $\hat q^h$); the architecture above already accommodates this swap.

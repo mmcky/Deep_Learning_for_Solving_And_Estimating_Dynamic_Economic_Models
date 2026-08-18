@@ -91,7 +91,7 @@ where $\Phi$ and $\phi$ are the standard normal CDF and PDF, respectively {cite:
 ```{figure} figures/fig-bayesopt.svg
 :name: fig-bayesopt
 
-Bayesian optimization in one dimension; the same setup is reproduced in the companion notebook. *Top:* after five evaluations (black dots), the GP posterior mean $\bar f(h)$ (solid blue) interpolates the observations and the $\bar f(h) \pm 2\sigma_f(h)$ credible band (shaded) pinches to zero at each observation and widens in the gaps; this is the picture predicted by {eq}`eq-nas_gp_mean`–{eq}`eq-nas_gp_var`. The dashed red curve is the (in practice unknown) true loss; the horizontal grey line marks $\ell^\star$, the best observation so far (near $h\approx 2.3$). *Bottom:* Expected Improvement $\mathrm{EI}(h)$ is essentially zero at the existing data, where there is nothing to learn, rises in the unexplored gaps, and peaks at $h \approx 3.75$, which combines a predicted mean already below $\ell^\star$ with substantial residual uncertainty. The maximizer (red arrow) is selected as the next configuration to evaluate; EI thus balances exploitation against exploration automatically, and here it steers the search at the neighborhood of the hidden true minimum.
+Bayesian optimization in one dimension; the same setup is reproduced in the companion notebook. *Top:* after five evaluations (black dots), the GP posterior mean $\bar f(h)$ (solid blue) interpolates the observations and the $\bar f(h) \pm 2\sigma_f(h)$ credible band (shaded) pinches to zero at each observation and widens in the gaps; this is the picture predicted by {eq}`eq-nas_gp_mean`–{eq}`eq-nas_gp_var`. The dashed red curve is the (in practice unknown) true loss; the horizontal gray line marks $\ell^\star$, the best observation so far (near $h\approx 2.3$). *Bottom:* Expected Improvement $\mathrm{EI}(h)$ is essentially zero at the existing data, where there is nothing to learn, rises in the unexplored gaps, and peaks at $h \approx 3.75$, which combines a predicted mean already below $\ell^\star$ with substantial residual uncertainty. The maximizer (red arrow) is selected as the next configuration to evaluate; EI thus balances exploitation against exploration automatically, and here it steers the search at the neighborhood of the hidden true minimum.
 ```
 
 ```{prf:definition} Bayesian Optimization with Expected Improvement
@@ -154,12 +154,12 @@ The companion notebook `03_NAS_RandomSearch_Hyperband.ipynb` implements the SHA 
 
 ## Method Comparison
 
-{numref}`tab-nas_methods` contrasts the four hyperparameter-search strategies covered above on three dimensions that matter in practice: the cost of $N$ objective evaluations, the degree to which the evaluations can be parallelised, and the sample efficiency (how much of the budget actually improves the best-so-far value).
+{numref}`tab-nas_methods` contrasts the four hyperparameter-search strategies covered above on three dimensions that matter in practice: the cost of $N$ objective evaluations, the degree to which the evaluations can be parallelized, and the sample efficiency (how much of the budget actually improves the best-so-far value).
 
 ````{table}
 :name: tab-nas_methods
 
-Comparison of hyperparameter-search methods. Grid search scales exponentially in the number of hyperparameters $d$; random search and Hyperband scale linearly in the chosen evaluation/resource budget and parallelise well; Bayesian optimization has the highest per-evaluation information gain but adds surrogate-fitting overhead and is partly sequential.
+Comparison of hyperparameter-search methods. Grid search scales exponentially in the number of hyperparameters $d$; random search and Hyperband scale linearly in the chosen evaluation/resource budget and parallelize well; Bayesian optimization has the highest per-evaluation information gain but adds surrogate-fitting overhead and is partly sequential.
 
 | **Method** | **Cost** | **Parallelizable** | **Sample efficiency** | **Best for** |
 |---|:---:|:---:|:---:|:---:|
@@ -175,7 +175,7 @@ For the DEQN and PINN applications in this course, random search or Bayesian opt
 ## Implementing the Search in Practice
 To keep the algorithms transparent, the companion notebook `03_NAS_RandomSearch_Hyperband.ipynb` implements both Random Search (§ {ref}`sec-nas_random_search`) and the Successive Halving Algorithm (§ {ref}`sec-hyperband`) directly in plain Python, with no hyperparameter-search library involved. The search space is encoded as an ordinary dict (number of hidden layers $\in \{1,\ldots,5\}$, units per layer $\in \{32, 64, \ldots, 256\}$, activation function $\in \{\texttt{relu}, \texttt{tanh}, \texttt{swish}\}$, and learning rate log-uniform in $[10^{-4}, 10^{-2}]$), and a single `sample_config(rng)` function draws candidates from it. Random Search is then a $30$-iteration loop that builds, trains, and scores each candidate; Successive Halving is the same loop wrapped in a halving schedule ($n_0 = 27$ candidates at $r_0 = 8$ epochs $\to$ $9$ at $24$ $\to$ $3$ at $72$ $\to$ winner, with $\eta = 3$). Both implementations fit on a single slide and reproduce the qualitative finding of {cite:t}`li2018hyperband` that Successive Halving reaches comparable accuracy to Random Search at substantially lower compute: in the notebook run, the same MAE is recovered with $\sim 2.3\times$ less compute (648 SHA config-epochs vs. 1500 for 30 Random Search trials at 50 epochs each) at a comparable number of architectures (27 vs. 30). The precise multipliers are notebook-specific; the magnitudes reported in Li et al. vary by benchmark.
 
-**Production tooling (footnote).** Real projects rarely hand-roll the search loop. Several established libraries wrap (and parallelise) the same algorithms behind uniform APIs: `KerasTuner`[^1] (Random, Bayesian, Hyperband; tight Keras integration), `Optuna`[^2] (TPE, CMA-ES, Hyperband, NSGA-II; framework-agnostic), `Ray Tune`[^3] (all of the above plus ASHA and population-based training, distributed by design), `Hyperopt`[^4] (the original TPE reference), `Ax` / `BoTorch`[^5] (PyTorch-native multi-objective Bayesian optimization), `NNI`[^6] (Microsoft; full graph-NAS support), and `AutoKeras`[^7] (full AutoML pipeline). We deliberately teach the algorithms rather than the wrappers because library APIs change every few years; the underlying search procedures (Random, SHA / Hyperband, GP+EI, TPE) do not. The notebook additionally compares the best NAS-found architecture to a hand-tuned baseline, which makes the pedagogical value of automated search concrete.
+**Production tooling (footnote).** Real projects rarely hand-roll the search loop. Several established libraries wrap (and parallelize) the same algorithms behind uniform APIs: `KerasTuner`[^1] (Random, Bayesian, Hyperband; tight Keras integration), `Optuna`[^2] (TPE, CMA-ES, Hyperband, NSGA-II; framework-agnostic), `Ray Tune`[^3] (all of the above plus ASHA and population-based training, distributed by design), `Hyperopt`[^4] (the original TPE reference), `Ax` / `BoTorch`[^5] (PyTorch-native multi-objective Bayesian optimization), `NNI`[^6] (Microsoft; full graph-NAS support), and `AutoKeras`[^7] (full AutoML pipeline). We deliberately teach the algorithms rather than the wrappers because library APIs change every few years; the underlying search procedures (Random, SHA / Hyperband, GP+EI, TPE) do not. The notebook additionally compares the best NAS-found architecture to a hand-tuned baseline, which makes the pedagogical value of automated search concrete.
 
 ## Multi-Component Losses: The Scale Problem
 
@@ -368,7 +368,7 @@ Worked solutions and guidance for these exercises appear in Appendix {ref}`app-
 ```{exercise}
 :label: ex-ch4-4
 
-**[Core\] Loss balancing.** In a multi-component PINN loss with three terms of magnitude $10^0$, $10^{-2}$, $10^{-4}$, write down what fixed weights $\lambda_i$ would be needed to equalise their gradient contributions. Why does this become impractical when the gradients are correlated?
+**[Core\] Loss balancing.** In a multi-component PINN loss with three terms of magnitude $10^0$, $10^{-2}$, $10^{-4}$, write down what fixed weights $\lambda_i$ would be needed to equalize their gradient contributions. Why does this become impractical when the gradients are correlated?
 ```
 
 ```{exercise}

@@ -56,7 +56,7 @@ so $\bm k_\star^\top (K + \sigma_y^2 I)^{-1} \bm k_\star \approx 2 \cdot 0.2910 
 ```{figure} figures/fig-gp_prior_posterior.svg
 :name: fig-gp_prior_posterior
 
-Gaussian-process prior and posterior on a 1D regression problem. *Left:* the prior has constant mean (here zero) and uniform uncertainty; the shaded bands show the $68\%$ and $95\%$ credible intervals, and the thin grey curves are three sample paths drawn from the prior. *Right:* after conditioning on five observations (black dots), the posterior mean (red curve) interpolates the data exactly, and the credible band collapses near the observed points while widening in unexplored regions away from the data, giving the GP its built-in uncertainty quantification.
+Gaussian-process prior and posterior on a 1D regression problem. *Left:* the prior has constant mean (here zero) and uniform uncertainty; the shaded bands show the $68\%$ and $95\%$ credible intervals, and the thin gray curves are three sample paths drawn from the prior. *Right:* after conditioning on five observations (black dots), the posterior mean (red curve) interpolates the data exactly, and the credible band collapses near the observed points while widening in unexplored regions away from the data, giving the GP its built-in uncertainty quantification.
 ```
 
 ```{prf:remark} Built-in uncertainty quantification
@@ -75,7 +75,7 @@ $$
 
 where $K_y = K + \sigma_y^2 I$ and $\bm{\mu}_X$ is the prior mean evaluated on the training inputs. In the zero-mean convention used elsewhere in this section, set $\bm{\mu}_X = 0$ (or center the outputs).
 
-**Why marginal likelihood?** The log evidence $\log p(\bm y \mid \X, \bm\vartheta)$ encodes both data fit *and* an automatic complexity penalty in a single closed-form expression. The quadratic form $-\tfrac{1}{2}\bm y^\top K_y^{-1}\bm y$ rewards hyperparameters that explain the centered observations with a small inverse-covariance norm, while the log-determinant term $-\tfrac{1}{2}\log|K_y|$ penalises overly flexible kernels that admit too many possible functions, giving Bayesian Occam's razor {cite:p}`Rasmussen:2005:GPM:1162254`. Compared with cross-validated MSE, this approach requires no held-out split, makes use of all $n$ observations, and exposes a closed-form gradient with respect to $\bm\vartheta$, which is essential for L-BFGS-style optimization in scikit-learn / GPyTorch. The maximum is reached at the kernel that is just expressive enough to fit the data but no more ({numref}`fig-occam_marginal_likelihood`).
+**Why marginal likelihood?** The log evidence $\log p(\bm y \mid \X, \bm\vartheta)$ encodes both data fit *and* an automatic complexity penalty in a single closed-form expression. The quadratic form $-\tfrac{1}{2}\bm y^\top K_y^{-1}\bm y$ rewards hyperparameters that explain the centered observations with a small inverse-covariance norm, while the log-determinant term $-\tfrac{1}{2}\log|K_y|$ penalizes overly flexible kernels that admit too many possible functions, giving Bayesian Occam's razor {cite:p}`Rasmussen:2005:GPM:1162254`. Compared with cross-validated MSE, this approach requires no held-out split, makes use of all $n$ observations, and exposes a closed-form gradient with respect to $\bm\vartheta$, which is essential for L-BFGS-style optimization in scikit-learn / GPyTorch. The maximum is reached at the kernel that is just expressive enough to fit the data but no more ({numref}`fig-occam_marginal_likelihood`).
 
 ```{figure} figures/fig-occam_marginal_likelihood.svg
 :name: fig-occam_marginal_likelihood
@@ -117,7 +117,7 @@ For economic applications where the target function may have kinks (e.g., due to
 ## Bayesian Active Learning for Sample-Efficient Training
 When model evaluations are expensive, we wish to select training points that provide maximal information. Bayesian Active Learning (BAL) uses the GP posterior variance to guide this selection. The information-theoretic foundations go back to {cite:t}`mackay1992information`, with submodular guarantees for variance-based sensor placement established by {cite:t}`krause2008near` and the widely used upper-confidence-bound formulation of {cite:t}`srinivas2010gaussian`.
 
-**Connection to Bayesian optimization ({ref}`ch-nas`).** BAL is the active-learning twin of the Bayesian-optimization (BO) recipe introduced in {ref}`ch-nas`: same GP surrogate, same acquisition-function machinery. The difference is the target. BO seeks a *scalar optimum* of the surrogate (e.g. Expected Improvement steers samples toward $\argmax \hat f$), so its acquisition trades exploration against the chance of beating the current best. BAL instead targets *global function approximation*: it allocates samples wherever posterior variance is largest, irrespective of the predicted value. Both reduce to the same primitive (fit GP, maximise acquisition, evaluate, refit), but the choice of acquisition reflects whether one wants the best point or the best surrogate.
+**Connection to Bayesian optimization ({ref}`ch-nas`).** BAL is the active-learning twin of the Bayesian-optimization (BO) recipe introduced in {ref}`ch-nas`: same GP surrogate, same acquisition-function machinery. The difference is the target. BO seeks a *scalar optimum* of the surrogate (e.g. Expected Improvement steers samples toward $\argmax \hat f$), so its acquisition trades exploration against the chance of beating the current best. BAL instead targets *global function approximation*: it allocates samples wherever posterior variance is largest, irrespective of the predicted value. Both reduce to the same primitive (fit GP, maximize acquisition, evaluate, refit), but the choice of acquisition reflects whether one wants the best point or the best surrogate.
 
 ```{prf:definition} BAL Acquisition Function
 
@@ -183,7 +183,7 @@ $\dagger$ Sparse-GP via inducing points reduces $\mathcal{O}(N^3)$ to $\mathca
 
 ### GP Regression in Practice
 
-In code, GP regression is a one-liner once the kernel is chosen. In scikit-learn the standard pattern is to assemble a kernel as the sum of an RBF (`RBF(length_scale=...)`) and a noise term (`WhiteKernel(noise_level=...)`), pass it to `GaussianProcessRegressor`, call `.fit(X_train, y_train)`, and obtain posterior mean and standard deviation from `.predict(X_test, return_std=True)`; the kernel hyperparameters (`length_scale`, `noise_level`, output amplitude) are optimized by maximising the marginal likelihood, with `n_restarts_optimizer` controlling robustness to local optima. The companion notebook `02_GP_and_BAL.ipynb` provides a full worked example fitting noisy observations of $\sin(x)$ on $[-2,2]$.
+In code, GP regression is a one-liner once the kernel is chosen. In scikit-learn the standard pattern is to assemble a kernel as the sum of an RBF (`RBF(length_scale=...)`) and a noise term (`WhiteKernel(noise_level=...)`), pass it to `GaussianProcessRegressor`, call `.fit(X_train, y_train)`, and obtain posterior mean and standard deviation from `.predict(X_test, return_std=True)`; the kernel hyperparameters (`length_scale`, `noise_level`, output amplitude) are optimized by maximizing the marginal likelihood, with `n_restarts_optimizer` controlling robustness to local optima. The companion notebook `02_GP_and_BAL.ipynb` provides a full worked example fitting noisy observations of $\sin(x)$ on $[-2,2]$.
 
 **Application: GP surrogates for option pricing.** GPs are particularly well suited as surrogates for derivative pricing models. For example, one can train a GP on as few as 5–50 Black–Scholes option prices (evaluated at different spot prices or parameter configurations) and obtain a surrogate that accurately reproduces the pricing surface with calibrated uncertainty bands. The posterior variance immediately quantifies the interpolation uncertainty at each query point. This idea extends naturally to stochastic volatility models such as Heston, where the analytical pricing formula is expensive to evaluate. Furthermore, because GP predictions are linear in the training targets, the uncertainty of a *portfolio* of GP-priced instruments propagates analytically: for a linear portfolio $\sum_i w_i \hat{V}_i$ with vector of weights $\bm{w}$ and joint posterior covariance $\Sigma_{\hat{V}}$, $\mathrm{Var}(\bm{w}^\top \hat{V}) = \bm{w}^\top \Sigma_{\hat{V}} \bm{w}$. When the surrogate errors are independent across instruments, $\Sigma_{\hat{V}}$ is diagonal with entries $\sigma_i^2$ and the formula reduces to $\sum_i w_i^2 \sigma_i^2$; otherwise the off-diagonal cross-instrument covariances must be retained, e.g. via a multi-output GP. Either way the assessment is instant.
 
@@ -462,7 +462,7 @@ $$
 \sigma_{-i}^2(\x^{(i)}) = \frac{1}{\bigl[K_y^{-1}\bigr]_{ii}},
 $$ (eq-gp_loo)
 
-where $\mu_{-i}$ and $\sigma_{-i}^2$ denote the posterior mean and variance after removing the $i$-th observation, and $\alpha = K_y^{-1}(\bm y-\bm\mu_X)$ (for centered outputs, $\bm\mu_X=0$). Since $K_y^{-1}$ is recovered from the Cholesky factor of $K_y$ in $\mathcal{O}(n^2)$ once the factorisation has been done, computing the full $n$-vector of LOO residuals is essentially free relative to the $\mathcal{O}(n^3)$ already paid for posterior inference.
+where $\mu_{-i}$ and $\sigma_{-i}^2$ denote the posterior mean and variance after removing the $i$-th observation, and $\alpha = K_y^{-1}(\bm y-\bm\mu_X)$ (for centered outputs, $\bm\mu_X=0$). Since $K_y^{-1}$ is recovered from the Cholesky factor of $K_y$ in $\mathcal{O}(n^2)$ once the factorization has been done, computing the full $n$-vector of LOO residuals is essentially free relative to the $\mathcal{O}(n^3)$ already paid for posterior inference.
 
 **What the LOO RMSE tells us.** Tracking
 
@@ -476,7 +476,7 @@ across VFI iterations is a cheap surrogate-health metric that is independent of 
 
 - A flat-then-rising LOO curve at the same design size signals *kernel mis-specification* (length scale collapsing, noise variance hitting a bound) and tells us to revisit the kernel choice or hyperparameter bounds before adding more design points.
 
-- A high LOO RMSE at small $n^s$ that decays as the design grows is the expected behaviour and tells us that the surrogate simply needs more labels.
+- A high LOO RMSE at small $n^s$ that decays as the design grows is the expected behavior and tells us that the surrogate simply needs more labels.
 
 - A small LOO RMSE coexisting with a large Bellman residual points the finger at the *operator*, not the surrogate: the iterate may be far from the fixed point even though the GP fits the current $TV^{s-1}$ well.
 
@@ -484,7 +484,7 @@ The notebook `04_GP_Value_Function_Iteration.ipynb` computes {eq}`eq-gp_loo` via
 
 (sec-gp_dp_bal_inside)=
 ### Active Learning Inside the VFI Loop
-The Bayesian active-learning machinery of {ref}`sec-bal` carries over almost verbatim once the VFI loop is in place, but with one important adjustment: the goal is now *uniform interpolation accuracy* of the value function on the relevant state-space region, not maximisation of a payoff or minimisation of a loss. The right acquisition function is therefore pure exploration, the GP posterior standard deviation, rather than a UCB or expected-improvement criterion that trades off exploitation and exploration:
+The Bayesian active-learning machinery of {ref}`sec-bal` carries over almost verbatim once the VFI loop is in place, but with one important adjustment: the goal is now *uniform interpolation accuracy* of the value function on the relevant state-space region, not maximization of a payoff or minimization of a loss. The right acquisition function is therefore pure exploration, the GP posterior standard deviation, rather than a UCB or expected-improvement criterion that trades off exploitation and exploration:
 
 $$
 \x^{\mathrm{next}} \in \argmax_{\x \in \mathcal{X}^\mathrm{cand}} \sigma_\mathrm{GP}^s(\x).
@@ -500,9 +500,9 @@ A practical implementation, used in notebook `04_GP_Value_Function_Iteration.ipy
 
 4.  Refit the GP and continue iterating.
 
-**Why pure exploration here.** A UCB-style acquisition would bias the design toward states with high *value*, which is not what we want when the surrogate is a building block of an iteration. We want the GP posterior to be uniformly tight wherever the Bellman operator might be evaluated, so that the contraction modulus of the *approximate* operator stays close to $\beta$. This is structurally different from the optimisation setting of Bayesian optimisation, where exploitation is a feature.
+**Why pure exploration here.** A UCB-style acquisition would bias the design toward states with high *value*, which is not what we want when the surrogate is a building block of an iteration. We want the GP posterior to be uniformly tight wherever the Bellman operator might be evaluated, so that the contraction modulus of the *approximate* operator stays close to $\beta$. This is structurally different from the optimization setting of Bayesian optimization, where exploitation is a feature.
 
-**Empirical impact.** The companion notebook compares a same-budget fixed Latin-hypercube design with an active design inside the one-dimensional GP-VFI loop. Both designs use Bellman labels; the active design starts from a small initial set and adds states by maximising the GP posterior standard deviation {eq}`eq-bal_vfi` subject to a spacing rule. At the same final number of labels, the active design lowers posterior uncertainty and achieves a comparable or smaller dense-grid Bellman residual ({numref}`fig-gp_vfi_active_1d`). The figure is one-dimensional by design: the goal is to show active enrichment inside a genuine Bellman iteration, not to use a separable interpolation toy as a proxy for multidimensional dynamic programming.
+**Empirical impact.** The companion notebook compares a same-budget fixed Latin-hypercube design with an active design inside the one-dimensional GP-VFI loop. Both designs use Bellman labels; the active design starts from a small initial set and adds states by maximizing the GP posterior standard deviation {eq}`eq-bal_vfi` subject to a spacing rule. At the same final number of labels, the active design lowers posterior uncertainty and achieves a comparable or smaller dense-grid Bellman residual ({numref}`fig-gp_vfi_active_1d`). The figure is one-dimensional by design: the goal is to show active enrichment inside a genuine Bellman iteration, not to use a separable interpolation toy as a proxy for multidimensional dynamic programming.
 
 ```{figure} figures/gp_vfi_active_learning_1d.png
 :name: fig-gp_vfi_active_1d
