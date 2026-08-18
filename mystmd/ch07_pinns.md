@@ -87,7 +87,7 @@ The treatment of boundary conditions is a critical design choice in PINNs.
 ```{figure} figures/fig-soft_bc_failure_modes.svg
 :name: fig-soft_bc_failure_modes
 
-Failure modes of soft boundary-condition enforcement on a Dirichlet problem with $y(0)=1$, $y(1)=2$. *Left:* the BC penalty weight $\lambda$ is too small, so the optimizer minimizes the interior PDE residual but lets the candidate solution miss both endpoints (visible as the "gap" at $x=0$). *Right:* $\lambda$ is too large, so the network nails the boundary values but distorts the interior, producing a wiggly profile with PDE residual error against the affine reference (dashed grey). *Centre:* a balanced $\lambda$ approximately satisfies both objectives, but the right-shaped value depends on the network, the PDE, and the geometry, and is not known a priori. This trade-off motivates the hard-enforcement construction below, which removes the boundary loss term entirely.
+Failure modes of soft boundary-condition enforcement on a Dirichlet problem with $y(0)=1$, $y(1)=2$. *Left:* the BC penalty weight $\lambda$ is too small, so the optimizer minimizes the interior PDE residual but lets the candidate solution miss both endpoints (visible as the "gap" at $x=0$). *Right:* $\lambda$ is too large, so the network nails the boundary values but distorts the interior, producing a wiggly profile with PDE residual error against the affine reference (dashed gray). *Centre:* a balanced $\lambda$ approximately satisfies both objectives, but the right-shaped value depends on the network, the PDE, and the geometry, and is not known a priori. This trade-off motivates the hard-enforcement construction below, which removes the boundary loss term entirely.
 ```
 
 **Hard enforcement.** A *trial solution* is constructed that satisfies the boundary conditions *by construction*:
@@ -444,14 +444,14 @@ Two mature architectures dominate the literature.
 ```{figure} figures/fig-operator_learning_bridge.svg
 :name: fig-operator_learning_bridge
 
-Operator learning generalizes PINNs by amortising over an entire parametric family of PDEs. For economic applications such as option-price surfaces over $(K,T)$, value functions across a parameter range, or HJB sweeps for sensitivity analysis ({ref}`ch-gp`), training the operator once gives instant predictions at test time.
+Operator learning generalizes PINNs by amortizing over an entire parametric family of PDEs. For economic applications such as option-price surfaces over $(K,T)$, value functions across a parameter range, or HJB sweeps for sensitivity analysis ({ref}`ch-gp`), training the operator once gives instant predictions at test time.
 ```
 
-{numref}`fig-operator_learning_bridge` summarizes this progression from one-instance PINNs to operator-learning architectures. In the rest of this script, we mostly stay with PINNs because the focus is on solving one model carefully; we revisit operator learning briefly in {ref}`ch-outlook` and point readers who want to amortise across an entire parametric family of PDEs to {cite:t}`lu2021learning` {cite}`li2021fourier`.
+{numref}`fig-operator_learning_bridge` summarizes this progression from one-instance PINNs to operator-learning architectures. In the rest of this script, we mostly stay with PINNs because the focus is on solving one model carefully; we revisit operator learning briefly in {ref}`ch-outlook` and point readers who want to amortize across an entire parametric family of PDEs to {cite:t}`lu2021learning` {cite}`li2021fourier`.
 
 ```{prf:remark} Chapter Summary
 
- PINNs approximate PDE solutions by minimizing the residual at collocation points, with automatic differentiation supplying the required derivatives algorithmically up to floating-point precision {cite:p}`raissi2019physics`. Hard versus soft enforcement of boundary conditions is the central design lever: trial-function constructions of the form $\hat y = A(x) + B(x)\mathcal{N}_\theta(x)$ enforce BCs by construction, while soft penalties cover cases where hard enforcement is intractable. For second-order PDEs (HJB, Black–Scholes, Poisson) the activation must be at least $C^2$, which excludes ReLU and makes $\tanh$ and Swish the standard choices. Operator learning (DeepONet, FNO) is the natural generalization when one wants to amortise across a parametric family rather than solve one instance.
+ PINNs approximate PDE solutions by minimizing the residual at collocation points, with automatic differentiation supplying the required derivatives algorithmically up to floating-point precision {cite:p}`raissi2019physics`. Hard versus soft enforcement of boundary conditions is the central design lever: trial-function constructions of the form $\hat y = A(x) + B(x)\mathcal{N}_\theta(x)$ enforce BCs by construction, while soft penalties cover cases where hard enforcement is intractable. For second-order PDEs (HJB, Black–Scholes, Poisson) the activation must be at least $C^2$, which excludes ReLU and makes $\tanh$ and Swish the standard choices. Operator learning (DeepONet, FNO) is the natural generalization when one wants to amortize across a parametric family rather than solve one instance.
 ```
 
 

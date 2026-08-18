@@ -227,7 +227,7 @@ where $z_q' = \exp(\varrho\ln z_t + \sigma_z\sqrt{2}\,\xi_q)$ and $C_{t+1}^q$ is
 
 *Fourth moment.* $(\varepsilon_i')^4$ at $\pm\sqrt{d}\bm{e}_i$ equals $d^2$, both signs. Two nodes contribute $2d^2$, weighted by $1/(2d)$, gives $d$. At $d=4$, the rule returns $4$, while the true value $\E[\varepsilon_i'^{\,4}] = 3$.
 
-*Linear bias growth.* In general the rule reports $d$ for the fourth moment, so the relative error $(d - 3)/3$ is linear in $d$: $33\%$ at $d=4$, $67\%$ at $d=6$, doubles to $1$ ($100\%$) at $d=9$.
+*Linear bias growth.* In general the rule reports $d$ for the fourth moment, so the relative error $(d - 3)/3$ is linear in $d$: $33\%$ at $d=4$, $67\%$ at $d=5$, and $100\%$ at $d=6$.
 
 *When does this matter?* The Euler residual is a smooth function of the next-period shock $\varepsilon'$. Taylor-expanding around the conditional mean, the leading bias term is the Hessian of the residual with respect to $\varepsilon'$, which probes the second moment, exact under Stroud-3. Fourth-moment bias enters only at the next order, scaled by the integrand's fourth derivative. For moderate CRRA curvature and thin-tailed shocks this term can be small relative to classroom residual tolerances, but it is a diagnostic to check rather than a universal bound. The bias becomes material when (i) the integrand has heavy fourth-order content (e.g., very risk-averse preferences or fat-tailed shocks), or (ii) the shock dimension is large enough that the relative error $(d-3)/3$ exceeds the residual tolerance one targets. This is the threshold at which the monomial rule should be replaced by Stroud-5 ($2d^2 + 1$ nodes) or QMC.
 
@@ -261,7 +261,7 @@ The Stroud-3 rule has $2(N+1)$ nodes per residual. Setting $2(N+1) < 100$ gives 
 
 **{prf:ref}`ex-ch3-3`: Two-phase training.** At a randomly initialized network, the policy outputs $k^{j\prime}$ are not coordinated with the resource constraint. Suppose the network produces $k^{j\prime}$ values that, summed and combined with country-$j$ consumption, exceed total output: $\sum_j (k^{j\prime} + c^j + \Gamma^j) > \sum_j Y^j$. The implied state on the next simulated step has $k^{j\prime} < (1-\delta) k^j$ for some country (irreversibility violated), or $c^j < 0$ (negative consumption), or both. Concretely, take $N = 2$, $A_\mathrm{tfp} = 1$, $\delta = 0.025$, $k^1 = k^2 = 1$, and a random network output $(k^{1\prime}, k^{2\prime}) = (0.5, 0.5)$ (instead of the symmetric $(1, 1)$ steady state). Capital has dropped by $50\%$ in one step, so $I^j = k^{j\prime} - (1-\delta)k^j = 0.5 - 0.975 = -0.475 < 0$, violating irreversibility. Even before the irreversibility check fires, the implied consumption $c^j = Y^j - I^j - \Gamma^j$ becomes huge, and in the next step the marginal utility $u'(c)$ is essentially zero, so the Euler residual gradient is uninformative.
 
-Phase 1 (uniform sampling on a wide box of states, with Euler residuals computed against *any* feasible policy guess) gives the optimizer signal to bring outputs into the feasible region before any simulation is attempted. Once the policy is in a feasible neighbourhood, Phase 2 (simulation-based sampling on the ergodic set) refines accuracy. Without Phase 1, the simulation in Phase 2 starts in regions where the policy is grossly infeasible, the loss explodes, and gradient descent diverges.
+Phase 1 (uniform sampling on a wide box of states, with Euler residuals computed against *any* feasible policy guess) gives the optimizer signal to bring outputs into the feasible region before any simulation is attempted. Once the policy is in a feasible neighborhood, Phase 2 (simulation-based sampling on the ergodic set) refines accuracy. Without Phase 1, the simulation in Phase 2 starts in regions where the policy is grossly infeasible, the loss explodes, and gradient descent diverges.
 
 **{prf:ref}`ex-ch3-4`: Adjustment-cost partials and Tobin's Q.** Write $g^j \equiv k^{j\prime}/k^j - 1$. Then $\Gamma^j = (\kappa/2)\,k^j (g^j)^2$. The partials are
 
@@ -363,7 +363,7 @@ resource units, just below the loose worst-case bound $(s_{\max}+1)^2 R = 25 \cd
 
 A naive "train all $n_0 = 27$ candidates to full $R = 81$" costs $27 \cdot 81 = 2187$ resource units. Hyperband is only moderately cheaper in total resource here, but it screens a much larger initial pool: across the five brackets, the total number of first-rung candidates is $81 + 34 + 15 + 8 + 5 = 143$, vs. $27$ for the naive scheme. Its advantage is adaptive allocation: many more candidates are sampled, but only a small subset receives large training budgets.
 
-**{prf:ref}`ex-ch4-4`: Loss balancing.** Let $\ell_i^{(t)}$ have magnitude $L_i \in \{10^0, 10^{-2}, 10^{-4}\}$ and per-component gradient norm $\|\nabla\ell_i\|$. If we crudely model gradient norm as scaling linearly with loss magnitude (true for, e.g., quadratic losses far from the optimum), then $\|\nabla \ell_i\| \propto L_i$. Equalising gradient contributions $\lambda_i \|\nabla\ell_i\|$ requires $\lambda_i \propto 1/L_i$, i.e. $(\lambda_1, \lambda_2, \lambda_3) \propto (1, 10^2, 10^4)$, which after normalisation becomes
+**{prf:ref}`ex-ch4-4`: Loss balancing.** Let $\ell_i^{(t)}$ have magnitude $L_i \in \{10^0, 10^{-2}, 10^{-4}\}$ and per-component gradient norm $\|\nabla\ell_i\|$. If we crudely model gradient norm as scaling linearly with loss magnitude (true for, e.g., quadratic losses far from the optimum), then $\|\nabla \ell_i\| \propto L_i$. Equalizing gradient contributions $\lambda_i \|\nabla\ell_i\|$ requires $\lambda_i \propto 1/L_i$, i.e. $(\lambda_1, \lambda_2, \lambda_3) \propto (1, 10^2, 10^4)$, which after normalization becomes
 
 ```{math}
 :enumerated: false
@@ -371,7 +371,7 @@ A naive "train all $n_0 = 27$ candidates to full $R = 81$" costs $27 \cdot 81 = 
 (\lambda_1, \lambda_2, \lambda_3) \;=\; \frac{1}{1 + 10^2 + 10^4}\,(1, 10^2, 10^4) \;\approx\; (10^{-4},\, 10^{-2},\, 1).
 ```
 
-The scheme breaks down when the gradients are correlated: $\langle \nabla\ell_i, \nabla\ell_j\rangle \neq 0$ means that scaling up $\lambda_3$ to "boost" $\ell_3$ also moves $\theta$ along the $\nabla\ell_1$ direction, changing $\ell_1$. The "equal contribution" targeted by the fixed weights is no longer a fixed point: each parameter update changes the local gradient geometry, and weights tuned at one iteration become wrong at the next. Adaptive schemes (ReLoBRaLo, GradNorm) re-tune the $\lambda_i$ at every step, recovering the equalisation in a way that fixed weights cannot.
+The scheme breaks down when the gradients are correlated: $\langle \nabla\ell_i, \nabla\ell_j\rangle \neq 0$ means that scaling up $\lambda_3$ to "boost" $\ell_3$ also moves $\theta$ along the $\nabla\ell_1$ direction, changing $\ell_1$. The "equal contribution" targeted by the fixed weights is no longer a fixed point: each parameter update changes the local gradient geometry, and weights tuned at one iteration become wrong at the next. Adaptive schemes (ReLoBRaLo, GradNorm) re-tune the $\lambda_i$ at every step, recovering the equalization in a way that fixed weights cannot.
 
 **{prf:ref}`ex-ch4-5`: Pareto frontier geometry.** *(i)* Differentiate $\mathcal{L}(\theta;\lambda) = \lambda(\theta-a)^2 + (1-\lambda)(\theta-b)^2$ in $\theta$ and set to zero: $2\lambda(\theta - a) + 2(1-\lambda)(\theta - b) = 0$, hence
 
@@ -419,7 +419,7 @@ If $\langle\nabla\ell_1,\nabla\ell_2\rangle>0$, reducing one component tends to 
 
 - *(a, i) RTX 3060 + fixed-topology MLP search:* **Random Search with Successive Halving.** Search space is small (a few thousand candidate combinations), the GPU is too small for graph-level NAS, and SH amortizes the budget across many candidates by killing weak ones early. Bayesian Optimization helps marginally but adds GP-fitting overhead that is not worth it on a single GPU.
 
-- *(a, ii) RTX 3060 + graph-level NAS:* **Random Search.** Full DARTS-style NAS would not fit in $12$ GB of VRAM (the supernetwork concept-search needs several model copies in memory simultaneously); a small fixed pool of architectures evaluated at low resource is the only feasible option.
+- *(a, ii) RTX 3060 + graph-level NAS:* **Random Search.** Full DARTS-style NAS would not fit in $12$ GB of VRAM (the supernetwork search needs several model copies in memory simultaneously); a small fixed pool of architectures evaluated at low resource is the only feasible option.
 
 - *(b, i) A100 + fixed-topology MLP search:* **Bayesian Optimization**. The A100's compute headroom makes the per-step BO overhead negligible, and the search space's smooth landscape (continuous learning rate, ordinal depth/width) is exactly where GP surrogates dominate Random Search.
 
@@ -494,7 +494,7 @@ At any KKT point, both squared terms vanish exactly: the Euler residual is zero 
 
 The expected shape: $k'^h \approx 0$ for the very young (constrained), peaks around age 40–50 (middle of working life), declines toward retirement, drops to zero for the oldest cohort that does not save into the next period. In notebook `lecture_08_10_OLG_Benchmark_DEQN_persistent.ipynb`, plotting the trained network's $k'^h$ against cohort age $h$ should reveal exactly this single-peak shape; the position of the peak depends on the calibration of $(\beta, \delta, A_\mathrm{tfp})$ and on the lifecycle labor profile.
 
-**{prf:ref}`ex-ch5-4`: Hard aggregation layer.** Coding exercise. The current analytic notebook already clears the capital market by defining $K_{t+1}$ as the sum of predicted cohort savings. The alternative hard-layer variant is useful when the network has a separate aggregate-capital head. Implementation sketch: output a positive scalar $\widehat K_{t+1}$ and unnormalised cohort scores $(z^2, \dots, z^A)$; apply softmax along the cohort axis, $s^h = \mathrm{softmax}(z^h)$; rescale to capital:
+**{prf:ref}`ex-ch5-4`: Hard aggregation layer.** Coding exercise. The current analytic notebook already clears the capital market by defining $K_{t+1}$ as the sum of predicted cohort savings. The alternative hard-layer variant is useful when the network has a separate aggregate-capital head. Implementation sketch: output a positive scalar $\widehat K_{t+1}$ and unnormalized cohort scores $(z^2, \dots, z^A)$; apply softmax along the cohort axis, $s^h = \mathrm{softmax}(z^h)$; rescale to capital:
 
 ```{math}
 :enumerated: false
@@ -503,7 +503,7 @@ k_{t+1}^h \;=\; \widehat K_{t+1} \cdot s^h, \qquad
    \sum_{h=2}^{A} k_{t+1}^h \;=\; \widehat K_{t+1}\;\;\text{by construction}.
 ```
 
-The market-clearing residual $\sum_h k^h - \widehat K_{t+1}$ is identically zero up to floating-point precision. The comparison with the current notebook should therefore focus on Euler residuals and wall-clock time: the hard layer removes one possible inconsistency but also changes the parameterisation, so faster convergence is an empirical question rather than a mathematical guarantee. In multi-asset settings each exact clearing condition needs its own accounting layer, which is why the 56-agent benchmark enforces bond-market clearing as an explicit residual instead.
+The market-clearing residual $\sum_h k^h - \widehat K_{t+1}$ is identically zero up to floating-point precision. The comparison with the current notebook should therefore focus on Euler residuals and wall-clock time: the hard layer removes one possible inconsistency but also changes the parameterization, so faster convergence is an empirical question rather than a mathematical guarantee. In multi-asset settings each exact clearing condition needs its own accounting layer, which is why the 56-agent benchmark enforces bond-market clearing as an explicit residual instead.
 
 **{prf:ref}`ex-ch5-5`: Bond pricing in equilibrium.** Cohort $h$'s Euler equation for capital is
 
@@ -614,7 +614,7 @@ This is $\mathcal{O}(1)$ per query (one log + one floor), independent of grid si
 
 *Why higher moments do not always rescue.* Adding the variance to the forecasting rule helps with smooth perturbations but cannot capture multi-modal distributions, regime-switching, or non-monotone responses to skewness. The fundamental issue is that the master equation requires *full* cross-sectional information whenever prices are non-linear in the distribution; truncating to any finite set of moments is exact only in the linear-pricing case.
 
-**{prf:ref}`ex-ch6-4`: Sequence-space vs. histogram DEQN.** Coding exercise. Empirically: with truncation horizon $T = 80$ and the chapter's reference calibration, the sequence-space residual after training matches the histogram-based DEQN to within a factor of $1.2$–$1.5$ on the same model. The sequence-space variant generalizes *worse* to a much longer test horizon ($T_\mathrm{test} \gg 80$) because the truncation error $\rho_z^T$ grows with the gap; the histogram variant does not have this issue because its state is stationary. The trade-off favors sequence-space when the cross-sectional distribution is intrinsically high-dimensional (e.g., multiple assets, multi-cohort wealth), at which point storing $T$ shock realizations is cheaper than discretizing the distribution.
+**{prf:ref}`ex-ch6-4`: Sequence-space vs. histogram DEQN.** Coding exercise. Empirically: with truncation horizon $T = 80$ and the chapter's reference calibration, the sequence-space residual after training matches the histogram-based DEQN to within a factor of $1.2$–$1.5$ on the same model. The sequence-space variant generalizes *worse* to a much longer test horizon ($T_\mathrm{test} \gg 80$): its input is a fixed-length shock window, so it inherits an error floor of order $\max\{|\varrho|,|\alpha|\}^{T}$ that training cannot remove and that is paid afresh at every date of a long test path. The histogram variant does not have this issue because its state is the current distribution, a genuine Markov state. The trade-off favors sequence-space when the cross-sectional distribution is intrinsically high-dimensional (e.g., multiple assets, multi-cohort wealth), at which point storing $T$ shock realizations is cheaper than discretizing the distribution.
 
 **{prf:ref}`ex-ch6-5`: DeepSets permutation invariance.** *(i)* Let $\pi$ be a permutation of $\{1, \dots, N\}$. The aggregator's $m$-th component is
 
@@ -626,7 +626,7 @@ m_t^m(\pi \cdot s) \;=\; \sum_{i=1}^N g_\theta^m\bigl(s_t^{\pi(i)}\bigr) \;=\; \
 
 where the second equality is just a re-indexing of the sum (since addition is commutative). Therefore $\bm m_t(\pi \cdot s) = \bm m_t(s)$, exactly invariant.
 
-*(ii)* The policy $\pi_\rho(s_t^i; \bm m_t, a_t)$ is a function of agent $i$'s own state $s_t^i$, the population summary $\bm m_t$, and the aggregate exogenous state $a_t$. Under a permutation $\pi$, agent $\pi(i)$'s individual state is now $s_t^{\pi(i)}$, while $\bm m_t$ and $a_t$ are unchanged (by the result in (i) for $\bm m_t$). Therefore the policy of agent $\pi(i)$ in the permuted economy equals the policy of agent $\pi(i)$ in the original economy, i.e. the policy moves with its own agent index but is otherwise unaffected: *equivariance*.
+*(ii)* The policy $\pi_\rho(s_t^i; \bm m_t, a_t)$ is a function of agent $i$'s own state $s_t^i$, the population summary $\bm m_t$, and the aggregate exogenous state $a_t$. Under a permutation $\pi$, agent $\pi(i)$'s individual state is now $s_t^{\pi(i)}$, while $\bm m_t$ and $a_t$ are unchanged (by the result in (i) for $\bm m_t$). Therefore the policy at slot $i$ in the permuted economy equals the policy of agent $\pi(i)$ in the original economy, i.e. the policy travels with its own agent rather than with its position: *equivariance*.
 
 *(iii)* {cite:t}`zaheer2017deep` prove that any continuous permutation-invariant function $f: \mathbb{R}^{d \times N} \to \mathbb{R}$ on sets of fixed cardinality $N$ can be written as $f(s_1, \dots, s_N) = \rho\bigl(\sum_{i=1}^N g(s_i)\bigr)$ for some continuous functions $g, \rho$. This is the universal-approximation result for permutation-invariant DeepSets.
 
@@ -652,7 +652,7 @@ where the second equality is just a re-indexing of the sum (since addition is co
 
 Both boundary conditions hold for *any* network output $\mathcal{N}_\rho$, so the BCs are encoded in the architecture rather than enforced via the loss.
 
-*Why preferable to a soft penalty?* A soft penalty $\lambda\,(\hat y(0) - 0)^2 + \lambda\,(\hat y(\pi/2) - 1)^2$ in the loss involves a hyperparameter $\lambda$ that must be tuned: too small, and the BC violation is large; too large, and the interior PDE residual is starved of optimization budget. The trial-function enforcement is parameter-free, makes the BC residual identically zero, and reduces the loss to the single PDE-interior term $\sup_x |y'' + y|^2$. This separates the two optimization concerns cleanly; any wall-clock gain should be measured in the notebook rather than assumed.
+*Why preferable to a soft penalty?* A soft penalty $\lambda\,(\hat y(0) - 0)^2 + \lambda\,(\hat y(\pi/2) - 1)^2$ in the loss involves a hyperparameter $\lambda$ that must be tuned: too small, and the BC violation is large; too large, and the interior PDE residual is starved of optimization budget. The trial-function enforcement is parameter-free, makes the BC residual identically zero, and reduces the loss to the single PDE-interior term $\frac{1}{N_r}\sum_i |\hat y''(x_i) + \hat y(x_i)|^2$ over the collocation points. This separates the two optimization concerns cleanly; any wall-clock gain should be measured in the notebook rather than assumed.
 
 **{prf:ref}`ex-ch7-2`: ReLU pathology.** A ReLU network is piecewise-linear: between consecutive kinks $x = -b_k/a_k$ it is affine in $x$, so $\partial^2 \hat y/\partial x^2 = 0$ a.e. At a kink, the second distributional derivative is a Dirac delta supported on a measure-zero set. The strong-form Black–Scholes residual
 
@@ -798,7 +798,7 @@ This is a linear ODE for $\ln g^\star$; integrating gives $\ln g^\star = -\eta(x
 g^\star(x) \;\propto\; \exp\!\bigl[-\eta(x - \bar X)^2/\sigma^2\bigr].
 ```
 
-This is a Gaussian density with mean $\bar X$ and variance $\sigma^2/(2\eta)$, normalised by $\int g^\star\,dx = 1$:
+This is a Gaussian density with mean $\bar X$ and variance $\sigma^2/(2\eta)$, normalized by $\int g^\star\,dx = 1$:
 
 ```{math}
 :enumerated: false
@@ -974,7 +974,7 @@ where $\mathbf{1} = (1,1,1)^\top$ and the $\mathcal{O}(10^{-4})$ correction come
 
 the prior variance. Hence far from data the GP literally returns the prior $\mathcal{N}(0, \sigma_f^2)$, regardless of the training data.
 
-*(iii)* Coding verification: at $x = 3$ (with $\ell \approx 0.2$ for the training data), the cross-kernel is $\exp(-(3-1)^2/(2\cdot 0.04)) = \exp(-50) \approx 10^{-22}$, well below floating-point precision. Posterior mean $\approx 0$, posterior s.d. $\approx \sigma_f \approx 0.5$ (whatever was learned via marginal-likelihood maximisation).
+*(iii)* Coding verification: at $x = 3$ (with $\ell \approx 0.2$ for the training data), the cross-kernel is $\exp(-(3-1)^2/(2\cdot 0.04)) = \exp(-50) \approx 10^{-22}$, well below floating-point precision. Posterior mean $\approx 0$, posterior s.d. $\approx \sigma_f \approx 0.5$ (whatever was learned via marginal-likelihood maximization).
 
 *(iv)* The implication is more subtle than "overconfidence." Far from the training data the posterior literally reverts to the prior, so the $\pm 2\sigma_f$ band there is exactly what the prior would have produced before any data were observed; it is overconfident only when the prior variance or the learned length scale is itself misleading, for instance when $\sigma_f$ was calibrated by marginal-likelihood maximization on a training set that does not represent the function's scale outside the training hull. In particular, the posterior does not know that $f$ continues oscillating outside $[0,1]$; it just reverts to zero with a band of width $\sigma_f$, regardless of whether the true function actually stays close to zero there. Bayesian active learning algorithms that select points by maximum posterior variance can therefore fail to acquire informative samples outside the convex hull when the prior variance is no larger than the within-hull noise scale.
 
@@ -1210,19 +1210,48 @@ where the value of information just balances the irreversibility cost.
 
 *Connection to climate policy.* This stylized model captures the central tension in climate policy: information arrives over time about ECS, damage functions, and tipping thresholds, but emissions are largely irreversible (atmospheric CO$_2$ persists for centuries). The chapter's Bayesian-learning treatment makes the trade-off quantitative: under fast learning and slow climate dynamics, waiting can be optimal; under slow learning and fast tipping risks, an early-action premium emerges. The empirical literature {cite:p}`pindyck2007uncertainty,caiSocialCostCarbon2019` finds that for realistic climate calibrations, the irreversibility channel typically dominates, supporting near-term carbon tax implementation rather than "wait and see" policies.
 
+**{prf:ref}`ex-ch11-10`: Non-stationary DEQN on a 1D toy.** *(i) LQ-Riccati baseline.* This is a finite-horizon linear-quadratic tracking problem, so the value function is quadratic in the state with time-varying coefficients. Conjecture $V_t(x) = P_t x^2 + 2 q_t x + c_t$ with terminal condition $V_{T_{\max}}(x) = \lambda_T (x - x^\ast_{T_{\max}})^2$, i.e. $P_{T_{\max}} = \lambda_T$ and $q_{T_{\max}} = -\lambda_T\,x^\ast_{T_{\max}}$. Writing $D_t = r + P_{t+1}$, the Bellman first-order condition in $u$ gives the affine policy
+
+```{math}
+:enumerated: false
+
+u^\star_t(x) \;=\; -\,\frac{P_{t+1}\bigl(\alpha x + g_t\bigr) + q_{t+1}}{D_t}
+   \;=\; -K_t\,x - k_t,
+   \qquad
+   K_t = \frac{\alpha P_{t+1}}{D_t},
+   \quad
+   k_t = \frac{P_{t+1}\,g_t + q_{t+1}}{D_t},
+```
+
+and substituting back yields the backward Riccati recursions
+
+```{math}
+:enumerated: false
+
+P_t \;=\; 1 + \frac{\alpha^2 r\,P_{t+1}}{D_t},
+   \qquad
+   q_t \;=\; -x^\ast_t + \frac{\alpha r\,\bigl(P_{t+1}\,g_t + q_{t+1}\bigr)}{D_t}.
+```
+
+The additive Gaussian shock exhibits certainty equivalence: $\sigma$ enters only the constant $c_t$ (through a $P_{t+1}\sigma^2$ term), so the optimal policy is identical whether the rollouts are noisy or deterministic, and the trained DEQN must recover the same feedback rule in both cases. At the stated calibration, iterating the recursions shows that $P_t$ sits at its stationary value $\approx 1.083$ and the gain at $K_t \approx 0.870$ over almost the entire horizon, with a short boundary layer near $T_{\max}$ (the terminal weight $P_{T_{\max}} = \lambda_T = 5$ is far above the stationary $P$, pulling $K_{T_{\max}-1}$ up to $\approx 0.931$). The genuine calendar-time dependence of the policy therefore lives almost entirely in the intercept $k_t$, through the drift $g_t$, the target path $x^\ast_t = a + bt$, and $q_{t+1}$, plus the end-of-horizon Riccati transient.
+
+*(ii)–(iii) Training and verification.* Coding parts; the three ingredients map one-to-one onto the modifications of {ref}`sec-nsdeqn_algo`: the bounded time input $\tau_t$ is "time enters as a state," the calendar-time stratification mirrors the forward-simulated training pool, and the terminal penalty is the short-horizon replacement for the transversality-by-long-horizon argument. Anchor the verification in part (iii) on the closed form above: evaluate $u^\star_t(x)$ from the recursions along a test set of simulated paths and compare with the network's actions in the mean-squared-action metric; the $1\%$ tolerance is achievable with a small MLP, and the realized gap is a run output.
+
+*(iv) Ablations.* The analysis in (i) predicts the ranking. Dropping $\tau_t$ hurts most, and increasingly so as $T_{\max}$ grows: without a time input the network can only represent a time-averaged policy, while the true intercept $k_t$ drifts linearly through $g_t$ and $x^\ast_t$, so the representation error grows with the length of the target path. Removing the terminal penalty degrades tracking only in the boundary layer near $T_{\max}$ where the $K_t$ transient lives, leaving the interior fit largely intact. Removing stratification does not change what the network *can* represent; it degrades the optimization by under-weighting sparsely sampled calendar-time bins, an effect that is real but typically the mildest of the three. Exact magnitudes are outputs of the ablation runs and should be reported from them.
+
 (sol-ch12)=
 ## {ref}`ch-outlook`: Synthesis and Outlook
 **{prf:ref}`ex-ch12-1`: Method-choice scenario.** Sketch:
 
 *(a) 4-state monetary-policy DSGE with smooth shocks.* Use **classical perturbation or projection as the baseline**. The state space is small and the shocks are smooth, so a classical method is transparent, fast, and easy to audit. A DEQN becomes attractive only if the model is extended with genuinely global nonlinearities (for example a binding zero lower bound, occasionally binding collateral constraints, or a highly non-quadratic loss). Hybrid: use a GP surrogate over policy-rule parameters after the classical or DEQN solution step if many counterfactuals are needed.
 
-*(b) 200-agent OLG with progressive taxation.* Use **DEQN with Young's-method aggregation** ({ref}`ch-olg`, {ref}`ch-young`). $200$ cohorts is at the edge where explicit-panel methods (all-in-one DL) and histogram methods compete; histograms are easier when constraints bind frequently across cohorts. Hybrid: post-train a GP surrogate over the Pareto-weight calibration to evaluate optimal-tax-rule sensitivity.
+*(b) 200-agent OLG with progressive taxation.* Use **DEQN with Young's-method aggregation** ({ref}`ch-olg` and {ref}`ch-young`). $200$ cohorts is at the edge where explicit-panel methods (all-in-one DL) and histogram methods compete; histograms are easier when constraints bind frequently across cohorts. Hybrid: post-train a GP surrogate over the Pareto-weight calibration to evaluate optimal-tax-rule sensitivity.
 
 *(c) Exotic option pricing on an irregularly shaped payoff.* Use **PINN or Deep Galerkin methods with careful treatment of the payoff kink** ({ref}`ch-pinn`) for a single-contract instance, or **DeepONet** if prices are needed for many strikes or contract parameters. The non-smooth object is the terminal payoff, not a generic spatial boundary; for a strong-form Black–Scholes residual this usually calls for smoothing the payoff, using smooth activations away from the kink, or switching to a weak/viscosity-aware formulation. GP surrogates can help as an outer pricing surface over a few parameters, but they are not the primitive PDE solver.
 
 *(d) Climate-IAM where SCC uncertainty is the deliverable.* Use the **full pipeline**: DEQN to solve the deterministic IAM, GP surrogate over deep-uncertain parameters (ECS, damage convexity, tipping thresholds), Sobol/Shapley sensitivity decomposition for attribution, and BAL for sample-efficient uncertainty quantification ({ref}`ch-climate`, {ref}`ch-gp`). This combines the IAM uncertainty-quantification workflow of {cite:t}`friedlDeep2023` with the surrogate-based policy-search logic in {cite:t}`kubler2025using`.
 
-**{prf:ref}`ex-ch12-2`: When NOT to use deep learning.** Open-ended. Sketch of one regime: *bit-exact reproducibility for regulatory audit*. GPU non-determinism in atomic accumulators (described in Appendix E) means that a deep-learning solver typically cannot reproduce the same numbers across hardware platforms; for regulatory work where auditors must replay every step bitwise, a deterministic finite-difference solver on a fixed grid is preferable. Even when deterministic flags are set, BLAS implementations differ across CUDA versions. Classical fixed-grid methods are easier to make bit-reproducible because the operation order can be pinned and the solver path is usually far less sensitive to random initialization and stochastic mini-batches.
+**{prf:ref}`ex-ch12-2`: When NOT to use deep learning.** Open-ended. Sketch of one regime: *bit-exact reproducibility for regulatory audit*. GPU non-determinism in atomic accumulators (described in Appendix {ref}`app-reproducibility`) means that a deep-learning solver typically cannot reproduce the same numbers across hardware platforms; for regulatory work where auditors must replay every step bitwise, a deterministic finite-difference solver on a fixed grid is preferable. Even when deterministic flags are set, BLAS implementations differ across CUDA versions. Classical fixed-grid methods are easier to make bit-reproducible because the operation order can be pinned and the solver path is usually far less sensitive to random initialization and stochastic mini-batches.
 
 **{prf:ref}`ex-ch12-3`: Reproducibility audit.** Coding exercise. Expected behavior: re-running notebook `lecture_03_02_Brock_Mirman_Uncertainty_DEQN.ipynb` on the same machine with the same seeds should reproduce the reported diagnostics within the stated tolerance. Bitwise equality of trained network parameters should be expected only when deterministic framework settings, hardware, BLAS/CUDA versions, and floating-point order of operations are all pinned. Re-running on a different GPU, or with deterministic flags off, can produce small deviations in the last few printed digits of the savings-rate diagnostics while remaining well within the residual tolerance of the training.
 
