@@ -129,17 +129,59 @@ jobs:
           echo "OK — no literal '{.unnumbered}' in rendered output."
       - name: Build summary
         if: always()
-        working-directory: /tmp
+        # myst emits one line per warning marked with a warning sign, and a
+        # "Built N pages" summary. The TAIL of the log is HTTP GETs from the
+        # theme's static export server, so tailing it surfaces nothing useful --
+        # extract the signal instead.
+        #
+        # The baseline is 3, and it is worth being precise about what they are,
+        # because mystmd/VALIDATION.md records "2 warnings, 0 errors":
+        #
+        #   1. ch03_irbc.md missing heading depth 4   ) the two \paragraph
+        #   2. ch09_surrogates_gps.md missing depth 4 ) commands kept by design
+        #   3. an oversized PNG that is slow to convert to webp
+        #
+        # VALIDATION.md documents (1) and (2) and omits (3), so its count is one
+        # low. Verified against the 3edf991 deploy as well, so this is a
+        # longstanding doc discrepancy rather than a regression. The baseline
+        # here tracks what the build actually emits.
+        #
+        # A change in the count is annotated but does not fail the build. Note
+        # that warning (3) carries a content hash in its filename, so the text
+        # varies between builds even though the count does not.
         run: |
+          LOG=/tmp/myst-build.log
+          if [ ! -f "$LOG" ]; then
+            echo "### MyST build — no build log produced" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          BASELINE=3
+          WARNINGS=$(grep -c '⚠️' "$LOG" || true)
+          BUILT=$(grep '📚 Built' "$LOG" | tail -n 1 | sed 's/^[[:space:]]*//' || true)
+          CONVERTER=$(cut -c1-7 "${GITHUB_WORKSPACE}/mystmd/.tool-version")
           {
             echo "### MyST build — \`${GITHUB_EVENT_NAME}\`"
             echo ""
-            echo "Renderer \`qe-v10\`; converter pin \`$(cut -c1-7 "${GITHUB_WORKSPACE}/mystmd/.tool-version")\`."
-            echo ""
-            echo '```'
-            tail -n 40 /tmp/myst-build.log 2>/dev/null || echo "(no build log)"
-            echo '```'
+            echo "| | |"
+            echo "|---|---|"
+            echo "| renderer | \`qe-v10\` |"
+            echo "| converter | \`${CONVERTER}\` |"
+            echo "| warnings | ${WARNINGS} (baseline ${BASELINE}) |"
+            echo "| result | ${BUILT:-unknown} |"
+            if [ "${WARNINGS}" -gt 0 ]; then
+              echo ""
+              echo "<details><summary>Warnings</summary>"
+              echo ""
+              echo '```'
+              grep '⚠️' "$LOG" || true
+              echo '```'
+              echo ""
+              echo "</details>"
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
+          if [ "${WARNINGS}" -ne "${BASELINE}" ]; then
+            echo "::warning::MyST build warning count is ${WARNINGS}, baseline is ${BASELINE}. Both baseline warnings are kept by design -- review what changed."
+          fi
       - name: Upload artifact
         if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v5
