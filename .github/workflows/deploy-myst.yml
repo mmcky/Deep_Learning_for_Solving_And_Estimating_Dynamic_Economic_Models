@@ -143,12 +143,25 @@ jobs:
         # (verified against a local qe-v10 build); the page .json carries the
         # rendered heading text, so a stale renderer shows up there.
         run: |
-          if grep -rl '{\.unnumbered}' _build/html --exclude-dir=build > /tmp/unnumbered-hits 2>/dev/null; then
+          # A guard must hold itself to its own standard: distinguish grep's
+          # "no match" (exit 1) from "could not run" (exit 2+), and fail loudly
+          # on the latter instead of printing OK. `|| status=$?` keeps the
+          # bare grep from tripping the runner's `bash -e` on a clean pass.
+          if [ ! -d _build/html ]; then
+            echo "::error::_build/html is missing — the build produced no output to check."
+            exit 1
+          fi
+          status=0
+          grep -rl '{\.unnumbered}' _build/html --exclude-dir=build > /tmp/unnumbered-hits || status=$?
+          if [ "$status" -eq 0 ]; then
             echo "::error::Stale renderer: '{.unnumbered}' is rendering as literal text."
             echo "The renderer pin in this workflow is out of step with mystmd/.tool-version."
             echo "Affected output files:"
             cat /tmp/unnumbered-hits
             exit 1
+          elif [ "$status" -ne 1 ]; then
+            echo "::error::grep failed (exit $status) — the guard could not run."
+            exit "$status"
           fi
           echo "OK — no literal '{.unnumbered}' in rendered output."
       - name: Build summary
