@@ -57,6 +57,11 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # A healthy build is ~5 min. The default job timeout is 6 HOURS, and a
+    # `main` deploy on 2026-08-19 hung in apt-get for 37 minutes before being
+    # cancelled by hand — with a PR trigger now doubling the run count, an
+    # unattended hang is worth bounding.
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: mystmd
@@ -187,6 +192,7 @@ jobs:
     # PRs build but never publish.
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: read
       pages: write
