@@ -19,8 +19,8 @@
 # is COUPLED to the converter pin in mystmd/.tool-version, and the coupling is
 # the strict kind — a stale renderer corrupts pages rather than failing. Without
 # a `pull_request` trigger the first build of a pin change happened *after* it
-# merged, against the branch that publishes. Since merges now land upstream, the
-# blast radius of a bad pin is the published book.
+# merged, against the branch that publishes — and a merge to `main` publishes
+# the book, so the blast radius of a bad pin is the live site.
 #
 # `workflow_dispatch` stays, so a maintainer can still publish on demand from
 # whatever ref they select.
@@ -179,7 +179,7 @@ jobs:
             fi
           } >> "$GITHUB_STEP_SUMMARY"
           if [ "${WARNINGS}" -ne "${BASELINE}" ]; then
-            echo "::warning::MyST build warning count is ${WARNINGS}, baseline is ${BASELINE}. Both baseline warnings are kept by design -- review what changed."
+            echo "::warning::MyST build warning count is ${WARNINGS}, baseline is ${BASELINE} (two \paragraph depth-4 headings kept by design, plus one oversized-PNG webp warning) -- review what changed."
           fi
       - name: Upload artifact
         if: github.event_name != 'pull_request'
