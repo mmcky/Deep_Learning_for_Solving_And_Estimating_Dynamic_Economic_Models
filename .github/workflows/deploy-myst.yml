@@ -72,12 +72,20 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Install ImageMagick
-        # Step-level timeout because this hung twice on 2026-08-19 (apt-get
-        # stalled on a runner; ~40 s when healthy). Bounding the step turns a
-        # runner-side apt stall into a fast, clearly-attributed failure instead
-        # of consuming the job's whole budget.
+        # ~50 s when healthy (imagemagick + webp are real installs, 31
+        # packages — not on the runner image). Hardened after three incidents
+        # on 2026-08-19 where the runner's primary apt mirror
+        # (azure.archive.ubuntu.com) went unreachable: apt stalled on it
+        # indefinitely even though the fallback mirror was reachable, hanging
+        # two jobs for 30+ minutes and a third for 10. The Acquire timeouts
+        # make a dead mirror fail over in seconds; the step timeout bounds
+        # whatever apt does next and names this step in the failure instead of
+        # letting it read as a slow MyST build.
         timeout-minutes: 10
-        run: sudo apt-get update && sudo apt-get install -y imagemagick webp
+        run: |
+          APT_OPTS='-o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 -o Acquire::Retries=2'
+          sudo apt-get $APT_OPTS update
+          sudo apt-get $APT_OPTS install -y imagemagick webp
       - uses: actions/setup-node@v7
         with:
           node-version: 22.x
