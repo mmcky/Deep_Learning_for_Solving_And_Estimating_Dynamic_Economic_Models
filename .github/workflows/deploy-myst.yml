@@ -23,7 +23,11 @@
 # the book, so the blast radius of a bad pin is the live site.
 #
 # `workflow_dispatch` stays, so a maintainer can still publish on demand from
-# whatever ref they select.
+# whatever ref they select — subject to the `github-pages` environment's
+# deployment branch policy, which lists the refs allowed to deploy at all. A
+# dispatch from a branch outside that list builds fine and is then rejected at
+# the deploy job by environment protection (observed 2026-08-19), so add the
+# branch to the environment's allowed list first if the intent is to publish.
 
 name: MyST GitHub Pages Deploy
 on:
