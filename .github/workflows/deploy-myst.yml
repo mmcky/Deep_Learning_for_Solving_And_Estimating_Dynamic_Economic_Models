@@ -1,18 +1,29 @@
-# Build the MyST Markdown version of the script and deploy to GitHub Pages.
+# Build the MyST Markdown version of the script, and deploy to GitHub Pages.
 #
-# Publishing is driven by `main` only. The published site should mirror the
-# book's released state, so the branch that publishes is the branch that is
-# released — a feature branch publishing to the same Pages target means the
-# live site reflects whichever branch pushed most recently, which is not a
-# property anyone can reason about.
+# Two jobs, deliberately split:
+#
+#   build   runs on push to `main`, on pull requests, and on manual dispatch.
+#           It compiles the renderer, builds the site, and runs the renderer
+#           coupling guard below. It never publishes.
+#   deploy  runs only when the event is NOT a pull request. It holds the
+#           elevated Pages permissions and the `pages` concurrency group.
+#
+# Publishing is still driven by `main` only. The published site should mirror
+# the book's released state, so the branch that publishes is the branch that is
+# released — a feature branch publishing to the same Pages target means the live
+# site reflects whichever branch pushed most recently, which is not a property
+# anyone can reason about. The `pull_request` trigger added here does not change
+# that: PRs build, they do not publish.
+#
+# Why PRs need to build at all. This workflow's renderer pin (`qe-v10`, below)
+# is COUPLED to the converter pin in mystmd/.tool-version, and the coupling is
+# the strict kind — a stale renderer corrupts pages rather than failing. Without
+# a `pull_request` trigger the first build of a pin change happened *after* it
+# merged, against the branch that publishes. Since merges now land upstream, the
+# blast radius of a bad pin is the published book.
 #
 # `workflow_dispatch` stays, so a maintainer can still publish on demand from
 # whatever ref they select.
-#
-# Note for review: while the conversion work lives on `mystmd-conversion`,
-# this means the deployed preview does not refresh on pushes to that branch.
-# Verify changes with a local `myst build --html`, or trigger the workflow
-# manually against the branch.
 
 name: MyST GitHub Pages Deploy
 on:
@@ -21,26 +32,30 @@ on:
     paths:
       - 'mystmd/**'
       - '.github/workflows/deploy-myst.yml'
+  pull_request:
+    paths:
+      - 'mystmd/**'
+      - '.github/workflows/deploy-myst.yml'
   workflow_dispatch:
 
 env:
-  # BASE_URL tells MyST where the site is served from (asset paths)
+  # BASE_URL tells MyST where the site is served from (asset paths). Set at the
+  # workflow level so a PR build produces byte-identical HTML to a deploy build.
   BASE_URL: /${{ github.event.repository.name }}
 
+# Least privilege by default; the deploy job elevates for itself.
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
+# Per-ref, so PR builds queue against themselves rather than against a real
+# publish. Superseded PR builds are cancelled; pushes to main are never
+# cancelled. The deploy job additionally holds the global `pages` group.
 concurrency:
-  group: 'pages'
-  cancel-in-progress: false
+  group: myst-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  build:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -48,6 +63,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Setup Pages
+        # Deploy-only: configures the Pages target. The build reads BASE_URL
+        # from the workflow env, not from this action's outputs, so skipping it
+        # on a PR does not change the HTML that gets built.
+        if: github.event_name != 'pull_request'
         uses: actions/configure-pages@v6
       - name: Install ImageMagick
         run: sudo apt-get update && sudo apt-get install -y imagemagick webp
@@ -71,6 +90,8 @@ jobs:
         # corrupts pages rather than merely forfeiting a fix — unlike R26's
         # qe-v9 coupling (QuantEcon/claude-latex-to-myst#201, per-row align
         # numbering), which fails silently. Both pins move in one commit.
+        # The "Renderer coupling guard" step below turns that corruption from
+        # silent into a build failure.
         # Checkout is by tag name; the qe-v10 commit is
         # 12a8b26b200703c7d22bba2531cf497b7baa23c2.
         working-directory: /tmp
@@ -82,11 +103,66 @@ jobs:
           bun run build
           npm install -g /tmp/qe-mystmd/packages/mystmd
       - name: Build HTML Assets
-        run: myst build --html
+        run: |
+          set -o pipefail
+          myst build --html 2>&1 | tee /tmp/myst-build.log
+      - name: Renderer coupling guard
+        # The one failure this workflow could not previously see: `myst build`
+        # SUCCEEDS with a stale renderer, and simply emits `{.unnumbered}` as
+        # literal heading text with a polluted auto-slug (so anchors and the
+        # cross-references pointing at them break too).
+        #
+        # Scope matters. _build/html/build/ holds MyST's staged copies of the
+        # SOURCE .md, which contain the literal `{.unnumbered}` syntax by
+        # definition — 24 files on a healthy build. Excluding that directory,
+        # a correct renderer leaves zero occurrences anywhere in the output
+        # (verified against a local qe-v10 build); the page .json carries the
+        # rendered heading text, so a stale renderer shows up there.
+        run: |
+          if grep -rl '{\.unnumbered}' _build/html --exclude-dir=build > /tmp/unnumbered-hits 2>/dev/null; then
+            echo "::error::Stale renderer: '{.unnumbered}' is rendering as literal text."
+            echo "The renderer pin in this workflow is out of step with mystmd/.tool-version."
+            echo "Affected output files:"
+            cat /tmp/unnumbered-hits
+            exit 1
+          fi
+          echo "OK — no literal '{.unnumbered}' in rendered output."
+      - name: Build summary
+        if: always()
+        working-directory: /tmp
+        run: |
+          {
+            echo "### MyST build — \`${GITHUB_EVENT_NAME}\`"
+            echo ""
+            echo "Renderer \`qe-v10\`; converter pin \`$(cut -c1-7 "${GITHUB_WORKSPACE}/mystmd/.tool-version")\`."
+            echo ""
+            echo '```'
+            tail -n 40 /tmp/myst-build.log 2>/dev/null || echo "(no build log)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
       - name: Upload artifact
+        if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v5
         with:
           path: 'mystmd/_build/html'
+
+  deploy:
+    needs: build
+    # PRs build but never publish.
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    # The global Pages group: real publishes serialise and are never cancelled.
+    concurrency:
+      group: 'pages'
+      cancel-in-progress: false
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
