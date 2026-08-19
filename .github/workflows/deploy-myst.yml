@@ -62,12 +62,6 @@ jobs:
         working-directory: mystmd
     steps:
       - uses: actions/checkout@v7
-      - name: Setup Pages
-        # Deploy-only: configures the Pages target. The build reads BASE_URL
-        # from the workflow env, not from this action's outputs, so skipping it
-        # on a PR does not change the HTML that gets built.
-        if: github.event_name != 'pull_request'
-        uses: actions/configure-pages@v6
       - name: Install ImageMagick
         run: sudo apt-get update && sudo apt-get install -y imagemagick webp
       - uses: actions/setup-node@v7
@@ -205,6 +199,13 @@ jobs:
       group: 'pages'
       cancel-in-progress: false
     steps:
+      - name: Setup Pages
+        # Lives here rather than in `build` because it needs `pages` scope, and
+        # `build` deliberately holds only `contents: read` so a PR build runs
+        # with the same permissions a fork PR would get. Its outputs (base_url,
+        # origin) are not consumed anywhere — BASE_URL is set in the workflow
+        # env — so nothing in the build depends on it having run.
+        uses: actions/configure-pages@v6
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
