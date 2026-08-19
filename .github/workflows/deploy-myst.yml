@@ -73,16 +73,24 @@ jobs:
       - uses: actions/checkout@v7
       - name: Install ImageMagick
         # ~50 s when healthy (imagemagick + webp are real installs, 31
-        # packages — not on the runner image). Hardened after three incidents
+        # packages — not on the runner image). Hardened after four incidents
         # on 2026-08-19 where the runner's primary apt mirror
-        # (azure.archive.ubuntu.com) went unreachable: apt stalled on it
-        # indefinitely even though the fallback mirror was reachable, hanging
-        # two jobs for 30+ minutes and a third for 10. The Acquire timeouts
-        # make a dead mirror fail over in seconds; the step timeout bounds
-        # whatever apt does next and names this step in the failure instead of
-        # letting it read as a slow MyST build.
+        # (azure.archive.ubuntu.com) blackholed and apt hung at the same
+        # deterministic point on every run, despite the fallback mirror
+        # answering instantly. The mirror pin below is the actual fix; the
+        # Acquire timeouts bound individual requests; the step timeout is the
+        # backstop that names this step in the failure instead of letting a
+        # hang read as a slow MyST build.
         timeout-minutes: 10
         run: |
+          # The runner image routes apt through mirror+file:/etc/apt/apt-mirrors.txt
+          # with azure.archive.ubuntu.com first. When that mirror blackholes, the
+          # mirror method wedges at a deterministic point even though the fallback
+          # answers instantly, and Acquire timeouts do not unwedge it (verified on
+          # two runs, identical stall line). Pin the healthy mirror instead.
+          if [ -f /etc/apt/apt-mirrors.txt ]; then
+            printf 'https://archive.ubuntu.com/ubuntu/\tpriority:1\n' | sudo tee /etc/apt/apt-mirrors.txt >/dev/null
+          fi
           APT_OPTS='-o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 -o Acquire::Retries=2'
           sudo apt-get $APT_OPTS update
           sudo apt-get $APT_OPTS install -y imagemagick webp
