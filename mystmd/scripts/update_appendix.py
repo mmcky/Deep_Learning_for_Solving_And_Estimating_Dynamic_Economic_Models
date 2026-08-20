@@ -165,39 +165,75 @@ def resolve(mention: str, manifest: list[Notebook]) -> Notebook | None:
 # Linkification
 # --------------------------------------------------------------------------
 
+# Directive fences whose bodies are literal content rather than nested MyST
+# markdown — a notebook mention inside one is code or math, not prose to
+# link. Everything else in the {…} fence form ({table}, {exercise},
+# {prf:*}, …) nests markdown and must stay linkifiable: the chapter
+# exercises mention notebooks from inside those fences.
+LITERAL_DIRECTIVES = {
+    "code",
+    "code-block",
+    "code-cell",
+    "literalinclude",
+    "raw",
+    "math",
+}
+
+
 def linkifiable_regions(text: str) -> list[tuple[int, int]]:
-    """Spans of *text* that are prose, i.e. not inside literal code fences.
+    """Spans of *text* that are prose, i.e. not inside literal fences.
 
     Directive fences (```{table} …) contain nested MyST markdown, so their
-    bodies stay linkifiable; plain/language fences are literal code.
+    bodies stay linkifiable — except LITERAL_DIRECTIVES, whose bodies are
+    code or math. Plain/language fences are literal code. One refinement:
+    mystmd renders a directive's ``:caption:`` option as markdown even when
+    the directive body is literal (verified on ch02's ``{code-block}``
+    caption, which renders its notebook link as a real ``<a>``), so caption
+    option lines inside a literal directive stay linkifiable.
     """
     regions: list[tuple[int, int]] = []
-    fence_stack: list[tuple[int, bool]] = []  # (tick count, is_directive)
+    # (tick count, is_prose, is_directive)
+    fence_stack: list[tuple[int, bool, bool]] = []
     pos = 0
-    region_start = 0
-    in_code = False
-
-    def code_state() -> bool:
-        return any(not is_dir for _, is_dir in fence_stack)
+    run_start: int | None = 0
 
     for line in text.splitlines(keepends=True):
         stripped = line.lstrip()
-        m = re.match(r"(`{3,})(\{?)", stripped)
-        if m:
+        m = re.match(r"(`{3,})(?:\{([^}\s]+)\})?", stripped)
+        if m and m.group(1):
             ticks = len(m.group(1))
-            if fence_stack and fence_stack[-1][0] == ticks and not stripped[ticks:].strip():
+            if (
+                fence_stack
+                and fence_stack[-1][0] == ticks
+                and not stripped[ticks:].strip()
+            ):
                 fence_stack.pop()
             else:
-                fence_stack.append((ticks, m.group(2) == "{"))
-            new_in_code = code_state()
-            if new_in_code and not in_code:
-                regions.append((region_start, pos))
-            elif not new_in_code and in_code:
-                region_start = pos + len(line)
-            in_code = new_in_code
+                name = m.group(2)
+                is_prose = name is not None and name not in LITERAL_DIRECTIVES
+                fence_stack.append((ticks, is_prose, name is not None))
+            line_prose = False  # the delimiter line itself is never prose
+        elif not any(not is_prose for _, is_prose, _ in fence_stack):
+            line_prose = True
+        else:
+            # Inside literal content. Linkifiable only if it is a :caption:
+            # option of a directly enclosing literal DIRECTIVE (not a plain
+            # code fence) with nothing but prose fences above it.
+            _, innermost_prose, innermost_directive = fence_stack[-1]
+            line_prose = (
+                not innermost_prose
+                and innermost_directive
+                and all(p for _, p, _ in fence_stack[:-1])
+                and stripped.startswith(":caption:")
+            )
+        if line_prose and run_start is None:
+            run_start = pos
+        elif not line_prose and run_start is not None:
+            regions.append((run_start, pos))
+            run_start = None
         pos += len(line)
-    if not in_code:
-        regions.append((region_start, len(text)))
+    if run_start is not None:
+        regions.append((run_start, pos))
     return regions
 
 

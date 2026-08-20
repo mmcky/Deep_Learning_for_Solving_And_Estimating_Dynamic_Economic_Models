@@ -11,10 +11,10 @@ Run it before ``myst build``:
     python3 mystmd/scripts/sync_notebooks.py
 
 It also runs as part of ``bash mystmd/convert.sh`` (book-side step 5) and as
-a CI step in .github/workflows/deploy-myst.yml. Idempotent: unchanged files
-are skipped (size + mtime), and files in the destination whose source has
-disappeared are pruned, so a notebook rename upstream cannot leave a stale
-page behind.
+a CI step in .github/workflows/deploy-myst.yml. Idempotent: each copy
+mirrors its source's mtime, so a source whose mtime matches its copy is
+skipped, and files in the destination whose source has disappeared are
+pruned — a notebook rename upstream cannot leave a stale page behind.
 
 Only ``.ipynb`` files are carried. Verified against the current tree: no
 notebook references a local image or data file from a markdown cell (the one
@@ -54,14 +54,17 @@ def copy_with_frontmatter(src: Path, dest: Path, gh: str) -> None:
     nb = json.loads(src.read_text())
     relpath = src.relative_to(REPO_ROOT).as_posix()
     fm = f"---\nsource_url: {gh}/blob/main/{relpath}\nedit_url: null\n---"
-    nb.setdefault("cells", []).insert(
-        0,
-        {
-            "cell_type": "markdown",
-            "metadata": {},
-            "source": fm.splitlines(keepends=True),
-        },
-    )
+    cell = {
+        "cell_type": "markdown",
+        "metadata": {},
+        "source": fm.splitlines(keepends=True),
+    }
+    # nbformat 4.5+ requires an `id` on every cell; earlier minors do not
+    # define the key. 44 of the 68 source notebooks are 4.5, the rest
+    # 4.0–4.4, so the id is added only where the schema expects it.
+    if nb.get("nbformat", 0) >= 4 and nb.get("nbformat_minor", 0) >= 5:
+        cell["id"] = "synced-frontmatter"
+    nb.setdefault("cells", []).insert(0, cell)
     dest.write_text(json.dumps(nb, indent=1))
     # Mirror the source mtime so an unchanged source is skipped next run.
     stat = src.stat()
