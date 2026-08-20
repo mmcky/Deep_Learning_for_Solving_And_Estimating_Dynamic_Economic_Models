@@ -98,8 +98,8 @@ class Notebook:
 
     def _first_h1(self) -> str:
         try:
-            nb = json.loads(self.src.read_text())
-        except (json.JSONDecodeError, OSError):
+            nb = json.loads(self.src.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, UnicodeDecodeError, OSError):
             return self.name
         for cell in nb.get("cells", []):
             if cell.get("cell_type") != "markdown":
@@ -241,7 +241,7 @@ def process_file(
     path: Path, manifest: list[Notebook], mention_log: list[tuple[str, Notebook]]
 ) -> tuple[str, int, list[str]]:
     """Return (new_text, rewrites, errors) and log resolved mentions."""
-    text = path.read_text()
+    text = path.read_text(encoding="utf-8")
     regions = linkifiable_regions(text)
     out: list[str] = []
     errors: list[str] = []
@@ -293,7 +293,7 @@ def process_file(
 def lecture_title(lecture_folder: str) -> str:
     readme = LECTURES_DIR / lecture_folder / "README.md"
     if readme.is_file():
-        first = readme.read_text().splitlines()[0]
+        first = readme.read_text(encoding="utf-8").splitlines()[0]
         if first.startswith("# "):
             return first[2:].strip()
     return lecture_folder.replace("_", " ")
@@ -320,7 +320,9 @@ def chapter_sort_key(stem: str):
 
 
 def github_base() -> str:
-    m = re.search(r"^\s*github:\s*(\S+)", MYST_YML_PATH.read_text(), re.M)
+    m = re.search(
+        r"^\s*github:\s*(\S+)", MYST_YML_PATH.read_text(encoding="utf-8"), re.M
+    )
     return m.group(1).rstrip("/") if m else ""
 
 
@@ -437,7 +439,7 @@ def main() -> int:
     # ones that sit next to a resolvable mention).
     valid_pages = {n.page for n in manifest}
     for path in md_files:
-        text = pending.get(path, path.read_text())
+        text = pending.get(path, path.read_text(encoding="utf-8"))
         for m in EXISTING_TARGET_RE.finditer(text):
             if m.group(1) not in valid_pages:
                 line = text.count("\n", 0, m.start()) + 1
@@ -453,12 +455,17 @@ def main() -> int:
         return 1
 
     appendix = render_appendix(manifest)
-    yml_new = splice_toc(MYST_YML_PATH.read_text(), render_toc_block(manifest))
+    yml_new = splice_toc(
+        MYST_YML_PATH.read_text(encoding="utf-8"), render_toc_block(manifest)
+    )
 
     drift: list[str] = []
-    if not APPENDIX_PATH.is_file() or APPENDIX_PATH.read_text() != appendix:
+    if (
+        not APPENDIX_PATH.is_file()
+        or APPENDIX_PATH.read_text(encoding="utf-8") != appendix
+    ):
         drift.append(str(APPENDIX_PATH.relative_to(REPO_ROOT)))
-    if MYST_YML_PATH.read_text() != yml_new:
+    if MYST_YML_PATH.read_text(encoding="utf-8") != yml_new:
         drift.append("mystmd/myst.yml (generated-notebook-toc block)")
     drift.extend(str(p.relative_to(REPO_ROOT)) for p in pending)
 
@@ -481,9 +488,9 @@ def main() -> int:
         return 0
 
     for path, new_text in pending.items():
-        path.write_text(new_text)
-    APPENDIX_PATH.write_text(appendix)
-    MYST_YML_PATH.write_text(yml_new)
+        path.write_text(new_text, encoding="utf-8")
+    APPENDIX_PATH.write_text(appendix, encoding="utf-8")
+    MYST_YML_PATH.write_text(yml_new, encoding="utf-8")
     print(
         f"update_appendix: {len(manifest)} notebooks; {total_mentions} mentions "
         f"resolved ({total_rewrites} newly linkified); "

@@ -45,13 +45,15 @@ DEST_DIR = MYSTMD_DIR / "notebooks"
 
 def github_base() -> str:
     m = re.search(
-        r"^\s*github:\s*(\S+)", (MYSTMD_DIR / "myst.yml").read_text(), re.M
+        r"^\s*github:\s*(\S+)",
+        (MYSTMD_DIR / "myst.yml").read_text(encoding="utf-8"),
+        re.M,
     )
     return m.group(1).rstrip("/") if m else ""
 
 
 def copy_with_frontmatter(src: Path, dest: Path, gh: str) -> None:
-    nb = json.loads(src.read_text())
+    nb = json.loads(src.read_text(encoding="utf-8"))
     relpath = src.relative_to(REPO_ROOT).as_posix()
     fm = f"---\nsource_url: {gh}/blob/main/{relpath}\nedit_url: null\n---"
     cell = {
@@ -65,7 +67,7 @@ def copy_with_frontmatter(src: Path, dest: Path, gh: str) -> None:
     if nb.get("nbformat", 0) >= 4 and nb.get("nbformat_minor", 0) >= 5:
         cell["id"] = "synced-frontmatter"
     nb.setdefault("cells", []).insert(0, cell)
-    dest.write_text(json.dumps(nb, indent=1))
+    dest.write_text(json.dumps(nb, indent=1), encoding="utf-8")
     # Mirror the source mtime so an unchanged source is skipped next run.
     stat = src.stat()
     os.utime(dest, ns=(stat.st_atime_ns, stat.st_mtime_ns))
